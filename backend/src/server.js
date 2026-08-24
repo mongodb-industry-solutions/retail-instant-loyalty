@@ -1,0 +1,24 @@
+import Fastify from "fastify";
+import cors from "@fastify/cors"
+import customersRoutes from './routes/customers.js'
+import dbConnector from "./DB/db-connector.js";
+
+
+const app = Fastify({ logger: true });
+
+app.get('/', async (request, response) => {
+    return {Hello: 'World'}
+})
+
+const port = Number(process.env.PORT || 4000);
+
+await app.register(dbConnector);
+
+await app.register(customersRoutes);
+
+try {
+    await app.listen({port, host: "0.0.0.0"});
+} catch(err) {
+    app.log.error(err);
+    process.exit(1)
+}
