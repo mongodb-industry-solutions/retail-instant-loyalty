@@ -1,0 +1,63 @@
+/* LeafyGreen UI pass: every color below is now sourced from
+   @leafygreen-ui/palette instead of a hand-picked hex value, so this
+   app's custom CSS-module styling (page backgrounds, borders, card
+   surfaces, tier accent text) uses the same swatches LeafyGreen's own
+   components render internally — verified by reading Badge's compiled
+   source for its Blue/Yellow variant colors (background/border/text),
+   not just eyeballed for a visual match. Old hex values kept as a
+   comment next to each for reference/diff.
+   Full palette: node_modules/@leafygreen-ui/palette (or `import { palette }
+   from "@leafygreen-ui/palette"` in any component). */
+:root{
+  --bg:#F9FBFA;             /* was #F9FBFA — palette.gray.light3 (exact) */
+  --surface:#FFFFFF;        /* was #FFFFFF — palette.white (exact) */
+  --surface-muted:#F9FBFA;  /* was #FAFCFB — palette.gray.light3 */
+  --surface-blue:#E1F7FF;   /* was #EEF3FF — palette.blue.light3, matches Badge's Blue variant background */
+  --border:#E8EDEB;         /* was #E3E9E7 — palette.gray.light2 */
+  --border-strong:#C1C7C6;  /* was #C6D2CE — palette.gray.light1 */
+  --border-blue:#C3E7FE;    /* was #D8E2FF — palette.blue.light2, matches Badge's Blue variant border */
+  --border-emerald:#C0FAE6; /* was #C8E7D6 — palette.green.light2 */
+  --surface-emerald:#E3FCF7;/* was #F4FBF7 — palette.green.light3 */
+  --forest:#001E2B;         /* was #001E2B — palette.black (exact) */
+  --green-dark:#00684A;     /* was #00684A — palette.green.dark2 (exact) */
+  --green-darker:#023430;   /* was #023430 — palette.green.dark3 (exact) */
+  --green-bright:#00ED64;   /* was #00ED64 — palette.green.base (exact) */
+  --green-tint:#E3FCF7;     /* was #E3FCEC — palette.green.light3 */
+  --text:#1C2D38;           /* was #1C2B2F — palette.gray.dark3 */
+  --text-muted:#5C6C75;     /* was #5C6C75 — palette.gray.dark1 (exact) */
+  --text-faint:#889397;     /* was #8CA0A6 — palette.gray.base */
+  --amber:#944F01;          /* was #B7791F — palette.yellow.dark2, matches Badge's Yellow variant text */
+  --amber-tint:#FEF7DB;     /* was #FBF1DC — palette.yellow.light3, matches Badge's Yellow variant background */
+  --amber-deep:#4C2100;     /* was #8A5A2B — palette.yellow.dark3 */
+  --amber-border:#FFEC9E;   /* new — palette.yellow.light2, was several raw #F0DFB0/#E8D9A8 borders across CheckoutView/ConfirmView/shared */
+  --platinum:#1254B7;       /* was #3E63DD — palette.blue.dark1, matches Badge's Blue variant text */
+  --platinum-tint:#E1F7FF;  /* was #E8ECFC — palette.blue.light3 */
+  --shadow-sm:0 1px 2px rgba(0,30,20,0.06);
+  --shadow-md:0 4px 16px rgba(0,30,20,0.08);
+  --radius:12px;
+  --radius-sm:8px;
+  --ui-font:"Aptos","Segoe UI Variable Text","Segoe UI",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  --mono-font:"SFMono-Regular","IBM Plex Mono","Cascadia Mono",Consolas,"Liberation Mono",monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--ui-font);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+body,button,input,select,textarea{font-family:var(--ui-font);}
+button{font-family:inherit;cursor:pointer;}
+a{color:inherit;}
+[hidden]{display:none !important;}
+
+/* Generic monospace utility — used across nearly every component for
+   numeric/coin/code values, so it stays global rather than being
+   re-imported everywhere a number is displayed. */
+.mono{font-family:var(--mono-font);}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:0.01ms !important;transition-duration:0.01ms !important;}
+}
