@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server'
 
 export function middleware(request) {
-  const selectedUser = request.cookies.get('selected_user')
+  const selectedUser = request.cookies.get('selected_user')?.value
   const isLoginPage = request.nextUrl.pathname.startsWith('/login')
 
   if (!selectedUser && !isLoginPage) {
