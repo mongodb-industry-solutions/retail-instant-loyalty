@@ -16,6 +16,12 @@ export async function selectUser(userId) {
 
 export async function logoutUser() {
   const cookieStore = await cookies()
-  cookieStore.delete('selected_user')
+  cookieStore.set('selected_user', '', {
+    httpOnly: true,
+    path: '/',
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 0,
+  })
   redirect('/login')
 }
