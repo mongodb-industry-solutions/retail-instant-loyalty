@@ -5,7 +5,7 @@ export const metadata = {
   description: "",
 };
 
-export default function BrandAmplificationLayout({ children }) {
+export default function EcommerceLayout({ children }) {
 
   return (
     <main>
