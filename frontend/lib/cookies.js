@@ -5,7 +5,12 @@ import { redirect } from 'next/navigation'
 
 export async function selectUser(userId) {
   const cookieStore = await cookies()
-  cookieStore.set('selected_user', userId, { httpOnly: true, path: '/' })
+  cookieStore.set('selected_user', userId, {
+    httpOnly: true,
+    path: '/',
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+  })
   redirect('/')
 }
 
