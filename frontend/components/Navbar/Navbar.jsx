@@ -17,7 +17,7 @@ const Navbar = () => {
     <div>
       I am a shared navbar across all ecommerce pages{" "}
       <Link href="/coin-history">Coin History</Link>{" "}
-      <button onClick={handleLogout}>Logout</button>
+      <button type="button" onClick={handleLogout}>Logout</button>
     </div>
   );
 };
