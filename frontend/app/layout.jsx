@@ -1,3 +1,4 @@
+import ClientProvider from "./ClientProvider";
 import Providers from "@/components/LeafyProvider/Providers";
 import "./globals.css";
 
@@ -10,7 +11,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <Providers>{children}</Providers>
+        <ClientProvider>
+          <Providers>{children}</Providers>
+        </ClientProvider>
       </body>
     </html>
   );
