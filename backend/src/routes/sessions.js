@@ -8,7 +8,7 @@ export default function sessionsRoutes(app) {
   // returns max 4 personas not currently claimed by any session
   app.get("/sessions", async (request, reply) => {
     const db = app.mongo.db;
-    const explain = request.body?.explain === true;
+    const explain = request.query?.explain === 'true';
 
     const shapeStage = {
       $project: {
@@ -73,6 +73,5 @@ export default function sessionsRoutes(app) {
       return sendError(reply, 500, "SESSIONS_LOOKUP_FAILED", err.message);
     }
   });
-
 
 }
