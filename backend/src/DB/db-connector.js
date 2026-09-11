@@ -14,7 +14,7 @@ async function dbConnector (fastify) {
             await fastify.register(fastifyMongo, {
                 forceClose: true,
                 url: mongodb_URI,
-                database: process.env.MONGODB_DB
+                database: process.env.DATABASE_NAME
             })
         } catch(err) {
 

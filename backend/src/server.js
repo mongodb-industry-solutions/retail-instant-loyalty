@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors"
 import customersRoutes from './routes/customers.js'
+import sessionsRoutes from './routes/sessions.js'
 import dbConnector from "./DB/db-connector.js";
 
 
@@ -14,6 +15,7 @@ const port = Number(process.env.PORT || 4000);
 
 await app.register(dbConnector);
 
+await app.register(sessionsRoutes);
 await app.register(customersRoutes);
 
 try {
