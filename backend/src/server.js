@@ -2,6 +2,7 @@ import Fastify from "fastify";
 import cors from "@fastify/cors"
 import customersRoutes from './routes/customers.js'
 import sessionsRoutes from './routes/sessions.js'
+import ordersRoutes from './routes/orders.js'
 import dbConnector from "./DB/db-connector.js";
 
 
@@ -17,6 +18,7 @@ await app.register(dbConnector);
 
 await app.register(sessionsRoutes);
 await app.register(customersRoutes);
+await app.register(ordersRoutes);
 
 try {
     await app.listen({port, host: "0.0.0.0"});
