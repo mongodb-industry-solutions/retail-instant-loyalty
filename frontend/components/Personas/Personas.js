@@ -1,21 +1,24 @@
-"use client"
-import { Card } from "@leafygreen-ui/card";
-import { CardSkeleton } from "@leafygreen-ui/skeleton-loader";
-import { H1, Body } from "@leafygreen-ui/typography";
+"use client";
+
+import { Card } from "@via-ds/components/card";
+import { Skeleton } from "@via-ds/components/skeleton";
+import { H1, Body } from "@via-ds/components/typography";
 import { useDispatch, useSelector } from "react-redux";
 import { selectUsers, setSelectedUser } from "@/redux/slices/GlobalSlice";
-import { selectUser } from "@/lib/cookies";
+import { useRouter } from "next/navigation";
+import { setSelectedUserCookie } from "@/lib/cookies";
 import styles from "./Personas.module.css";
 import Image from "next/image";
 
 export default function Personas() {
-
   const dispatch = useDispatch();
-  const { loading, error, data: personas } = useSelector(selectUsers);
+  const router = useRouter();
+  const { loading, error, data } = useSelector(selectUsers);
 
   async function handleSelect(persona) {
     dispatch(setSelectedUser(persona));
-    await selectUser(persona.id);
+    await setSelectedUserCookie(persona.CustomerID); //cookie is being set
+    router.push("/");
   }
 
   return (
@@ -23,10 +26,15 @@ export default function Personas() {
       <div className={styles.inner}>
         <span className={styles.eyebrow}>This is a MongoDB demo</span>
         <H1 className={styles.title}>Welcome to Leafy Loyalty Store</H1>
-        <Body className={styles.sub}>Please select the user you would like to login as.</Body>
+        <Body className={styles.sub}>
+          Please select the user you would like to login as.
+        </Body>
 
         {error && (
-          <Body className={styles.sub} style={{ color: "var(--red-base, #C4342A)" }}>
+          <Body
+            className={styles.sub}
+            style={{ color: "var(--red-base, #C4342A)" }}
+          >
             Couldn&apos;t load the personas ({error})
           </Body>
         )}
@@ -34,11 +42,11 @@ export default function Personas() {
         <div className={styles.grid}>
           {loading
             ? Array.from({ length: 4 }).map((_, i) => (
-                <CardSkeleton key={i} className={styles.card} />
+                <Skeleton key={i} className={styles.card} />
               ))
-            : personas.map((p) => (
+            : data.map((p) => (
                 <Card
-                  key={p.id}
+                  key={p.CustomerID}
                   as="button"
                   className={styles.card}
                   onClick={() => handleSelect(p)}
@@ -46,16 +54,20 @@ export default function Personas() {
                   <div className={styles.top}>
                     <Image
                       src={p.photo}
-                      alt={p.name}
+                      alt={p.profile.firstName}
                       className={styles.photo}
-                      width={64}
-                      height={64}
+                      width={74}
+                      height={74}
                       unoptimized
                     />
                   </div>
-                  <div className={styles.name}>{p.name}</div>
-                  <div className={`${styles.foot} ${p.returning ? styles.footReturning : styles.footNew}`}>
-                    {p.returning ? "Existing user" : "New user"}
+                  <div className={styles.name}>
+                    {p.profile.firstName} {p.profile.lastName}
+                  </div>
+                  <div
+                    className={`${styles.foot} ${p.profile.returning ? styles.footReturning : styles.footNew}`}
+                  >
+                    {p.profile.returning ? "Existing user" : "New user"}
                   </div>
                 </Card>
               ))}

@@ -1,27 +1,19 @@
-// lib/cookies.js
-'use server'
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
+const SESSION_URL = "/api/session";
 
-export async function selectUser(userId) {
-  const cookieStore = await cookies()
-  cookieStore.set('selected_user', userId, {
-    httpOnly: true,
-    path: '/',
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-  })
-  redirect('/')
+export async function setSelectedUserCookie(id) {
+  await fetch(SESSION_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id }),
+  });
 }
 
-export async function logoutUser() {
-  const cookieStore = await cookies()
-  cookieStore.set('selected_user', '', {
-    httpOnly: true,
-    path: '/',
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 0,
-  })
-  redirect('/login')
+export async function clearSelectedUserCookie() {
+  await fetch(SESSION_URL, { method: "DELETE" });
+}
+
+export async function readSelectedUserCookie() {
+  const res = await fetch(SESSION_URL);
+  const { id } = await res.json();
+  return id;
 }

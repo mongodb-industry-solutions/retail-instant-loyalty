@@ -1,0 +1,94 @@
+.itemsCard,
+.deliveryCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  margin-bottom: 16px;
+}
+.itemsCard h3,
+.deliveryCard h3 {
+  font-size: 14.6px;
+  font-weight: 700;
+  margin: 0 0 14px;
+  color: var(--forest);
+}
+.itemsCardFlash {
+  animation: order-flash 1.8s ease;
+}
+@keyframes order-flash {
+  0% {
+    background: var(--green-tint);
+    border-color: var(--green-dark);
+  }
+  100% {
+    background: var(--surface);
+    border-color: var(--border);
+  }
+}
+.ohcId {
+  font-size: 12.4px;
+  color: var(--text-faint);
+}
+.deliveryCard p {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+.deliveryCard .addr {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.oiRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.oiLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.oiThumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19.4px;
+}
+.oiName {
+  font-size: 14.6px;
+  font-weight: 600;
+}
+.oiQty {
+  font-size: 12.4px;
+  color: var(--text-faint);
+}
+.oiPrice {
+  font-size: 14.6px;
+  font-weight: 700;
+  font-family: var(--mono-font);
+}
+
+.totalsMini {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  margin-top: 8px;
+}
+.totalsMini .row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13.5px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.totalsMini .grand {
+  font-size: 15.7px;
+  font-weight: 800;
+  color: var(--forest);
+}

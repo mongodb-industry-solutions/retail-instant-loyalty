@@ -1,0 +1,132 @@
+import {
+  TAX_RATE,
+  roundCurrency,
+  tierByKey,
+  coinDollarValue,
+  dollarsForCoins,
+  getTier,
+  activeCampaignMultiplier,
+  computeCheckoutTotals,
+  computeRedeemTotals,
+} from "@/shared/pricing";
+export { TAX_RATE, roundCurrency, getTier };
+export { getNextTier } from "@/shared/pricing";
+
+export function formatPrice(n) {
+  if (typeof n !== "number" || !Number.isFinite(n)) return "—";
+  return (
+    "$" +
+    n.toLocaleString("en-US", {
+      minimumFractionDigits: Number.isInteger(n) ? 0 : 2,
+      maximumFractionDigits: 2,
+    })
+  );
+}
+
+export function promoDateWindow(campaignEntry) {
+  return `${formatPromoDate(campaignEntry.startDate)} – ${formatPromoDate(campaignEntry.endDate)}`;
+}
+export function formatPromoDate(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+export function tierProgressValue(personaObj) {
+  // Tier progress always reads cumulative merchandise spend, never the loyalty coin balance.
+  console.log("Tier progress value for personaObj:", personaObj);
+
+  return roundCurrency(personaObj?.loyaltyDetails.totalAmountSpent || 0);
+}
+export function currentTierFor(personaObj, rewardDetails) {
+  return getTier(tierProgressValue(personaObj), rewardDetails);
+}
+
+// Carts
+
+export function cartItemList(cart, products) {
+  return Object.entries(cart).map(([productId, quantity]) => {
+    const product = products.find((p) => p.productId === productId);
+    return {
+      ...product,
+      cartQuantity: quantity,
+    };
+  });
+}
+
+export function findTierDetails(rewardDetails, tierKey) {
+  // Customer records carry display-cased tiers ("Silver") while the loyalty
+  // config keys them lowercase, so compare case-insensitively.
+  const key = tierKey?.toLowerCase();
+  return rewardDetails?.find((t) => t.tierKey.toLowerCase() === key);
+}
+
+export function formatCoinValue(tierKey, rewardDetails) {
+  const tier = tierByKey(rewardDetails, tierKey);
+  if (!tier) return "—";
+
+  const cents = roundCurrency(coinDollarValue(tier) * 100);
+  const label = Number.isInteger(cents)
+    ? cents.toFixed(0)
+    : cents.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+  return `${label}¢`;
+}
+
+/* ---------- Document viewer helpers ---------- */
+export function docToJSON(doc) {
+  let json = JSON.stringify(doc, null, 2);
+  return json.replace(/"(ObjectId|ISODate)\(\\"(.*?)\\"\)"/g, '$1("$2")');
+}
+export function productDocFor(pr) {
+  return {
+    _id: `ObjectId("64f1a2${pr.id}0000000001")`,
+    name: pr.name,
+    category: pr.cat,
+    price: pr.price,
+    ...(pr.was ? { compareAtPrice: pr.was } : {}),
+    rating: pr.rating,
+    reviews: pr.reviews,
+    ...(pr.badge ? { badge: pr.badge } : {}),
+  };
+}
+export function userLoyaltyDocFor(persona, rewardDetails) {
+  const tier = persona.returning
+    ? currentTierFor(persona, rewardDetails)
+    : null;
+  return {
+    _id: `ObjectId("650a1${persona.id}0000000001")`,
+    name: persona.name,
+    email: persona.ship.email,
+    shipping_address: `${persona.ship.address}, ${persona.ship.city}`,
+    loyalty: {
+      tier: tier ? tier.tierKey : "none",
+      tier_progress_spend: persona.tierSpend || 0,
+      coins: persona.coins,
+      coin_value_cents: tier ? Math.round(tier.currencyValue * 100) : null,
+      recent_transactions: (persona.transactions || []).slice(-2).map((t) => ({
+        type: t.type,
+        delta: t.delta,
+        order_id: t.orderId,
+        channel: "online",
+      })),
+    },
+  };
+}
+export function loyaltySyncDocFor(persona, rewardDetails) {
+  const tier = persona.returning
+    ? currentTierFor(persona, rewardDetails)
+    : null;
+  return {
+    _id: `ObjectId("650a1${persona.id}0000000001")`,
+    name: persona.name,
+    loyalty: {
+      tier: tier ? tier.tierKey : "none",
+      tier_progress_spend: persona.tierSpend || 0,
+      coins: persona.coins,
+      updated_at: `ISODate("${new Date().toISOString()}")`,
+    },
+  };
+}

@@ -4,64 +4,327 @@ const BACKEND_URL = process.env.BACKEND_URL;
 
 // TEMPORARY: seed data lives here until the backend serves it.
 // Once BACKEND_URL is available, delete this and use the fetch below.
-const PLACEHOLDER_CUSTOMERS = [
+export const PLACEHOLDER_CUSTOMERS = [
   {
-    id: "mike",
-    name: "Mike",
-    initial: "M",
-    avatarBg: "#DCEBFF",
-    avatarColor: "#2955A8",
-    photo: "/rsc/users/66fe219d625d93a100528224.png",
-    role: "Software engineer & gear enthusiast",
-    tags: ["Electronics", "Gaming", "Productivity"],
-    returning: true,
-    coins: 3240,
-    tierSpend: 2800,
-    orders: 3,
-    interests: ["Electronics"],
-    ship: {
-      first: "Mike",
-      last: "Chen",
-      email: "mike.chen@email.com",
-      address: "214 Harbor View Dr, Apt 5",
-      city: "Austin, TX 73301",
+    _id: {
+      $oid: "6a8b7dae2a2acd3c667c0739",
     },
-    card: "4471",
-    exp: "11/28",
-    transactions: [
-      { type: "earned", orderId: "MS-118820", label: "Order MS-118820", delta: 1200, balanceAfter: 1200 },
-      { type: "earned", orderId: "MS-225143", label: "Order MS-225143", delta: 980, balanceAfter: 2180 },
-      { type: "earned", orderId: "MS-309981", label: "Order MS-309981", delta: 1060, balanceAfter: 3240 },
+    CustomerID: "CUST-10002",
+    photo: "/rsc/users/66fe219d625d93a100528224.png",
+    profile: {
+      gender: "Male",
+      firstName: "Liam",
+      lastName: "Chen",
+      email: "liam.chen@example.com",
+      phoneNumber: "+1-604-555-0102",
+      returning: false,
+      dateOfBirth: {
+        $date: "1987-08-22T00:00:00.000Z",
+      },
+      "field-2": "Vancouver",
+      "field-3": "Frequent buyer",
+    },
+    addresses: [
+      {
+        type: "home",
+        line1: "880 West Pender Street",
+        city: "Vancouver",
+        state: "BC",
+        postalCode: "V6C 3B6",
+        country: "Canada",
+        isDefault: true,
+      },
     ],
-    orderHistory: [
-      { id: "MS-118820", type: "purchase", itemRefs: [{ id: "kb", qty: 1 }, { id: "dock", qty: 1 }], coins: 1200, subtotal: 268, status: "Delivered" },
-      { id: "MS-225143", type: "purchase", itemRefs: [{ id: "hp", qty: 1 }], coins: 980, subtotal: 299, status: "Delivered" },
-      { id: "MS-309981", type: "purchase", itemRefs: [{ id: "mon", qty: 1 }, { id: "watch", qty: 1 }], coins: 1060, subtotal: 848, status: "Delivered" },
-    ],
+    loyaltyDetails: {
+      balance: 420,
+      totalAmountSpent: 1500,
+      lifetimeCoins: 3980,
+      activeTier: "Silver",
+      nextTier: "Gold",
+      tierActivatedAt: "2026-01-09T10:15:00.000Z",
+      rewardsExpiry: {
+        $date: "2026-10-15T23:59:59.000Z",
+      },
+      loyaltyHistory: [
+        {
+          date: {
+            $date: "2026-08-01T20:10:00.000Z",
+          },
+          type: "earn",
+          points: 120,
+          description: "Home goods purchase",
+        },
+      ],
+    },
+    paymentDetails: {
+      preferredMethod: "Credit Card",
+      cardType: "Visa",
+      cardLast4: "1234",
+      cardExpiry: "12/25",
+    },
+    preferences: {
+      isActive: true,
+      communication: {
+        email: true,
+        text: false,
+      },
+
+      marketing: {
+        isNewsletterSubscribed: true,
+        notifyPromotions: false,
+      },
+    },
+    createdAt: {
+      $date: "2025-01-18T15:45:00.000Z",
+    },
+    sessionId: "sess_cust10002_b2k9",
   },
   {
-    id: "lily",
-    name: "Lily",
+    _id: {
+      $oid: "6a8b7dae2a2acd3c667c073c",
+    },
     photo: "/rsc/users/65a546ae4a8f64e8f88fb89e.png",
-    role: "Fitness coach & wellness advocate",
-    tags: ["Sports", "Health", "Outdoor"],
-    returning: false,
+    CustomerID: "CUST-10005",
+    profile: {
+      firstName: "Mia",
+      lastName: "Thompson",
+      gender: "Female",
+      interests: ["Baby Care", "Cleaning & Household"],
+      email: "mia.thompson@example.com",
+      phoneNumber: "+1-613-555-0105",
+      returning: true,
+      dateOfBirth: {
+        $date: "1999-01-17T00:00:00.000Z",
+      },
+      "field-2": "Ottawa",
+      "field-3": "Value seeker",
+    },
+    addresses: [
+      {
+        type: "home",
+        line1: "75 Elgin Street",
+        city: "Ottawa",
+        state: "ON",
+        postalCode: "K1P 5W1",
+        country: "Canada",
+        isDefault: true,
+      },
+    ],
+    loyaltyDetails: {
+      balance: 1260,
+      lifetimeCoins: 7450,
+      totalAmountSpent: 2800,
+      activeTier: "Gold",
+      nextTier: "Diamond",
+      tierActivatedAt: "2025-12-19T16:45:00.000Z",
+      rewardsExpiry: {
+        $date: "2026-11-30T23:59:59.000Z",
+      },
+      loyaltyHistory: [
+        {
+          date: {
+            $date: "2026-08-13T14:00:00.000Z",
+          },
+          type: "earn",
+          points: 315,
+          description: "Beauty and personal care purchase",
+        },
+        {
+          date: {
+            $date: "2026-03-08T13:30:00.000Z",
+          },
+          type: "earn",
+          points: 180,
+          description: "Spring promotion bonus",
+        },
+      ],
+    },
+    paymentDetails: {
+      preferredMethod: "Credit Card",
+      cardType: "Visa",
+      cardLast4: "1234",
+      cardExpiry: "12/25",
+    },
+
+    preferences: {
+      isActive: true,
+      communication: {
+        email: true,
+        text: true,
+      },
+      marketing: {
+        isNewsletterSubscribed: true,
+        notifyPromotions: true,
+      },
+    },
+    createdAt: {
+      $date: "2024-11-25T18:10:00.000Z",
+    },
+    sessionId: "sess_cust10005_e3r7",
   },
   {
-    id: "jane",
-    name: "Jane",
-    initial: "J",
-    avatarBg: "#EAE1FC",
-    avatarColor: "#6B3AB3",
+    _id: {
+      $oid: "6a8b7dae2a2acd3c667c0741",
+    },
+    CustomerID: "CUST-10010",
     photo: "/rsc/users/671ff0081ec726b417352702.png",
+    profile: {
+      firstName: "Lucas",
+      lastName: "Wilson",
+      gender: "Male",
+      interests: ["Electronics"],
+      email: "lucas.wilson@example.com",
+      phoneNumber: "+1-416-555-0110",
+      returning: true,
+      dateOfBirth: {
+        $date: "1989-02-18T00:00:00.000Z",
+      },
+      "field-2": "Toronto",
+      "field-3": "Premium member",
+    },
+    addresses: [
+      {
+        type: "home",
+        line1: "410 Bloor Street East",
+        city: "Toronto",
+        state: "ON",
+        postalCode: "M4W 3T3",
+        country: "Canada",
+        isDefault: true,
+      },
+    ],
+    loyaltyDetails: {
+      balance: 10950,
+      lifetimeCoins: 45600,
+      totalAmountSpent: 2500,
+      activeTier: "Diamond",
+      nextTier: "Diamond",
+      tierActivatedAt: "2024-10-01T08:45:00.000Z",
+      rewardsExpiry: {
+        $date: "2027-03-31T23:59:59.000Z",
+      },
+      loyaltyHistory: [
+        {
+          date: {
+            $date: "2026-08-20T18:50:00.000Z",
+          },
+          type: "earn",
+          points: 1250,
+          description: "Premium customer purchase",
+        },
+        {
+          date: {
+            $date: "2026-04-22T15:00:00.000Z",
+          },
+          type: "redeem",
+          points: -2000,
+          description: "Redeemed premium reward",
+        },
+      ],
+    },
+    paymentDetails: {
+      preferredMethod: "Credit Card",
+      cardType: "Visa",
+      cardLast4: "1234",
+      cardExpiry: "12/25",
+    },
+    preferences: {
+      isActive: true,
+      communication: {
+        email: true,
+        text: true,
+      },
+      marketing: {
+        isNewsletterSubscribed: true,
+        notifyPromotions: false,
+      },
+    },
+    createdAt: {
+      $date: "2022-07-19T13:35:00.000Z",
+    },
+    sessionId: "sess_cust10010_k4z7",
   },
   {
-    id: "claude",
-    name: "Claude",
-    initial: "C",
-    avatarBg: "#FCF0D2",
-    avatarColor: "#9A7A1D",
+    _id: {
+      $oid: "6a8b7dae2a2acd3c667c0738",
+    },
+    CustomerID: "CUST-10001",
     photo: "/rsc/users/671ff2451ec726b417352703.png",
+    profile: {
+      firstName: "Ava",
+      lastName: "Smith",
+      gender: "Female",
+      interests: ["Electronics"],
+      email: "ava.smith@example.com",
+      phoneNumber: "+1-416-555-0101",
+      returning: true,
+      dateOfBirth: {
+        $date: "1992-03-14T00:00:00.000Z",
+      },
+      "field-2": "Toronto",
+      "field-3": "Retail shopper",
+    },
+    addresses: [
+      {
+        type: "home",
+        line1: "125 King Street West",
+        city: "Toronto",
+        state: "ON",
+        postalCode: "M5X 1A9",
+        country: "Canada",
+        isDefault: true,
+      },
+    ],
+    loyaltyDetails: {
+      balance: 1840,
+      lifetimeCoins: 12650,
+      totalAmountSpent: 3200,
+      activeTier: "Gold",
+      nextTier: "Platinum",
+      tierActivatedAt: "2025-11-02T14:30:00.000Z",
+      rewardsExpiry: {
+        $date: "2026-12-31T23:59:59.000Z",
+      },
+      loyaltyHistory: [
+        {
+          date: {
+            $date: "2026-07-18T16:20:00.000Z",
+          },
+          type: "earn",
+          points: 240,
+          description: "Summer apparel purchase",
+        },
+        {
+          date: {
+            $date: "2026-05-03T18:05:00.000Z",
+          },
+          type: "redeem",
+          points: -500,
+          description: "Redeemed digital reward",
+        },
+      ],
+    },
+    paymentDetails: {
+      preferredMethod: "Credit Card",
+      cardType: "Visa",
+      cardLast4: "1234",
+      cardExpiry: "12/25",
+    },
+    preferences: {
+      isActive: true,
+      communication: {
+        email: true,
+        text: true,
+      },
+      marketing: {
+        isNewsletterSubscribed: true,
+        notifyPromotions: true,
+      },
+    },
+    createdAt: {
+      $date: "2024-02-11T13:15:00.000Z",
+    },
+    sessionId: "sess_cust10001_a7f3",
   },
 ];
 
@@ -79,7 +342,7 @@ export async function GET() {
     if (!res.ok) {
       return NextResponse.json(
         { error: `Backend responded with ${res.status}` },
-        { status: res.status }
+        { status: res.status },
       );
     }
 
@@ -87,7 +350,7 @@ export async function GET() {
   } catch (err) {
     return NextResponse.json(
       { error: String(err?.message ?? err) },
-      { status: 502 }
+      { status: 502 },
     );
   }
 }

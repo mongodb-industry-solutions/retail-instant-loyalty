@@ -1,0 +1,72 @@
+.wrap {
+  width: 100%;
+}
+.track {
+  position: relative;
+  height: 8px;
+  border-radius: 6px;
+  background: var(--border); /* was #EEF2F0 — palette.gray.light2 */
+  overflow: visible;
+  margin-bottom: 6px;
+}
+.fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--green-dark), var(--green-bright));
+  transition: width 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.dot {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 3px solid var(--green-dark);
+  transform: translate(-50%, -50%);
+  transition: left 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 0 0 3px rgba(0, 237, 100, 0.25);
+}
+.dotPulse {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px rgba(0, 237, 100, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(0, 237, 100, 0.12);
+  }
+}
+.marks {
+  position: relative;
+  height: 16px;
+  margin-bottom: 2px;
+}
+.mark {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 10.8px;
+  font-weight: 700;
+  color: var(--text-faint);
+  letter-spacing: 0.2px;
+}
+.markActive {
+  color: var(--green-dark);
+}
+.foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.foot .toNext {
+  font-weight: 600;
+  color: var(--green-dark);
+}
