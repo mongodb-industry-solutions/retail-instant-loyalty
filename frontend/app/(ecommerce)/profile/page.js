@@ -65,6 +65,7 @@ export default function ProfileView() {
   const tierInfo = {
     activeTier: persona.loyaltyDetails?.activeTier,
     nextTier: persona.loyaltyDetails?.nextTier,
+    dollarsNeededForNextTier: persona.loyaltyDetails?.dollarsNeededForNextTier,
   };
 
   return (
@@ -113,7 +114,7 @@ export default function ProfileView() {
       {persona.loyaltyDetails && (
         <div className={profile.profileTrackCard}>
           <TierTrack
-            amountSpent={persona.loyaltyDetails.totalAmountSpent}
+            amountSpent={persona.loyaltyDetails.cumulativeSpendDollars}
             tierInfo={tierInfo}
             rewardDetails={rewardDetails}
             customerData={persona}

@@ -3,6 +3,29 @@ export const CAT_COLOR = {
   "Cleaning & Household": { bg: "#EFEFEF" },
 };
 
+// The /sessions projection gives us a gender but no photo, so personas are
+// illustrated from the fixed set in public/rsc/users. Only one of the four
+// illustrations reads male, so two male personas in the same draw will share
+// a picture.
+const PERSONA_AVATARS = {
+  female: [
+    "/rsc/users/65a546ae4a8f64e8f88fb89e.png",
+    "/rsc/users/671ff0081ec726b417352702.png",
+  ],
+  male: [
+    "/rsc/users/671ff2451ec726b417352703.png",
+    "/rsc/users/66fe219d625d93a100528224.png",
+  ],
+};
+
+// `index` spreads personas of the same gender across the available
+// illustrations instead of repeating the first one.
+export function personaAvatar(gender, index = 0) {
+  const pool =
+    PERSONA_AVATARS[String(gender).toLowerCase()] ?? PERSONA_AVATARS.female;
+  return pool[index % pool.length];
+}
+
 export const PROMO_HOLIDAYS = [
   {
     key: "back_to_school",

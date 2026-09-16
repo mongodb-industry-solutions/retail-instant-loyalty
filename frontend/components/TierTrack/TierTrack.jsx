@@ -10,6 +10,9 @@ import styles from "./TierTrack.module.css";
 export default function TierTrack({ amountSpent, tierInfo, rewardDetails }) {
   const tier = tierInfo?.activeTier;
   const next = tierInfo?.nextTier;
+  // The backend computes the remaining spend for us; fall back to deriving it
+  // from the threshold if it isn't present.
+  const dollarsToNextTier = tierInfo?.dollarsNeededForNextTier;
   const maxValue = findTierDetails(rewardDetails, tier)?.threshold;
 
   if (!tier || maxValue === undefined) return null;
@@ -37,7 +40,7 @@ export default function TierTrack({ amountSpent, tierInfo, rewardDetails }) {
         </span>
         <span className={styles.toNext}>
           {next
-            ? `${formatPrice(Math.max(maxValue - spent, 0))} to ${tier}`
+            ? `${formatPrice(dollarsToNextTier ?? Math.max(maxValue - spent, 0))} to ${next}`
             : "Top tier reached"}
         </span>
       </div>

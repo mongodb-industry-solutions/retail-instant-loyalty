@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 
-const BACKEND_URL = process.env.BACKEND_URL;
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+
+// TODO(backend): this module is not registered in backend/src/server.js yet,
+// so the seed data below is still the source of truth. Flip to true once it is.
+const BACKEND_SERVES_THIS = false;
 
 export async function POST(request) {
   console.log("Received redeem request");
@@ -10,7 +14,7 @@ export async function POST(request) {
 
   // TEMPORARY: echo a synthetic confirmation until the backend serves it.
   // Once BACKEND_URL is available, delete this and use the fetch below.
-  if (!BACKEND_URL) {
+  if (!BACKEND_SERVES_THIS || !BACKEND_URL) {
     const coinsUsed = body.coinsUsed ?? 0;
     return NextResponse.json(
       {

@@ -15,7 +15,8 @@ import {
 } from "@via-ds/components/menu";
 import { Logo } from "@via-ds/components/logo";
 
-import { clearSelectedUserCookie } from "@/lib/cookies";
+import { endSession } from "@/lib/api";
+import { clearActivePersonaCookie } from "@/lib/cookies";
 import { resetGlobalState } from "@/redux/slices/GlobalSlice";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
@@ -48,7 +49,7 @@ const routeList = {
   coinHistory: "/coin-history",
   cart: "/cart",
   profile: "/profile",
-  orderHistory: "/orders",
+  orders: "/orders",
 };
 
 export default function Navbar() {
@@ -59,8 +60,17 @@ export default function Navbar() {
   const count = useSelector(getCartCount);
   async function handleLogout() {
     try {
-      await clearSelectedUserCookie();
+      // Releases the persona back to the pool. Without this the customer
+      // stays claimed and disappears from the login grid for good.
+      await endSession();
+    } catch (err) {
+      // Nothing useful to offer the user here — they're leaving either way,
+      // and a stuck claim can be cleared with /sessions/end-all.
+      console.error("Couldn't end the session:", err.message);
     } finally {
+      // Always clear the cookie, even if the release failed: otherwise
+      // middleware keeps the user in the store with no way back to /login.
+      await clearActivePersonaCookie();
       // Navigate before clearing the user: resetting first re-runs the
       // layout's session effect against a cookie that is already gone.
       router.replace("/login");
@@ -112,9 +122,6 @@ export default function Navbar() {
             Admin
           </button>
           <MenuRoot>
-            {/* Must be Via's Button: MenuRoot is react-aria's MenuTrigger, which
-                wires the trigger up via ButtonContext. A plain <button> never
-                receives the press handlers, so the menu can't open. */}
             <Button
               variant="tertiary"
               className={styles.personaChip}
@@ -160,7 +167,7 @@ export default function Navbar() {
                   <MenuItem
                     id="order-history"
                     textValue="Order history"
-                    onAction={() => go("order-history")}
+                    onAction={() => go("orders")}
                   >
                     <HistoryIcon slot="icon" />
                     Order history

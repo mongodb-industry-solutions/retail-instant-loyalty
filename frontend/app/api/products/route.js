@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 
-const BACKEND_URL = process.env.BACKEND_URL;
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+
+// TODO(backend): this module is not registered in backend/src/server.js yet,
+// so the seed data below is still the source of truth. Flip to true once it is.
+const BACKEND_SERVES_THIS = false;
 
 // TEMPORARY: seed data lives here until the backend serves it.
 // Once BACKEND_URL is available, delete this and use the fetch below.
@@ -911,7 +915,7 @@ const PLACEHOLDER_PRODUCTS = [
 ];
 
 export async function GET() {
-  if (!BACKEND_URL) {
+  if (!BACKEND_SERVES_THIS || !BACKEND_URL) {
     return NextResponse.json(PLACEHOLDER_PRODUCTS);
   }
 

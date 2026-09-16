@@ -8,7 +8,7 @@ const INITIAL_STATE = {
     error: null,
     data: [],
   },
-  selectedUser: null, // null or {...user from users collection}
+  selectedUser: null,
   products: {
     loading: true,
     error: null,
@@ -20,8 +20,8 @@ const INITIAL_STATE = {
     rewardDetails: [],
     campaign: [],
   },
-  lastOrder: null, // null or {...order from orders collection}
-  lastRedeem: null, // null or {...redeem from redeems collection}
+  lastOrder: null,
+  lastRedeem: null,
   cart: {},
   redeem: { productId: null },
 };
@@ -139,6 +139,19 @@ const GlobalSlice = createSlice({
     },
     saveCampaignSuccess(state, action) {
       state.loyaltyConfig.campaign = action.payload.campaign;
+    },
+    setOrdersData(state, action) {
+      state.orders.data = action.payload.orders;
+      state.orders.loading = false;
+      state.orders.error = null;
+    },
+    setOrdersLoading(state) {
+      state.orders.loading = true;
+      state.orders.error = null;
+    },
+    setOrdersError(state, action) {
+      state.orders.loading = false;
+      state.orders.error = action.payload;
     },
 
     resetGlobalState: () => INITIAL_STATE,

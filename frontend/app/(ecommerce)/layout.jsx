@@ -16,8 +16,16 @@ import {
 } from "@/redux/slices/GlobalSlice";
 import Navbar from "@/components/Navbar/Navbar";
 import ModalRoot from "@/components/modals/ModalRoot";
-import { readSelectedUserCookie, clearSelectedUserCookie } from "@/lib/cookies";
-import { fetchCustomer, fetchProducts, fetchLoyaltyConfig } from "@/lib/api";
+import {
+  readActivePersonaCookie,
+  clearActivePersonaCookie,
+} from "@/lib/cookies";
+import {
+  fetchCustomer,
+  fetchProducts,
+  fetchLoyaltyConfig,
+  endSession,
+} from "@/lib/api";
 
 export default function EcommerceLayout({ children }) {
   const dispatch = useDispatch();
@@ -28,7 +36,7 @@ export default function EcommerceLayout({ children }) {
   useEffect(() => {
     if (selectedUser) return;
     let cancelled = false;
-    readSelectedUserCookie()
+    readActivePersonaCookie()
       .then((id) => {
         if (cancelled) return;
         if (!id) {
@@ -42,7 +50,10 @@ export default function EcommerceLayout({ children }) {
           })
           .catch(() => {
             if (cancelled) return;
-            clearSelectedUserCookie();
+            // The cookie names a persona we can't load, so drop both the
+            // claim and the cookie before bouncing to /login.
+            endSession().catch(() => {});
+            clearActivePersonaCookie().catch(() => {});
             router.replace("/login");
           });
       })

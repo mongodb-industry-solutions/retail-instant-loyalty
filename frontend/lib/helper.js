@@ -39,7 +39,7 @@ export function tierProgressValue(personaObj) {
   // Tier progress always reads cumulative merchandise spend, never the loyalty coin balance.
   console.log("Tier progress value for personaObj:", personaObj);
 
-  return roundCurrency(personaObj?.loyaltyDetails.totalAmountSpent || 0);
+  return roundCurrency(personaObj?.loyaltyDetails.cumulativeSpendDollars || 0);
 }
 export function currentTierFor(personaObj, rewardDetails) {
   return getTier(tierProgressValue(personaObj), rewardDetails);
@@ -92,21 +92,31 @@ export function productDocFor(pr) {
     ...(pr.badge ? { badge: pr.badge } : {}),
   };
 }
+function personaFullName(persona) {
+  return `${persona.profile?.firstName ?? ""} ${persona.profile?.lastName ?? ""}`.trim();
+}
+
+function personaTier(persona, rewardDetails) {
+  return persona.isAlwaysNewUser
+    ? null
+    : currentTierFor(persona, rewardDetails);
+}
+
 export function userLoyaltyDocFor(persona, rewardDetails) {
-  const tier = persona.returning
-    ? currentTierFor(persona, rewardDetails)
-    : null;
+  const tier = personaTier(persona, rewardDetails);
+  const address = persona.addresses?.[0];
+  const loyalty = persona.loyaltyDetails ?? {};
   return {
-    _id: `ObjectId("650a1${persona.id}0000000001")`,
-    name: persona.name,
-    email: persona.ship.email,
-    shipping_address: `${persona.ship.address}, ${persona.ship.city}`,
+    _id: `ObjectId("${persona.customerId}")`,
+    name: personaFullName(persona),
+    email: persona.profile?.email,
+    shipping_address: address ? `${address.line1}, ${address.city}` : null,
     loyalty: {
       tier: tier ? tier.tierKey : "none",
-      tier_progress_spend: persona.tierSpend || 0,
-      coins: persona.coins,
-      coin_value_cents: tier ? Math.round(tier.currencyValue * 100) : null,
-      recent_transactions: (persona.transactions || []).slice(-2).map((t) => ({
+      tier_progress_spend: loyalty.cumulativeSpendDollars || 0,
+      coins: loyalty.coinBalance,
+      coin_value_cents: tier ? Math.round(coinDollarValue(tier) * 100) : null,
+      recent_transactions: (loyalty.loyaltyHistory || []).slice(-2).map((t) => ({
         type: t.type,
         delta: t.delta,
         order_id: t.orderId,
@@ -116,16 +126,15 @@ export function userLoyaltyDocFor(persona, rewardDetails) {
   };
 }
 export function loyaltySyncDocFor(persona, rewardDetails) {
-  const tier = persona.returning
-    ? currentTierFor(persona, rewardDetails)
-    : null;
+  const tier = personaTier(persona, rewardDetails);
+  const loyalty = persona.loyaltyDetails ?? {};
   return {
-    _id: `ObjectId("650a1${persona.id}0000000001")`,
-    name: persona.name,
+    _id: `ObjectId("${persona.customerId}")`,
+    name: personaFullName(persona),
     loyalty: {
       tier: tier ? tier.tierKey : "none",
-      tier_progress_spend: persona.tierSpend || 0,
-      coins: persona.coins,
+      tier_progress_spend: loyalty.cumulativeSpendDollars || 0,
+      coins: loyalty.coinBalance,
       updated_at: `ISODate("${new Date().toISOString()}")`,
     },
   };

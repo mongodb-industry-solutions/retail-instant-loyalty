@@ -8,11 +8,11 @@ import {
   selectSelectedUser,
   selectLastOrder,
 } from "../../../redux/slices/GlobalSlice";
-import Receipt from "./Receipt";
+import Receipt from "../../../components/Receipt/Receipt";
 import LoyaltyRewardCard from "./LoyaltyRewardCard";
 import { useRouter } from "next/navigation";
-import RedeemView from "./RedeemView";
-import ConfirmSidebar from "./ConfirmSidebar";
+import RedeemView from "../../../components/RedeemView/RedeemView";
+import ConfirmSidebar from "../../../components/ConfirmSidebar/ConfirmSidebar";
 import { Button } from "@via-ds/components/button";
 export default function ConfirmView() {
   const router = useRouter();

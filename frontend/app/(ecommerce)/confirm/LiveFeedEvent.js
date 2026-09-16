@@ -48,7 +48,7 @@ export function liveFeedEventsForOrder(order, persona) {
       body:
         order.coinsUsed > 0
           ? `${order.loyalty.oldBalance.toLocaleString()} → ${order.loyalty.newBalance.toLocaleString()} coins after applying ${order.loyalty.coinsUsed.toLocaleString()} and earning ${order.coins.toLocaleString()}.`
-          : `${order.loyalty.oldBalance.toLocaleString()} → ${order.loyalty.newBalance.toLocaleString()} coins after earning ${persona.loyaltyDetails.balance.toLocaleString()} from the purchase.`,
+          : `${order.loyalty.oldBalance.toLocaleString()} → ${order.loyalty.newBalance.toLocaleString()} coins after earning ${persona.loyaltyDetails.coinBalance.toLocaleString()} from the purchase.`,
     },
     {
       icon: "🏷️",

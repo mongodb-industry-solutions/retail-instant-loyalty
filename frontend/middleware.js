@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 
 export function middleware(request) {
-  const selectedUser = request.cookies.get("selected_user")?.value;
+  const activePersona = request.cookies.get("active_persona")?.value;
   const isLoginPage = request.nextUrl.pathname.startsWith("/login");
 
-  if (!selectedUser && !isLoginPage) {
+  if (!activePersona && !isLoginPage) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
-  if (selectedUser && isLoginPage) {
+  if (activePersona && isLoginPage) {
     return NextResponse.redirect(new URL("/", request.url));
   }
   return NextResponse.next();

@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { selectModal, closeModal } from "@/redux/slices/GlobalSlice";
 import TalkTrackModal from "./TalkTrackModal/TalkTrackModal";
 import AdminModal from "./AdminModal/AdminModal";
+import OrderDetailModal from "./OrderDetailModal/OrderDetailModal";
 import styles from "./Modal.module.css";
 import SyncModal from "./SyncModal/SyncModal";
 const MODAL_SIZE_CLASS = {
@@ -33,6 +34,7 @@ export default function ModalRoot() {
         {modal.type === "talkTrack" && <TalkTrackModal onClose={close} />}
         {modal.type === "admin" && <AdminModal onClose={close} />}
         {modal.type === "sync" && <SyncModal onClose={close} />}
+        {modal.type === "orderDetail" && <OrderDetailModal onClose={close} />}
       </div>
     </div>
   );

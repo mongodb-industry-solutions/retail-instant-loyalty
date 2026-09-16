@@ -71,13 +71,13 @@ export default function LoyaltyRewardCard() {
       : lastOrder.loyalty.newBalance;
 
   const beforeTotalAmount =
-    selectedUser.loyaltyDetails.totalAmountSpent -
+    selectedUser.loyaltyDetails.cumulativeSpendDollars -
     lastOrder.loyalty.qualifyingSpend;
 
   const displayTierSpend =
     phase === "before"
       ? beforeTotalAmount
-      : selectedUser.loyaltyDetails.totalAmountSpent;
+      : selectedUser.loyaltyDetails.cumulativeSpendDollars;
 
   console.log("displayTierSpend:", displayTierSpend);
 

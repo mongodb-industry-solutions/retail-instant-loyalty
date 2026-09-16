@@ -1,7 +1,7 @@
 "use client";
 
 import { useSelector, useDispatch } from "react-redux";
-import { confirmRedeemOrderSuccess } from "../../../redux/slices/GlobalSlice";
+import { confirmRedeemOrderSuccess } from "../../redux/slices/GlobalSlice";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@via-ds/components/button";
@@ -15,7 +15,7 @@ import {
   selectRedeem,
   selectReward,
   resetReward,
-} from "../../../redux/slices/GlobalSlice";
+} from "../../redux/slices/GlobalSlice";
 import styles from "./RedeemView.module.css";
 
 function CandidateCard({ product, selected }) {
@@ -100,7 +100,7 @@ function ReviewPanel({ persona, reward }) {
     tax,
     cashTotal,
   } = reward;
-  const balance = persona.loyaltyDetails.balance;
+  const balance = persona.loyaltyDetails.coinBalance;
   const balanceAfter = Math.max(0, balance - coinsUsed);
   const [confirming, setConfirming] = useState(false);
 
@@ -210,7 +210,7 @@ export default function RedeemSection({ excludeItemIds }) {
   useEffect(() => {
     let cancelled = false;
     fetchRedeemCandidates({
-      customerId: persona.CustomerID,
+      customerId: persona.customerId,
       exclude: excludeKey ? excludeKey.split(",") : [],
     })
       .then((data) => {
@@ -223,8 +223,8 @@ export default function RedeemSection({ excludeItemIds }) {
       cancelled = true;
     };
   }, [
-    persona.CustomerID,
-    persona.loyaltyDetails?.balance,
+    persona.customerId,
+    persona.loyaltyDetails?.coinBalance,
     excludeKey,
     dispatch,
   ]);
@@ -248,7 +248,7 @@ export default function RedeemSection({ excludeItemIds }) {
         <span className={styles.redeemBalance}>
           Balance:{" "}
           <b className="mono">
-            {(persona.loyaltyDetails?.balance ?? 0).toLocaleString()}
+            {(persona.loyaltyDetails?.coinBalance ?? 0).toLocaleString()}
           </b>{" "}
           coins
         </span>

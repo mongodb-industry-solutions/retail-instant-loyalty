@@ -1,18 +1,75 @@
+import { getSessionId, createSessionId, clearSessionId } from "./session";
+
 const BASE_URL = "/api";
 
-async function request(path, options) {
-  const res = await fetch(`${BASE_URL}${path}`, options);
+async function request(path, options = {}) {
+  const sessionId = getSessionId();
+  const res = await fetch(`${BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      ...options.headers,
+      // Route handlers forward this to the backend, which uses it to claim
+      // and release personas.
+      ...(sessionId ? { "x-session-id": sessionId } : {}),
+    },
+  });
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);
-    throw new Error(body?.error ?? `Request to ${path} failed (${res.status})`);
+    // The backend errors as { error: { code, message } }; the placeholder
+    // routes still use a plain { error: "..." } string.
+    const err = body?.error;
+    const message =
+      (typeof err === "string" ? err : err?.message) ??
+      `Request to ${path} failed (${res.status})`;
+    const error = new Error(message);
+    error.code = typeof err === "object" ? err?.code : undefined;
+    error.status = res.status;
+    throw error;
   }
 
-  return res.json();
+  const body = await res.json();
+  // The backend wraps payloads as { data, meta }; placeholder routes return
+  // the payload directly.
+  return body?.data ?? body;
 }
 
 export function fetchCustomers() {
   return request("/customers");
+}
+
+// Up to 4 personas not currently claimed by another demo session.
+export async function fetchSessions() {
+  const { customers } = await request("/sessions");
+  return customers;
+}
+
+// Selecting a persona is what starts a session: mint the id here, then claim.
+// The response carries the full customer document.
+export async function startSession(selectedCustomerId) {
+  createSessionId();
+  try {
+    const { customer } = await request("/sessions/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ selectedCustomerId }),
+    });
+    return customer;
+  } catch (err) {
+    // Nothing was claimed, so leave no session behind — the next attempt
+    // should start clean.
+    clearSessionId();
+    throw err;
+  }
+}
+
+// Releases the claimed persona and ends the session.
+export async function endSession() {
+  try {
+    return await request("/sessions/end", { method: "POST" });
+  } finally {
+    clearSessionId();
+  }
 }
 
 export function fetchCustomer(id) {
@@ -55,15 +112,11 @@ export function confirmRedeemRequest(body) {
   });
 }
 
-export function fetchOrders(customerId) {
-  const query = customerId
-    ? `?customerId=${encodeURIComponent(customerId)}`
-    : "";
-  return request(`/orders${query}`);
-}
-
-export function fetchOrder(id) {
-  return request(`/orders/${id}`);
+export function fetchOrders(id) {
+  return request(`/orders/${id}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
 export function createOrder(order) {

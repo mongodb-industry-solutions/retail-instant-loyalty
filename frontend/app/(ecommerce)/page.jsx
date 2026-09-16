@@ -41,6 +41,8 @@ export default function StoreView() {
   const tierInfo = {
     activeTier: selectedUser.loyaltyDetails?.activeTier,
     nextTier: selectedUser.loyaltyDetails?.nextTier,
+    dollarsNeededForNextTier:
+      selectedUser.loyaltyDetails?.dollarsNeededForNextTier,
   };
 
   return (
@@ -63,7 +65,9 @@ export default function StoreView() {
           <div className={styles.heroRight}>
             <div className={styles.heroStats}>
               <div className={styles.statBox}>
-                <div className={styles.num}>{5}</div>
+                <div className={styles.num}>
+                  {selectedUser.ordersCount ?? 0}
+                </div>
                 <div className={styles.lbl}>Orders</div>
               </div>
               <div className={`${styles.statBox} ${styles.statBoxGold}`}>
@@ -74,13 +78,13 @@ export default function StoreView() {
               </div>
               <div className={styles.statBox}>
                 <div className={`${styles.num} mono`}>
-                  {selectedUser.loyaltyDetails?.balance?.toLocaleString()}
+                  {selectedUser.loyaltyDetails?.coinBalance?.toLocaleString()}
                 </div>
                 <div className={styles.lbl}>Coins</div>
               </div>
             </div>
             <TierTrack
-              amountSpent={selectedUser.loyaltyDetails.totalAmountSpent}
+              amountSpent={selectedUser.loyaltyDetails.cumulativeSpendDollars}
               tierInfo={tierInfo}
               rewardDetails={rewardDetails}
               customerData={selectedUser}

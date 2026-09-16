@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@via-ds/components/button";
 import { useDispatch } from "react-redux";
-import { liveFeedEventsForOrder } from "./LiveFeedEvent";
+import { liveFeedEventsForOrder } from "../../app/(ecommerce)/confirm/LiveFeedEvent";
 import styles from "./ConfirmSidebar.module.css";
 import { openModal } from "@/redux/slices/GlobalSlice";
 

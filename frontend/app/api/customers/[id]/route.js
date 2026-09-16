@@ -1,22 +1,20 @@
 import { NextResponse } from "next/server";
-import { PLACEHOLDER_CUSTOMERS } from "../route";
 
-const BACKEND_URL = process.env.BACKEND_URL;
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export async function GET(request, { params }) {
   const { id } = await params;
 
   if (!BACKEND_URL) {
-    const customer = PLACEHOLDER_CUSTOMERS.find((c) => c.CustomerID === id);
-
-    if (!customer) {
-      return NextResponse.json(
-        { error: `Customer ${id} not found` },
-        { status: 404 },
-      );
-    }
-
-    return NextResponse.json(customer);
+    return NextResponse.json(
+      {
+        error: {
+          code: "BACKEND_UNAVAILABLE",
+          message: "NEXT_PUBLIC_API_URL is not set",
+        },
+      },
+      { status: 503 },
+    );
   }
 
   try {
@@ -25,17 +23,15 @@ export async function GET(request, { params }) {
       cache: "no-store",
     });
 
-    if (!res.ok) {
-      return NextResponse.json(
-        { error: `Backend responded with ${res.status}` },
-        { status: res.status },
-      );
-    }
-
-    return NextResponse.json(await res.json());
+    return NextResponse.json(await res.json(), { status: res.status });
   } catch (err) {
     return NextResponse.json(
-      { error: String(err?.message ?? err) },
+      {
+        error: {
+          code: "BACKEND_UNREACHABLE",
+          message: String(err?.message ?? err),
+        },
+      },
       { status: 502 },
     );
   }

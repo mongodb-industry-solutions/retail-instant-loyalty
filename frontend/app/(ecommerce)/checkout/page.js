@@ -49,7 +49,7 @@ export default function CheckoutView() {
     try {
       const { order, loyalty } = await createOrder({
         order: {
-          customerId: persona.CustomerID,
+          customerId: persona.customerId,
           items: cartItems.map((item) => ({
             productId: item.productId,
             name: item.name,

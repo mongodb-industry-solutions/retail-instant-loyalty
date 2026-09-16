@@ -216,8 +216,7 @@ function CampaignTab({ loyaltyData, dispatch, onSaved }) {
         · {campaign.multiplier}×
       </div>
       <div className={`${styles.note} ${styles.noteSubtle}`}>
-        Use this control during the demo to show a live rule change in MongoDB:
-        the campaign banner updates immediately and the coins-earned calculation
+        The campaign banner updates immediately and the coins-earned calculation
         changes with no redeploy or ETL.
       </div>
       <Button
