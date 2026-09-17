@@ -208,20 +208,20 @@ export default function ordersRoutes(app) {
 
   // Order history list for this customer
   app.get("/orders", async (request, reply) => {
-    const sessionId = request.headers["x-session-id"];
+    const customerId = request.headers["x-customer-id"];
     const { page = 1, limit = 20, explain } = request.query || {};
 
-    if (!sessionId)
-      return sendError(reply, 400, "SESSION_REQUIRED", "x-session-id header is required");
+    if (!customerId)
+      return sendError(reply, 400, "CUSTOMER_ID_REQUIRED", "x-customer-id header is required");
 
     const db = app.mongo.db;
 
     try {
-      const customer = await db.collection("customers").findOne({ sessionId });
+      const customer = await db.collection("customers").findOne({ customerId });
       if (!customer)
-        return sendError(reply, 404, "CUSTOMER_NOT_FOUND", "No customer found for this session");
+        return sendError(reply, 404, "CUSTOMER_NOT_FOUND", "No customer found for this customer ID");
 
-      const filter = { sessionId, customerId: customer.customerId };
+      const filter = { customerId: customer.customerId };
 
       const skip = (Number(page) - 1) * Number(limit);
       const [orders, totalCount] = await Promise.all([
