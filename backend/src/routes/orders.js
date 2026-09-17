@@ -100,6 +100,7 @@ export default function ordersRoutes(app) {
           customerId: math.customer.customerId,
           storeId: storeId || null,
           orderType: orderType || "ONLINE",
+          purchaseType: "purchase",
           items: math.resolvedItems,
           amountSummary: math.amountSummary,
           transactionId,
@@ -116,7 +117,6 @@ export default function ordersRoutes(app) {
           orderId,
           sessionId,
           customerId: math.customer.customerId,
-          type: "purchase",
           status: "completed",
           tenders: [
             ...(math.coinsApplied > 0
