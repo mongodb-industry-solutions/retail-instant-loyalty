@@ -1,29 +1,25 @@
 "use client";
 
 import { useSelector, useDispatch } from "react-redux";
-import { confirmRedeemOrderSuccess } from "../../redux/slices/GlobalSlice";
+import {
+  confirmRedeemOrderSuccess,
+  selectSelectedUser,
+  selectLoyaltyConfig,
+} from "../../redux/slices/GlobalSlice";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@via-ds/components/button";
 import { fetchRedeemCandidates, confirmRedeemRequest } from "@/lib/api";
-import { formatPrice } from "@/lib/helper";
+import { formatPrice, formatCoinValue } from "@/lib/helper";
 import shared from "@/components/shared.module.css";
 import { toast } from "@via-ds/components/toast";
-
-import {
-  selectSelectedUser,
-  selectRedeem,
-  selectReward,
-  resetReward,
-} from "../../redux/slices/GlobalSlice";
 import styles from "./RedeemView.module.css";
 
-function CandidateCard({ product, selected }) {
-  const dispatch = useDispatch();
-
-  // coinPrice / cashSubtotal are priced server-side and arrive on the
-  // candidate — see the /candidates route in backend/src/routes/redeem.js.
-  const coversWithCoins = product.cashSubtotal === 0;
+function CandidateCard({ product, selected, onSelect, onDeselect }) {
+  // coins / cash are priced server-side and arrive on the product — see
+  // POST /redeem/candidates in backend/src/routes/redeem.js. cash is what's
+  // still owed after coins are applied.
+  const coversWithCoins = product.cash === 0;
 
   return (
     <div className={styles.redeemCard}>
@@ -45,7 +41,7 @@ function CandidateCard({ product, selected }) {
             </span>
             <span>·</span>
             <span className={`${styles.redeemCoins} mono`}>
-              {product.coinPrice.toLocaleString()} coins
+              {product.coins.toLocaleString()} coins
             </span>
             <span className={styles.redeemAffordTag}>
               {coversWithCoins ? "Coins only" : "Hybrid"}
@@ -62,25 +58,17 @@ function CandidateCard({ product, selected }) {
               <span
                 className={`${styles.redeemAfford} ${styles.redeemAffordHybrid}`}
               >
-                Use coins + {formatPrice(product.cashSubtotal)} cash
+                Use coins + {formatPrice(product.cash)} cash
               </span>
             )}
           </div>
         </div>
         {selected ? (
-          <Button
-            variant="primary"
-            size="small"
-            onClick={() => dispatch(resetReward())}
-          >
+          <Button variant="primary" size="small" onClick={onDeselect}>
             ✓ Selected
           </Button>
         ) : (
-          <Button
-            variant="primary"
-            size="small"
-            onClick={() => dispatch(selectReward(product.productId))}
-          >
+          <Button variant="primary" size="small" onClick={onSelect}>
             Redeem now
           </Button>
         )}
@@ -89,39 +77,26 @@ function CandidateCard({ product, selected }) {
   );
 }
 
-function ReviewPanel({ persona, reward }) {
+function ReviewPanel({ persona, reward, onConfirmed }) {
   const dispatch = useDispatch();
 
-  const {
-    coinPrice, // The coin equivalence of the product
-    merchandiseSubtotal,
-    coinsUsed = 220, // This is to calculated the amount of coins to be used for the product
-    cashSubtotal,
-    tax,
-    cashTotal,
-  } = reward;
   const balance = persona.loyaltyDetails.coinBalance;
-  const balanceAfter = Math.max(0, balance - coinsUsed);
+  const coinsToApply = reward.coins;
+  const cashDue = reward.cash;
+  const balanceAfter = Math.max(0, balance - coinsToApply);
   const [confirming, setConfirming] = useState(false);
 
   async function handleConfirm() {
     setConfirming(true);
     try {
-      const { order, customer, orderMeta, tierUp, oldTier, newTier } =
-        await confirmRedeemRequest({
-          personaId: persona.id,
-          redeemCart: { [reward.id]: 1 },
-        });
-      dispatch(
-        confirmRedeemOrderSuccess({
-          order,
-          customer,
-          orderMeta,
-          tierUp,
-          oldTier,
-          newTier,
-        }),
-      );
+      // Same request/response contract as POST /orders: { items, coinsToApply }
+      // in, { order, loyalty } out.
+      const { order, loyalty } = await confirmRedeemRequest({
+        items: [{ productId: reward.productId, quantity: 1 }],
+        coinsToApply,
+      });
+      dispatch(confirmRedeemOrderSuccess({ order, loyalty }));
+      onConfirmed();
     } catch (err) {
       toast.error(`Couldn't confirm redemption: ${err.message}`);
     } finally {
@@ -136,43 +111,27 @@ function ReviewPanel({ persona, reward }) {
         cash remainder in one confirmation step.
       </div>
       <div className={shared.orderReviewItem}>
-        <span className={shared.name}>
-          {reward.icon} {reward.name}
-        </span>
-        <span className="mono">{reward.coinPrice.toLocaleString()} coins</span>
+        <span className={shared.name}>{reward.name}</span>
+        <span className="mono">{coinsToApply.toLocaleString()} coins</span>
       </div>
       <div className={styles.redeemBreakdown} style={{ marginTop: 12 }}>
         <div className={styles.rbRow}>
           <span>Merchandise selected</span>
-          <span>{formatPrice(merchandiseSubtotal)}</span>
+          <span>{formatPrice(reward.price)}</span>
         </div>
         <div className={styles.rbRow}>
           <span>Coins available</span>
           <span>{balance.toLocaleString()}</span>
         </div>
         <div className={styles.rbRow}>
-          <span>Coin price selected</span>
-          <span>{coinPrice.toLocaleString()}</span>
-        </div>
-        <div className={styles.rbRow}>
           <span>Coins applied</span>
-          <span>{balance.toLocaleString()}</span>
+          <span>{coinsToApply.toLocaleString()}</span>
         </div>
-        {cashTotal > 0 ? (
-          <>
-            <div className={styles.rbRow}>
-              <span>Remaining merchandise due</span>
-              <span>{formatPrice(cashSubtotal)}</span>
-            </div>
-            <div className={styles.rbRow}>
-              <span>Tax</span>
-              <span>{formatPrice(tax)}</span>
-            </div>
-            <div className={styles.rbRow}>
-              <span>Total cash due</span>
-              <span>{formatPrice(cashTotal)}</span>
-            </div>
-          </>
+        {cashDue > 0 ? (
+          <div className={styles.rbRow}>
+            <span>Remaining merchandise due</span>
+            <span>{formatPrice(cashDue)}</span>
+          </div>
         ) : (
           <div className={styles.rbRow}>
             <span>Total cash due</span>
@@ -192,8 +151,7 @@ function ReviewPanel({ persona, reward }) {
           loadingText="Confirming…"
           onClick={handleConfirm}
         >
-          Confirm{" "}
-          {cashTotal > 0 ? `→ ${formatPrice(cashTotal)} due` : "redemption"}
+          Confirm {cashDue > 0 ? `→ ${formatPrice(cashDue)} due` : "redemption"}
         </Button>
       </div>
     </div>
@@ -201,17 +159,18 @@ function ReviewPanel({ persona, reward }) {
 }
 
 export default function RedeemSection({ excludeItemIds }) {
-  const dispatch = useDispatch();
   const persona = useSelector(selectSelectedUser);
-  const redeem = useSelector(selectRedeem);
+  const { rewardDetails } = useSelector(selectLoyaltyConfig);
+  // Which product is expanded for review — UI-only, so it lives here rather
+  // than in the global store.
+  const [selectedProductId, setSelectedProductId] = useState(null);
   const [offer, setOffer] = useState(null);
   const excludeKey = [...(excludeItemIds ?? [])].sort().join(",");
 
   useEffect(() => {
     let cancelled = false;
     fetchRedeemCandidates({
-      customerId: persona.customerId,
-      exclude: excludeKey ? excludeKey.split(",") : [],
+      excludeProducts: excludeKey ? excludeKey.split(",") : [],
     })
       .then((data) => {
         if (!cancelled) setOffer(data);
@@ -222,24 +181,13 @@ export default function RedeemSection({ excludeItemIds }) {
     return () => {
       cancelled = true;
     };
-  }, [
-    persona.customerId,
-    persona.loyaltyDetails?.coinBalance,
-    excludeKey,
-    dispatch,
-  ]);
+  }, [persona.customerId, persona.loyaltyDetails?.coinBalance, excludeKey]);
 
-  console.log("offer", offer);
+  const products = offer?.products ?? [];
+  if (!products.length) return null;
 
-  if (!offer?.show) return null;
-
-  const { tier, candidates } = offer;
-  // The candidates already carry a tier-priced coinPrice, so the selection is
-  // just one of them — no second lookup or re-pricing needed.
-  const reward =
-    candidates.find((pr) => pr.productId === redeem.productId) || null;
-
-  console.log("reward", reward);
+  const reward = products.find((p) => p.productId === selectedProductId) || null;
+  const activeTier = persona.loyaltyDetails?.activeTier;
 
   return (
     <div className={styles.redeemSection}>
@@ -254,20 +202,28 @@ export default function RedeemSection({ excludeItemIds }) {
         </span>
       </div>
       <p className={styles.redeemSub}>
-        {`Purchase with your coins at ${tier.tierName} tier — 1 coin = ${tier.coinValueLabel}.`}
+        {`Purchase with your coins at ${activeTier} tier — 1 coin = ${formatCoinValue(activeTier, rewardDetails)}.`}
       </p>
 
       <div className={styles.redeemList}>
-        {candidates.map((pr) => (
+        {products.map((pr) => (
           <CandidateCard
             key={pr.productId}
             product={pr}
-            selected={pr.productId === redeem.productId}
+            selected={pr.productId === selectedProductId}
+            onSelect={() => setSelectedProductId(pr.productId)}
+            onDeselect={() => setSelectedProductId(null)}
           />
         ))}
       </div>
 
-      {reward && <ReviewPanel persona={persona} reward={reward} />}
+      {reward && (
+        <ReviewPanel
+          persona={persona}
+          reward={reward}
+          onConfirmed={() => setSelectedProductId(null)}
+        />
+      )}
     </div>
   );
 }

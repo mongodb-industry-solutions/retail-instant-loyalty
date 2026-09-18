@@ -24,10 +24,15 @@ export default function ConfirmView() {
   const hasRedemption = false;
   const reviewing = false;
   const persona = useSelector(selectSelectedUser);
-  // POST /orders response envelope: { order, loyalty }.
+  // POST /orders response envelope: { order, loyalty }. loyalty is a sibling
+  // of order in the API, but Receipt/ConfirmSidebar/LiveFeedEvent all read it
+  // off the order itself, so it's merged in once here rather than at each
+  // call site.
   const lastOrder = useSelector(selectLastOrder);
   const latestRedeem = useSelector(selectLastRedeem);
-  const finalOrder = lastOrder?.order ?? null;
+  const finalOrder = lastOrder?.order
+    ? { ...lastOrder.order, loyalty: lastOrder.loyalty }
+    : null;
   const shownOrderId = finalOrder?.orderId;
 
   const excludeItemIds = new Set(

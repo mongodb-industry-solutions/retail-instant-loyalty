@@ -23,7 +23,6 @@ const INITIAL_STATE = {
   lastOrder: null,
   lastRedeem: null,
   cart: {},
-  redeem: { productId: null },
 };
 
 const GlobalSlice = createSlice({
@@ -128,19 +127,22 @@ const GlobalSlice = createSlice({
       state.cart = {};
     },
 
-    selectReward(state, action) {
-      state.redeem = {
-        productId: action.payload,
-      };
-    },
-    resetReward(state) {
-      state.redeem = { productId: null };
-    },
     confirmRedeemOrderSuccess(state, action) {
-      console.log("Confirm redeem order success payload:", action.payload);
-      const redeem = action.payload;
-      state.lastRedeem = { redeem };
-      state.redeem = { productId: null };
+      // API response envelope: { order, loyalty } — identical shape to
+      // placeOrderSuccess, since POST /redeem and POST /orders share it.
+      const { order, loyalty } = action.payload;
+      state.lastRedeem = { order, loyalty };
+      if (state.selectedUser && loyalty) {
+        state.selectedUser.loyaltyDetails.coinBalance = loyalty.newBalance;
+        state.selectedUser.loyaltyDetails.activeTier = loyalty.newTier;
+        state.selectedUser.loyaltyDetails.dollarsNeededForNextTier =
+          loyalty.dollarsNeededForNextTier;
+        state.selectedUser.loyaltyDetails.cumulativeSpendDollars =
+          (state.selectedUser.loyaltyDetails.cumulativeSpendDollars ?? 0) +
+          (loyalty.qualifyingSpend ?? 0);
+        state.selectedUser.ordersCount =
+          (state.selectedUser.ordersCount ?? 0) + 1;
+      }
     },
 
     saveRewardDetailsSuccess(state, action) {
@@ -205,8 +207,6 @@ export const {
   saveCampaignSuccess,
   cartIncrement,
   cartDecrement,
-  selectReward,
-  resetReward,
   resetGlobalState,
 } = GlobalSlice.actions;
 
@@ -220,6 +220,5 @@ export const selectLastRedeem = (state) => state.Global.lastRedeem;
 export const selectLoyaltyConfig = (state) => state.Global.loyaltyConfig;
 export const selectModal = (state) => state.Global.modal;
 export const selectCart = (state) => state.Global.cart;
-export const selectRedeem = (state) => state.Global.redeem;
 
 export default GlobalSlice.reducer;

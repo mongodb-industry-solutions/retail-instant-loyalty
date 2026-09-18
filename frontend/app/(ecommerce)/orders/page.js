@@ -23,7 +23,7 @@ export default function OrdersView() {
 
   useEffect(() => {
     let cancelled = false;
-    fetchOrders()
+    fetchOrders({ customerId: persona.customerId })
       .then((ordersData) => {
         if (cancelled) return;
         setOrders(ordersData ?? []);

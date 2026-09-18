@@ -36,7 +36,11 @@ export default function Receipt({ order, lastRedeem }) {
         </span>
       </H3>
       {lastOrder.items.map((i) => (
-        <ItemRows key={i.productId} item={i} amount={formatPrice(i.lineTotal)} />
+        <ItemRows
+          key={i.productId}
+          item={i}
+          amount={formatPrice(i.lineTotal)}
+        />
       ))}
       <div className={styles.totalsMini}>
         <div className={styles.row}>
@@ -94,7 +98,15 @@ export default function Receipt({ order, lastRedeem }) {
   );
 
   if (!lastRedeem) return purchaseCard;
-  const r = lastRedeem;
+  // Same envelope as the main order: { order, loyalty }.
+
+  const r = lastRedeem.order;
+  const rLoyalty = lastRedeem.loyalty ?? {};
+
+  console.log("lastRedeem", lastRedeem);
+
+  if (!r) return purchaseCard;
+
   return (
     <>
       {purchaseCard}
@@ -116,30 +128,36 @@ export default function Receipt({ order, lastRedeem }) {
           balance and cash remainder in one confirmation flow.
         </p>
         {r.items.map((i) => (
-          <ItemRow
-            key={i.id}
-            i={i}
-            amount={`${(i.coinPrice * i.qty).toLocaleString()} coins`}
+          <ItemRows
+            key={i.productId}
+            item={i}
+            amount={formatPrice(i.lineTotal)}
           />
         ))}
         <div className={styles.totalsMini}>
           <div className={styles.row}>
             <Text elementType="span">Coins applied</Text>
-            <span className="mono">{r.coinsUsed.toLocaleString()}</span>
+            <span className="mono">
+              {(r.coinsApplied ?? 0).toLocaleString()}
+            </span>
           </div>
-          {r.cashDue > 0 ? (
+          {r.amountSummary?.total > 0 ? (
             <>
               <div className={styles.row}>
                 <Text elementType="span">Remaining merchandise due</Text>
-                <span className="mono">{fmt(r.cashSubtotal)}</span>
+                <span className="mono">
+                  {formatPrice(r.amountSummary.subtotal)}
+                </span>
               </div>
               <div className={styles.row}>
                 <Text elementType="span">Tax</Text>
-                <span className="mono">{fmt(r.tax)}</span>
+                <span className="mono">{formatPrice(r.amountSummary.tax)}</span>
               </div>
               <div className={styles.row}>
                 <Text elementType="span">Total cash due</Text>
-                <span className="mono">{fmt(r.cashDue)}</span>
+                <span className="mono">
+                  {formatPrice(r.amountSummary.total)}
+                </span>
               </div>
             </>
           ) : (
@@ -151,7 +169,7 @@ export default function Receipt({ order, lastRedeem }) {
           <div className={`${styles.row} ${styles.grand}`}>
             <Text elementType="span">Updated coin balance</Text>
             <span className="mono">
-              {r.balanceAfter.toLocaleString()} coins
+              {(rLoyalty.newBalance ?? 0).toLocaleString()} coins
             </span>
           </div>
         </div>

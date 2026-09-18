@@ -7,31 +7,26 @@ import { liveFeedEventsForOrder } from "../../app/(ecommerce)/confirm/LiveFeedEv
 import styles from "./ConfirmSidebar.module.css";
 import { openModal } from "@/redux/slices/GlobalSlice";
 
-// All three come from confirm/page.js, which guards them before rendering.
+// persona and order come from confirm/page.js, which guards them before
+// rendering. lastRedeem is the { order, loyalty } envelope from a completed
+// redemption, or null if none has happened yet this session.
 export default function ConfirmSidebar({ persona, order, lastRedeem }) {
   const dispatch = useDispatch();
+  const redeemOrder = lastRedeem?.order ?? null;
 
   // Same animation key ConfirmView keys its before/after counters on: the
   // feed replays from empty whenever the narrated order changes. Keyed on
-  // lastRedeem, not the 3.4s justConfirmed flash, or the feed would wipe
-  // and replay the purchase narration once that flash expired.
-  const animKey = lastRedeem ? lastRedeem.orderId : order.orderId;
+  // the redeem order, not the 3.4s justConfirmed flash, or the feed would
+  // wipe and replay the purchase narration once that flash expired.
+  const animKey = redeemOrder ? redeemOrder.orderId : order.orderId;
 
   const [feedItems, setFeedItems] = useState([]);
   useEffect(() => {
     setFeedItems([]);
-    const target = lastRedeem
-      ? {
-          id: lastRedeem.orderId,
-          type: "redeem",
-          items: lastRedeem.items,
-          coinsUsed: lastRedeem.coinsUsed,
-          cashDue: lastRedeem.cashDue,
-          balanceBefore: lastRedeem.balanceBefore,
-          balanceAfter: lastRedeem.balanceAfter,
-          shipBy: lastRedeem.shipBy,
-          tracking: lastRedeem.tracking,
-        }
+    // liveFeedEventsForOrder reads loyalty off the order itself, but the API
+    // returns it as a sibling — attach it here rather than in every caller.
+    const target = redeemOrder
+      ? { ...redeemOrder, loyalty: lastRedeem.loyalty }
       : order;
     const events = liveFeedEventsForOrder(target, persona);
     const timers = events.map((evt, idx) =>

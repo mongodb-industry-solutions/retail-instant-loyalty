@@ -94,12 +94,14 @@ export function updateLoyaltyConfig(patch) {
   });
 }
 
-export function fetchRedeemCandidates({ customerId, exclude = [] } = {}) {
-  const qs = new URLSearchParams();
-  if (customerId) qs.set("customerId", customerId);
-  if (exclude.length) qs.set("exclude", exclude.join(","));
-  const query = qs.size ? `?${qs}` : "";
-  return request(`/redeem/candidates${query}`);
+// Session-scoped — the backend derives the customer from x-session-id.
+// excludeProducts is forwarded as-is to match the backend's own field name.
+export function fetchRedeemCandidates({ excludeProducts = [] } = {}) {
+  return request("/redeem/candidates", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ excludeProducts }),
+  });
 }
 
 export function confirmRedeemRequest(body) {
@@ -121,11 +123,14 @@ export function fetchOrderOverview({ items, coinsToApply = 0 }) {
   });
 }
 
-// Order history for the current session — the backend resolves the customer
-// from the session id, so there is no id to pass.
-export async function fetchOrders({ page = 1, limit = 20 } = {}) {
+export async function fetchOrders({ page = 1, limit = 20, customerId } = {}) {
   const qs = new URLSearchParams({ page: String(page), limit: String(limit) });
-  const { orders } = await request(`/orders?${qs}`);
+  const query = qs.size ? `?${qs}` : "";
+  const { orders } = await request(`/orders${query}`, {
+    headers: {
+      "x-customer-id": customerId ?? "",
+    },
+  });
   return orders;
 }
 

@@ -20,7 +20,7 @@ function unreachable(err) {
 // from x-session-id, so no id is passed.
 export async function GET(request) {
   console.log("This is being called: ", request.url);
-  console.log("x-session-id:", request.headers.get("x-session-id") ?? "");
+  console.log("x-customer-id:", request.headers.get("x-customer-id") ?? "");
   if (!BACKEND_URL) return missingBackend();
 
   const { searchParams } = new URL(request.url);
@@ -30,7 +30,7 @@ export async function GET(request) {
     const res = await fetch(`${BACKEND_URL}/orders${query}`, {
       headers: {
         "Content-Type": "application/json",
-        "x-session-id": request.headers.get("x-session-id") ?? "",
+        "x-customer-id": request.headers.get("x-customer-id") ?? "",
       },
       cache: "no-store",
     });

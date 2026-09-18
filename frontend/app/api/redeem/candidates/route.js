@@ -2,91 +2,32 @@ import { NextResponse } from "next/server";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
-// TODO(backend): this module is not registered in backend/src/server.js yet,
-// so the seed data below is still the source of truth. Flip to true once it is.
-const BACKEND_SERVES_THIS = false;
-
-// TEMPORARY: seed data lives here until the backend serves it.
-// Once BACKEND_URL is available, delete this and use the fetch below.
-const PLACEHOLDER_REDEEM_CANDIDATES = [
-  {
-    productId: "40131171",
-    name: "Premium Care Diaper Pants - Extra Large, 12-17 kg, Lotion with Aloe Vera",
-    brand: "Pampers",
-    category: "Baby Care",
-    price: 26.63,
-    currency: "USD",
-    imageURL:
-      "https://d1n5xguust3bkl.cloudfront.net/products/685bfe2b3d832cf7e161468f.png",
-    coinPrice: 13315,
-    cashSubtotal: 0,
-  },
-  {
-    productId: "100316308",
-    name: "Baby Lotion",
-    brand: "Himalaya",
-    category: "Baby Care",
-    price: 8.42,
-    currency: "USD",
-    imageURL:
-      "https://d1n5xguust3bkl.cloudfront.net/products/685bfe2b3d832cf7e161468f.png",
-    coinPrice: 4210,
-    cashSubtotal: 0,
-  },
-  {
-    productId: "40045678",
-    name: "Trail Runner Jacket",
-    brand: "Leafy Outdoors",
-    category: "Apparel",
-    price: 99.98,
-    currency: "USD",
-    imageURL:
-      "https://d1n5xguust3bkl.cloudfront.net/products/685bfe2b3d832cf7e161468f.png",
-    coinPrice: 49990,
-    cashSubtotal: 24.99,
-  },
-];
-
-export async function GET(request) {
-  const { searchParams } = new URL(request.url);
-  const customerId = searchParams.get("customerId");
-  const exclude = (searchParams.get("exclude") ?? "")
-    .split(",")
-    .filter(Boolean);
-
-  if (!BACKEND_SERVES_THIS || !BACKEND_URL) {
-    const candidates = PLACEHOLDER_REDEEM_CANDIDATES.filter(
-      (candidate) => !exclude.includes(candidate.productId),
+// POST /redeem/candidates is session-scoped and POST-only — the backend
+// derives the customer from x-session-id and returns whichever redeem-eligible
+// products it picks. Pure passthrough: body is forwarded as-is
+// ({ excludeProducts, limit }), response is { data: { products, maxAmountOfCash } }.
+export async function POST(request) {
+  if (!BACKEND_URL) {
+    return NextResponse.json(
+      { error: "NEXT_PUBLIC_API_URL is not set" },
+      { status: 503 },
     );
-    return NextResponse.json({
-      show: candidates.length > 0,
-      tier: { tierKey: "gold", tierName: "Gold", coinValueLabel: "0.4¢" },
-      candidates,
-    });
   }
 
   try {
-    const qs = new URLSearchParams();
-    if (customerId) qs.set("customerId", customerId);
-    if (exclude.length) qs.set("exclude", exclude.join(","));
-    const query = qs.size ? `?${qs}` : "";
-
-    const res = await fetch(`${BACKEND_URL}/redeem/candidates${query}`, {
-      headers: { "Content-Type": "application/json" },
-      cache: "no-store",
+    const res = await fetch(`${BACKEND_URL}/redeem/candidates`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-session-id": request.headers.get("x-session-id") ?? "",
+      },
+      body: await request.text(),
     });
 
-    if (!res.ok) {
-      return NextResponse.json(
-        { error: `Backend responded with ${res.status}` },
-        { status: res.status },
-      );
-    }
-
-    return NextResponse.json(await res.json());
+    return NextResponse.json(await res.json(), { status: res.status });
   } catch (err) {
     return NextResponse.json(
-      { error: String(err?.message ?? err) },
+      { error: `Failed to reach backend: ${err.message}` },
       { status: 502 },
     );
   }
