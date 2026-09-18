@@ -6,6 +6,7 @@ import ordersRoutes from './routes/orders.js'
 import dbConnector from "./DB/db-connector.js";
 import redeemRoutes from "./routes/redeem.js";
 import loyaltyConfigurationRoutes from "./routes/loyaltyConfiguration.js";
+import productsRoutes from "./routes/products.js";
 
 
 const app = Fastify({ logger: true });
@@ -23,6 +24,7 @@ await app.register(customersRoutes);
 await app.register(ordersRoutes);
 await app.register(redeemRoutes);
 await app.register(loyaltyConfigurationRoutes);
+await app.register(productsRoutes);
 
 try {
     await app.listen({port, host: "0.0.0.0"});
