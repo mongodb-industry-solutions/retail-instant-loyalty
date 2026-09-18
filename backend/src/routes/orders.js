@@ -252,15 +252,15 @@ export default function ordersRoutes(app) {
 
   // GET /orders/:orderId — single order detail
   app.get("/orders/:orderId", async (request, reply) => {
-    const sessionId = request.headers["x-session-id"];
+    const customerId = request.headers["x-customer-id"];
     const { orderId } = request.params;
 
-    if (!sessionId)
+    if (!customerId)
       return sendError(
         reply,
         400,
-        "SESSION_REQUIRED",
-        "x-session-id header is required",
+        "CUSTOMER_ID_REQUIRED",
+        "x-customer-id header is required",
       );
 
     const db = app.mongo.db;
@@ -268,13 +268,13 @@ export default function ordersRoutes(app) {
     try {
       const order = await db
         .collection("orders")
-        .findOne({ orderId, sessionId });
+        .findOne({ orderId, customerId });
       if (!order)
         return sendError(
           reply,
           404,
           "ORDER_NOT_FOUND",
-          "Order not found for this session",
+          "Order not found for this customer",
         );
       
       const transaction = await db
@@ -285,7 +285,7 @@ export default function ordersRoutes(app) {
           reply,
           404,
           "TRANSACTION_NOT_FOUND",
-          "Transaction not found for this order",
+          "Transaction not found for this customer's order",
         );
       return reply.send({ data: {...order, tenders: transaction.tenders || []  } });
     } catch (err) {
