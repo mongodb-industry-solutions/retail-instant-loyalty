@@ -15,49 +15,14 @@ import TierTrack from "@/components/TierTrack/TierTrack";
 import { Badge } from "@via-ds/components/badge";
 import { Icon } from "@via-ds/icons";
 
-const FALLBACK_LAST_ORDER = {
-  order: {
-    orderId: "MS-118820",
-    customerId: "CUST-10002",
-    items: [
-      {
-        productId: "PROD-1001",
-        name: "Trail Runner Jacket",
-        price: 99.98,
-        quantity: 1,
-      },
-    ],
-    amountSummary: {
-      subtotal: 99.98,
-      shipping: 0,
-      tax: 8.5,
-      total: 108.48,
-    },
-    transactionId: "TXN-99213",
-    rewardsEarned: 99,
-    statusHistory: [{ Status: "placed", lastUpdated: null }],
-    createdAt: "2026-09-03T15:12:00.000Z",
-  },
-  loyalty: {
-    oldBalance: 3240,
-    newBalance: 3939,
-    oldTier: "gold",
-    newTier: "gold",
-    tierChanged: false,
-    qualifyingSpend: 99.98,
-    coinsUsed: 0,
-  },
-};
-
 export default function LoyaltyRewardCard() {
   const [phase, setPhase] = useState("after");
   const [tierupGlow, setTierupGlow] = useState(false);
 
-  const storedLastOrder = useSelector(selectLastOrder);
+  // { order, loyalty } — the POST /orders response envelope.
+  const lastOrder = useSelector(selectLastOrder);
   const selectedUser = useSelector(selectSelectedUser);
   const { rewardDetails } = useSelector(selectLoyaltyConfig);
-
-  const lastOrder = FALLBACK_LAST_ORDER;
 
   useEffect(() => {
     setPhase("before");
@@ -65,32 +30,35 @@ export default function LoyaltyRewardCard() {
     return () => clearTimeout(t);
   }, [lastOrder]);
 
+  if (!lastOrder) return null;
+
+  const order = lastOrder.order;
+  const loyalty = lastOrder.loyalty ?? {};
+  // The API reports the tier pair rather than a flag.
+  const tierChanged = loyalty.newTier !== loyalty.oldTier;
+
   const displayCoinTotal =
-    phase === "before"
-      ? lastOrder.loyalty.oldBalance
-      : lastOrder.loyalty.newBalance;
+    phase === "before" ? loyalty.oldBalance : loyalty.newBalance;
 
-  const beforeTotalAmount =
-    selectedUser.loyaltyDetails.cumulativeSpendDollars -
-    lastOrder.loyalty.qualifyingSpend;
-
+  const cumulativeSpend =
+    selectedUser.loyaltyDetails?.cumulativeSpendDollars ?? 0;
   const displayTierSpend =
     phase === "before"
-      ? beforeTotalAmount
-      : selectedUser.loyaltyDetails.cumulativeSpendDollars;
-
-  console.log("displayTierSpend:", displayTierSpend);
+      ? cumulativeSpend - (loyalty.qualifyingSpend ?? 0)
+      : cumulativeSpend;
 
   const cardClass = `${styles.rewardCard}${tierupGlow ? ` ${styles.rewardCardGlow}` : ""}`;
 
   const tierInfo = {
-    activeTier: lastOrder.loyalty.newTier,
-    nextTier: selectedUser.loyaltyDetails.nextTier,
+    activeTier: loyalty.newTier,
+    nextTier: selectedUser.loyaltyDetails?.nextTier,
+    dollarsNeededForNextTier: loyalty.dollarsNeededForNextTier,
   };
-  // Promo multiplier isn't part of the loyalty API response (campaign only
-  // carries promoName/banner/isActive) -- hardcoded to match the static
-  // "2x loyalty coins" text in Navbar's PromoBanner until it's a real field.
-  const promoMultiplierText = "2x";
+  const multiplier = loyalty.multiplier ?? 1;
+  // Tiers come through lowercase ("gold"); this card shows them as a label.
+  const tierLabel = loyalty.newTier
+    ? loyalty.newTier.charAt(0).toUpperCase() + loyalty.newTier.slice(1)
+    : "—";
 
   const balanceRow = (description) => (
     <div className={styles.rewardNumbers}>
@@ -100,8 +68,7 @@ export default function LoyaltyRewardCard() {
         {displayCoinTotal.toLocaleString()}
       </span>
       <Badge variant="info" className={styles.rnTier}>
-        {lastOrder.loyalty.newTier.charAt(0).toUpperCase() +
-          lastOrder.loyalty.newTier.slice(1)}
+        {tierLabel}
       </Badge>
     </div>
   );
@@ -110,38 +77,31 @@ export default function LoyaltyRewardCard() {
     <div className={cardClass}>
       <div className={styles.rewardHead}>
         <h3>🪙 Loyalty rewards earned</h3>
-        {lastOrder.loyalty.tierChanged && (
-          <span className={styles.tierupBadge}>Tier up!</span>
-        )}
+        {tierChanged && <span className={styles.tierupBadge}>Tier up!</span>}
       </div>
-      {lastOrder.loyalty.tierChanged && (
+      {tierChanged && (
         <div
           className={`${styles.tierupCelebration}${phase === "after" ? ` ${styles.tierupCelebrationShow}` : ""}`}
         >
           <span className={styles.burst}>🎉</span>
-          <span>
-            Upgraded to{" "}
-            {lastOrder.loyalty.newTier.charAt(0).toUpperCase() +
-              lastOrder.loyalty.newTier.slice(1)}
-          </span>
+          <span>Upgraded to {tierLabel}</span>
         </div>
       )}
       {balanceRow(
-        `+${(lastOrder.loyalty.newBalance - lastOrder.loyalty.oldBalance).toLocaleString()} (${promoMultiplierText} active)`,
+        `+${(order.coinsEarned ?? 0).toLocaleString()}${multiplier > 1 ? ` (${multiplier}× active)` : ""}`,
       )}
       <TierTrack
         amountSpent={displayTierSpend}
         tierInfo={tierInfo}
         rewardDetails={rewardDetails}
       />
-      {lastOrder.loyalty.coinsUsed > 0 && (
+      {order.coinsApplied > 0 && (
         <div className={shared.coinPreview} style={{ margin: "14px 0 0" }}>
-          Applied <b>{lastOrder.loyalty.coinsUsed.toLocaleString()}</b> coins at
-          checkout, earned <b>{lastOrder.rewardsEarned.toLocaleString()}</b>{" "}
-          coins on <b>{formatPrice(lastOrder.amountSummary.subtotal)}</b>{" "}
-          cash-paid merchandise, and added{" "}
-          <b>{formatPrice(lastOrder.loyalty.qualifyingSpend)}</b> toward tier
-          progress.
+          Applied <b>{order.coinsApplied.toLocaleString()}</b> coins at
+          checkout, earned <b>{(order.coinsEarned ?? 0).toLocaleString()}</b>{" "}
+          coins on <b>{formatPrice(order.amountSummary.subtotal)}</b> cash-paid
+          merchandise, and added{" "}
+          <b>{formatPrice(loyalty.qualifyingSpend)}</b> toward tier progress.
         </div>
       )}
     </div>

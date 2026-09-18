@@ -5,8 +5,6 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 // Step 3: claim the selected persona for this session. Returns the full
 // customer document, or 409 if another session claimed it first.
 export async function POST(request) {
-  const body = await request.json();
-
   if (!BACKEND_URL) {
     return NextResponse.json(
       { error: "NEXT_PUBLIC_API_URL is not set" },
@@ -21,7 +19,8 @@ export async function POST(request) {
         "Content-Type": "application/json",
         "x-session-id": request.headers.get("x-session-id") ?? "",
       },
-      body: JSON.stringify(body),
+      //JSON.stringify({ ...(await request.json()), explain: true }),
+      body: await request.text(),
     });
 
     return NextResponse.json(await res.json(), { status: res.status });

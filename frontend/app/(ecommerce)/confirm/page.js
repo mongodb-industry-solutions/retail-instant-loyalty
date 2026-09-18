@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   selectSelectedUser,
   selectLastOrder,
+  selectLastRedeem,
 } from "../../../redux/slices/GlobalSlice";
 import Receipt from "../../../components/Receipt/Receipt";
 import LoyaltyRewardCard from "./LoyaltyRewardCard";
@@ -23,44 +24,27 @@ export default function ConfirmView() {
   const hasRedemption = false;
   const reviewing = false;
   const persona = useSelector(selectSelectedUser);
-  const latestRedeem = useSelector(selectLastOrder);
-  const shownOrderId = "123456";
-  //const finalOrder = useSelector(selectLastOrder); // To be used once the backend integration is complete
-  const finalOrder = {
-    orderId: "MS-118820",
-    customerId: "CUST-10002",
-    items: [
-      {
-        productId: "PROD-1001",
-        name: "Trail Runner Jacket",
-        price: 99.98,
-        quantity: 1,
-      },
-    ],
-    amountSummary: {
-      subtotal: 99.98,
-      shipping: 0,
-      tax: 8.5,
-      total: 108.48,
-    },
-    transactionId: "TXN-99213",
-    rewardsEarned: 99,
-    statusHistory: [{ Status: "placed", lastUpdated: null }],
-    createdAt: "2026-09-03T15:12:00.000Z",
-    loyalty: {
-      oldBalance: 3240,
-      newBalance: 3739,
-      oldTier: "gold",
-      newTier: "gold",
-      tierChanged: false,
-      qualifyingSpend: 99.98,
-      coinsUsed: 0,
-    },
-  };
+  // POST /orders response envelope: { order, loyalty }.
+  const lastOrder = useSelector(selectLastOrder);
+  const latestRedeem = useSelector(selectLastRedeem);
+  const finalOrder = lastOrder?.order ?? null;
+  const shownOrderId = finalOrder?.orderId;
 
   const excludeItemIds = new Set(
-    finalOrder.items.map((item) => item.productId),
+    (finalOrder?.items ?? []).map((item) => item.productId),
   );
+
+  // Redux isn't persisted, so a refresh on /confirm leaves nothing to show.
+  if (!finalOrder) {
+    return (
+      <main className={styles.wrap}>
+        <div className={styles.sub}>No recent order to show.</div>
+        <Button variant="primary" onClick={() => router.push("/")}>
+          ← Back to store
+        </Button>
+      </main>
+    );
+  }
 
   return (
     <main className={styles.wrap}>
@@ -91,18 +75,19 @@ export default function ConfirmView() {
         <div className={styles.main}>
           <LoyaltyRewardCard animKey={shownOrderId} />
 
-          {!reviewing && <Receipt />}
+          {!reviewing && (
+            <Receipt order={finalOrder} lastRedeem={latestRedeem} />
+          )}
 
           {!reviewing &&
             (hasRedemption ? (
               <div className={styles.deliveryCard}>
                 <h3>📦 Reward delivery</h3>
                 <p className={styles.addr}>
-                  {persona.profile.ship.address}, {persona.profile.ship.city}
+                  {persona.addresses[0].line1}, {persona.addresses[0].city}
                 </p>
                 <p>
-                  {latestRedeem.shipBy} · Tracking will be sent to{" "}
-                  {persona.profile.email}
+                  Tracking will be sent to {persona.profile.email}
                 </p>
               </div>
             ) : (

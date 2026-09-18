@@ -24,6 +24,7 @@ import { selectSelectedUser, getCartCount } from "@/redux/slices/GlobalSlice";
 import { openModal } from "@/redux/slices/GlobalSlice";
 import styles from "./Navbar.module.css";
 import shared from "@/components/shared.module.css";
+import { Text, H3 } from "@via-ds/components/typography";
 import {
   SearchIcon,
   WandIcon,
@@ -90,7 +91,7 @@ export default function Navbar() {
       <header className={styles.topnav}>
         <div className={styles.brand}>
           <Logo logo="MongoDBLogoMark" size="medium" />
-          Leafy Loyalty
+          <Text size="large">Leafy Loyalty</Text>
         </div>
         <div className={styles.navSearchGroup}>
           <div className={styles.navSearch}>
@@ -112,14 +113,14 @@ export default function Navbar() {
             onClick={() => dispatch(openModal({ modalType: "talkTrack" }))}
           >
             <WandIcon />
-            Talk track!
+            <Text> Talk track! </Text>
           </button>
           <button
             className={styles.utilBtn}
             onClick={() => dispatch(openModal({ modalType: "admin" }))}
           >
             <GearIcon />
-            Admin
+            <Text>Admin</Text>
           </button>
           <MenuRoot>
             <Button
@@ -134,14 +135,16 @@ export default function Navbar() {
                 {persona.profile.firstName.slice(0, 1).toUpperCase()}
               </div>
 
-              <span className={styles.pname}>{persona.profile.firstName}</span>
+              <Text elementType="span" className={styles.pname}>
+                {persona.profile.firstName}
+              </Text>
 
               <Badge
                 variant={tierBadgeVariant(
                   persona.loyaltyDetails?.activeTier ?? "new",
                 )}
               >
-                {persona.loyaltyDetails?.activeTier ?? "New"}
+                <Text>{persona.loyaltyDetails?.activeTier ?? "New"}</Text>
               </Badge>
             </Button>
 
@@ -154,7 +157,7 @@ export default function Navbar() {
                     onAction={() => go("coin-history")}
                   >
                     <HistoryIcon slot="icon" />
-                    Coin history
+                    <Text>Coin history</Text>
                   </MenuItem>
                   <MenuItem
                     id="profile"
@@ -162,7 +165,7 @@ export default function Navbar() {
                     onAction={() => go("profile")}
                   >
                     <ProfileIcon slot="icon" />
-                    Profile
+                    <Text>Profile</Text>
                   </MenuItem>
                   <MenuItem
                     id="order-history"
@@ -170,7 +173,7 @@ export default function Navbar() {
                     onAction={() => go("orders")}
                   >
                     <HistoryIcon slot="icon" />
-                    Order history
+                    <Text>Order history</Text>
                   </MenuItem>
                 </MenuSection>
 
@@ -183,7 +186,7 @@ export default function Navbar() {
                   onAction={handleLogout}
                 >
                   <LogoutIcon slot="icon" />
-                  Log out
+                  <Text>Log out</Text>
                 </MenuItem>
               </Menu>
             </MenuPopover>

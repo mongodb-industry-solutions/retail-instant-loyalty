@@ -2,17 +2,17 @@
 
 import { Text } from "@via-ds/components/typography";
 import { useSelector } from "react-redux";
-import { docToJSON, productDocFor, userLoyaltyDocFor } from "@/lib/helpers";
+import { docToJSON, productDocFor, userLoyaltyDocFor } from "@/lib/helper";
 import modal from "../Modal.module.css";
 import {
   selectSelectedUser,
-  selectProducts,
+  selectProductsData,
   selectLoyaltyConfig,
-} from "@/redux/globalSlice";
+} from "@/redux/slices/GlobalSlice";
 
 export default function DocumentModal({ onClose, variant, id }) {
   const { rewardDetails } = useSelector(selectLoyaltyConfig);
-  const products = useSelector(selectProducts);
+  const products = useSelector(selectProductsData);
   const persona = useSelector(selectSelectedUser);
 
   let title, intro, doc;
@@ -20,7 +20,7 @@ export default function DocumentModal({ onClose, variant, id }) {
     title = "User Schema";
     intro =
       "User data and loyalty data live together in one flexible MongoDB document, which shows the power of the flexible document model without forcing a separate loyalty table or join.";
-    doc = userLoyaltyDocFor(persona, rewardDetails);
+    doc = persona;
   } else {
     const pr = products.find((x) => x.id === id);
     title = "Document view";

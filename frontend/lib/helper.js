@@ -6,7 +6,6 @@ import {
   dollarsForCoins,
   getTier,
   activeCampaignMultiplier,
-  computeCheckoutTotals,
   computeRedeemTotals,
 } from "@/shared/pricing";
 export { TAX_RATE, roundCurrency, getTier };
@@ -92,7 +91,7 @@ export function productDocFor(pr) {
     ...(pr.badge ? { badge: pr.badge } : {}),
   };
 }
-function personaFullName(persona) {
+export function personaFullName(persona) {
   return `${persona.profile?.firstName ?? ""} ${persona.profile?.lastName ?? ""}`.trim();
 }
 
@@ -116,12 +115,14 @@ export function userLoyaltyDocFor(persona, rewardDetails) {
       tier_progress_spend: loyalty.cumulativeSpendDollars || 0,
       coins: loyalty.coinBalance,
       coin_value_cents: tier ? Math.round(coinDollarValue(tier) * 100) : null,
-      recent_transactions: (loyalty.loyaltyHistory || []).slice(-2).map((t) => ({
-        type: t.type,
-        delta: t.delta,
-        order_id: t.orderId,
-        channel: "online",
-      })),
+      recent_transactions: (loyalty.loyaltyHistory || [])
+        .slice(-2)
+        .map((t) => ({
+          type: t.type,
+          delta: t.delta,
+          order_id: t.orderId,
+          channel: "online",
+        })),
     },
   };
 }

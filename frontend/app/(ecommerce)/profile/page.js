@@ -7,16 +7,19 @@ import { TIER_BENEFITS } from "@/lib/data";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { Badge } from "@via-ds/components/badge";
+import { Button } from "@via-ds/components/button";
 import {
   selectSelectedUser,
   selectLoyaltyConfig,
   openModal,
 } from "@/redux/slices/GlobalSlice";
 import { tierBadgeVariant } from "@/components/tierBadgeVariant";
-import { formatCoinValue, formatPrice } from "@/lib/helper";
+import { formatCoinValue, formatPrice, personaFullName } from "@/lib/helper";
 import TierTrack from "@/components/TierTrack/TierTrack";
+import { Text, H3 } from "@via-ds/components/typography";
 
 function TierBenefits({ rewardDetails, currentTierKey }) {
+  console.log("TierBenefits props:", { rewardDetails, currentTierKey });
   return (
     <div className={styles.compactGrid}>
       {rewardDetails.map((t) => {
@@ -27,18 +30,26 @@ function TierBenefits({ rewardDetails, currentTierKey }) {
             key={t.tierKey}
           >
             <div className={styles.compactHead}>
-              <Badge variant={tierBadgeVariant(t.tierKey)}>{t.tierName}</Badge>
-              {isCurrent && <span className={styles.benefitYou}>Current</span>}
+              <Badge variant={tierBadgeVariant(t.tierKey)}>
+                <Text>{t.tierName}</Text>
+              </Badge>
+              {isCurrent && (
+                <Text elementType="span" className={styles.benefitYou}>
+                  Current
+                </Text>
+              )}
             </div>
             <div className={styles.benefitSpend}>
-              {formatPrice(t.threshold)}+ spend
+              <Text>Text {formatPrice(t.threshold)}+ spend</Text>
             </div>
             <div className={`${styles.benefitRate} mono`}>
-              1 coin = {formatCoinValue(t.tierKey, rewardDetails)}
+              <Text>1 coin = {formatCoinValue(t.tierKey, rewardDetails)}</Text>
             </div>
             <ul className={styles.benefitList}>
               {(TIER_BENEFITS[t.tierKey] ?? []).map((item, i) => (
-                <li key={i}>{item}</li>
+                <li key={i}>
+                  <Text>{item}</Text>
+                </li>
               ))}
             </ul>
           </div>
@@ -56,8 +67,7 @@ export default function ProfileView() {
   const tier = persona.loyaltyDetails
     ? persona.loyaltyDetails.activeTier
     : null;
-  const fullName =
-    `${persona.profile.firstName || persona.name} ${persona.profile.lastName || ""}`.trim();
+  const fullName = personaFullName(persona);
   const paymentLabel = persona.card
     ? `Visa ending in ${persona.card}`
     : "No payment method on file";
@@ -68,6 +78,7 @@ export default function ProfileView() {
     dollarsNeededForNextTier: persona.loyaltyDetails?.dollarsNeededForNextTier,
   };
 
+  console.log("The tier is ", tier);
   return (
     <main className={shared.page}>
       <div className={shared.crumb}>
@@ -78,38 +89,45 @@ export default function ProfileView() {
             router.push("/");
           }}
         >
-          Continue shopping
+          <Text size="medium">Continue shopping</Text>
         </a>{" "}
-        / <span className={shared.current}>My profile</span>
+        /{" "}
+        <Text elementType="span" className={shared.current}>
+          My profile
+        </Text>
       </div>
       <div className={`${profile.profileHead} ${styles.profileHeadEnhanced}`}>
         <div
           className={profile.profileAvatar}
-          style={{ background: persona.avatarBg, color: persona.avatarColor }}
+          style={{ background: "lightgreen" }}
         >
-          {persona.initial}
+          <H3>{persona.profile.firstName.slice(0, 1).toUpperCase()}</H3>
         </div>
         <div>
-          <div className={profile.profileName}>{persona.name}</div>
+          <div className={profile.profileName}>
+            <Text size="large">{fullName}</Text>
+          </div>
           <div className={profile.profileSub}>
-            {persona.loyaltyDetails
-              ? `${persona.loyaltyDetails.activeTier} tier · ${persona.profile.email}`
-              : `New customer · ${persona.profile.email}`}
+            {persona.isAlwaysNewUser
+              ? `New customer - ${persona.profile.email}`
+              : `${persona.loyaltyDetails.activeTier} tier · ${persona.profile.email}`}
           </div>
         </div>
         <div className={profile.profileBalance}>
-          <div className={profile.lbl}>Coin balance</div>
+          <div className={profile.lbl}>
+            <Text>Coin balance</Text>
+          </div>
           <div className={`${profile.num} mono`}>
             {persona.loyaltyDetails.coinBalance?.toLocaleString()}
           </div>
         </div>
-        <button
-          type="button"
+        <Button
+          type="primary"
           className={styles.actionBtn}
           onClick={() => dispatch(openModal({ modalType: "profileEdit" }))}
         >
-          Edit customer details
-        </button>
+          <Text>Edit customer details</Text>
+        </Button>
       </div>
       {persona.loyaltyDetails && (
         <div className={profile.profileTrackCard}>
@@ -127,32 +145,32 @@ export default function ProfileView() {
           <section className={shared.historyCard}>
             <div className={styles.sectionHead}>
               <div>
-                <h3>Personal details</h3>
+                <Text textStyle="heading3">Personal details</Text>
                 <p>Contact information for the customer account.</p>
               </div>
             </div>
             <div className={styles.detailGrid}>
               <div>
                 <span className={styles.detailLabel}>Full name</span>
-                <strong>{fullName}</strong>
+                <Text textStyle="Subtitle">{fullName}</Text>
               </div>
               <div>
                 <span className={styles.detailLabel}>Email address</span>
-                <strong>{persona.profile.email}</strong>
+                <Text textStyle="Subtitle">{persona.profile.email}</Text>
               </div>
             </div>
           </section>
           <section className={shared.historyCard}>
             <div className={styles.sectionHead}>
               <div>
-                <h3>Delivery address</h3>
+                <Text textStyle="heading3">Delivery address</Text>
                 <p>Used for online purchases and reward shipments.</p>
               </div>
             </div>
             <div className={styles.addressRow}>
               <div className={styles.settingIcon}>⌂</div>
               <div>
-                <strong>{fullName}</strong>
+                <Text textStyle="Subtitle">{fullName}</Text>
                 <p>
                   {persona.addresses[0].line1}
                   <br />
@@ -171,14 +189,14 @@ export default function ProfileView() {
           <section className={shared.historyCard}>
             <div className={styles.sectionHead}>
               <div>
-                <h3>Payment method</h3>
+                <Text textStyle="heading3">Payment method</Text>
                 <p>Default method for cash purchases.</p>
               </div>
             </div>
             <div className={styles.paymentRow}>
               <div className={styles.settingIcon}>$</div>
               <div>
-                <strong>{paymentLabel}</strong>
+                <Text textStyle="Subtitle">{paymentLabel}</Text>
                 <span>
                   Default payment method · Expires {persona.exp || "—"}
                 </span>
@@ -191,29 +209,29 @@ export default function ProfileView() {
       <section className={`${shared.historyCard} ${styles.benefitsCard}`}>
         <div className={styles.sectionHead}>
           <div>
-            <h3>Tier benefits</h3>
+            <Text textStyle="heading3">Tier benefits</Text>
             <p>
               Compact view of the program benefits and redemption value at each
               tier.
             </p>
           </div>
-          <span className={styles.currentTier}>
-            {tier ? `${tier.tierName} tier` : "Not yet enrolled"}
-          </span>
+          <Text elementType="span" className={styles.currentTier}>
+            {tier ? `${tier} tier` : "Not yet enrolled"}
+          </Text>
         </div>
         <TierBenefits
           rewardDetails={rewardDetails}
-          currentTierKey={persona.loyaltyDetails ? tier.tierKey : null}
+          currentTierKey={persona.loyaltyDetails ? tier : null}
         />
       </section>
       <section className={`${shared.historyCard} ${styles.dataCard}`}>
         <div className={styles.sectionHead}>
           <div>
-            <h3>Your data</h3>
-            <p>
+            <Text textStyle="heading3">Your data</Text>
+            <Text>
               Your account and loyalty balance live together in one flexible
               document.
-            </p>
+            </Text>
           </div>
           <button
             type="button"

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useRouter } from "next/navigation";
 import { H3 } from "@via-ds/components/typography";
@@ -15,7 +15,7 @@ import { Icon } from "@via-ds/icons";
 import { Button } from "@via-ds/components/button";
 import shared from "@/components/shared.module.css";
 import { cartItemList, formatPrice } from "@/lib/helper";
-import { createOrder } from "@/lib/api";
+import { createOrder, fetchOrderOverview } from "@/lib/api";
 import styles from "./CheckoutView.module.css";
 
 export default function CheckoutView() {
@@ -25,51 +25,63 @@ export default function CheckoutView() {
   const cart = useSelector(selectCart);
   const products = useSelector(selectProductsData);
   const cartItems = cartItemList(cart, products);
-  const subtotal = 48;
-  const shipping = 0;
-  const TAX_RATE = 0.07;
-  const tax = subtotal * TAX_RATE;
-  const total = subtotal + shipping + tax;
-  const coins = Math.floor(total / 10);
-  const pricing = {
-    subtotal,
-    shipping,
-    tax,
-    total,
-    coinsUsed: 0,
-    coinsEarned: coins,
-    projectedBalance: persona.loyaltyDetails.coins + coins,
-    cashSubtotal: subtotal,
-    qualifyingSpend: subtotal,
-  };
   const [placingOrder, setPlacingOrder] = useState(false);
+
+  const coinBalance = persona.loyaltyDetails?.coinBalance ?? 0;
+  const [coinsToApply, setCoinsToApply] = useState(0);
+  const [overview, setOverview] = useState(null);
+  const [overviewError, setOverviewError] = useState(null);
+
+  // Every number on this page comes from /orders/overview, which runs the same
+  // engine POST /orders does — so the total shown is the total charged.
+  const orderItems = cartItems.map((item) => ({
+    productId: item.productId,
+    quantity: item.cartQuantity,
+  }));
+  const itemsKey = JSON.stringify(orderItems);
+
+  useEffect(() => {
+    if (!orderItems.length) {
+      setOverview(null);
+      return;
+    }
+    let cancelled = false;
+    // Debounced: dragging the coin slider would otherwise fire a request per
+    // pixel, and late responses could overwrite newer ones.
+    const timer = setTimeout(() => {
+      fetchOrderOverview({ items: JSON.parse(itemsKey), coinsToApply })
+        .then((data) => {
+          console.log("Fetched order overview:", data);
+          if (cancelled) return;
+          setOverview(data);
+          setOverviewError(null);
+        })
+        .catch((err) => {
+          if (cancelled) return;
+          setOverview(null);
+          setOverviewError(err.message);
+        });
+    }, 200);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [itemsKey, coinsToApply]);
+
+  const amounts = overview?.order?.amountSummary;
+  const loyalty = overview?.loyalty;
 
   async function handlePlaceOrder() {
     setPlacingOrder(true);
     try {
-      const { order, loyalty } = await createOrder({
-        order: {
-          customerId: persona.customerId,
-          items: cartItems.map((item) => ({
-            productId: item.productId,
-            name: item.name,
-            price: item.price,
-            quantity: item.cartQuantity,
-          })),
-          amountSummary: {
-            subtotal: pricing.subtotal,
-            shipping: pricing.shipping,
-            tax: pricing.tax,
-            total: pricing.total,
-          },
-          rewardsEarned: pricing.coinsEarned,
-        },
-        loyalty: {
-          coinsUsed: pricing.coinsUsed,
-          qualifyingSpend: pricing.qualifyingSpend,
-        },
+      // Only ids, quantities and coins — the server re-prices from live
+      // products and the session's customer, ignoring anything else we'd send.
+      const { order, loyalty: orderLoyalty } = await createOrder({
+        items: orderItems,
+        coinsToApply,
+        orderType: "ONLINE",
       });
-      dispatch(placeOrderSuccess({ order, loyalty }));
+      dispatch(placeOrderSuccess({ order, loyalty: orderLoyalty }));
       router.push("/confirm");
     } catch (err) {
       toast.error(`Couldn't place order: ${err.message}`);
@@ -139,13 +151,13 @@ export default function CheckoutView() {
             <div className={shared.field} style={{ marginBottom: 12 }}>
               <label>Card number</label>
               <input
-                defaultValue={`•••• •••• •••• ${persona.paymentDetails.cardLast4}`}
+                defaultValue={`•••• •••• •••• ${persona.paymentDetails?.cardLast4}`}
               />
             </div>
             <div className={shared.formRow} style={{ marginBottom: 0 }}>
               <div className={shared.field}>
                 <label>Expiry</label>
-                <input defaultValue={persona.paymentDetails.cardExpiry} />
+                <input defaultValue={persona.paymentDetails?.cardExpiry} />
               </div>
               <div className={shared.field}>
                 <label>CVV</label>
@@ -166,41 +178,96 @@ export default function CheckoutView() {
               </span>
             </div>
           ))}
-          {"Redeem Coins"}
+          {coinBalance > 0 && (
+            <div className={shared.field} style={{ marginTop: 12 }}>
+              <label>
+                Redeem coins —{" "}
+                <b className="mono">{coinsToApply.toLocaleString()}</b> of{" "}
+                {coinBalance.toLocaleString()}
+              </label>
+              <input
+                type="range"
+                min="0"
+                max={coinBalance}
+                step="10"
+                value={coinsToApply}
+                onChange={(e) => setCoinsToApply(Number(e.target.value))}
+              />
+            </div>
+          )}
+
+          {overviewError && (
+            <div className={shared.summaryRow} style={{ color: "#C4342A" }}>
+              Couldn&apos;t price this order: {overviewError}
+            </div>
+          )}
+
           <div className={shared.summaryRow} style={{ marginTop: 12 }}>
             <span>Subtotal</span>
-            <span className="mono">{formatPrice(pricing.subtotal)}</span>
+            <span className="mono">{formatPrice(amounts?.subtotal)}</span>
           </div>
-          {"Coins Applied Logic"}
+          {amounts?.coinsDiscountValue > 0 && (
+            <div className={shared.summaryRow}>
+              <span>Coins applied</span>
+              <span className="mono">
+                −{formatPrice(amounts.coinsDiscountValue)}
+              </span>
+            </div>
+          )}
           <div className={shared.summaryRow}>
             <span>Shipping</span>
-            <span className={pricing.shipping === 0 ? shared.free : ""}>
-              {pricing.shipping === 0 ? "Free" : formatPrice(pricing.shipping)}
+            <span className={amounts?.shipping === 0 ? shared.free : ""}>
+              {amounts?.shipping === 0
+                ? "Free"
+                : formatPrice(amounts?.shipping)}
             </span>
           </div>
           <div className={shared.summaryRow}>
-            <span>Tax ({(TAX_RATE * 100).toFixed(0)}%)</span>
-            <span className="mono">{formatPrice(pricing.tax)}</span>
+            <span>Tax</span>
+            <span className="mono">{formatPrice(amounts?.tax)}</span>
           </div>
           <div className={`${shared.summaryRow} ${shared.summaryRowTotal}`}>
             <span>Total</span>
-            <span className="mono">{formatPrice(pricing.total)}</span>
+            <span className="mono">{formatPrice(amounts?.total)}</span>
           </div>
-          <div className={shared.coinPreview}>
-            🪙 {"Applied coins reduce the cash subtotal to $$20"}
-            This order earns <b>{"Coins earned 200"}</b> coins on the{" "}
-            <b>{"Cash subtotal 1000"}</b> cash-paid merchandise amount, bringing
-            your balance to <b>{"200"}</b> coins.
-          </div>
-          <div className={`${shared.coinPreview} ${styles.coinPreviewPolicy}`}>
-            ⭐ This order still adds <b>{"$$$"}</b> toward tier progress, even
-            after applying rewards.
-          </div>
+
+          {overview && (
+            <>
+              <div className={shared.coinPreview}>
+                🪙 This order earns{" "}
+                <b>{overview.order.coinsEarned.toLocaleString()}</b> coins
+                {loyalty.multiplier > 1 && (
+                  <> at {loyalty.multiplier}×</>
+                )} on <b>{formatPrice(loyalty.qualifyingSpend)}</b> cash-paid
+                merchandise, bringing your balance to{" "}
+                <b>{loyalty.projectedBalance.toLocaleString()}</b> coins.
+              </div>
+              <div
+                className={`${shared.coinPreview} ${styles.coinPreviewPolicy}`}
+              >
+                {loyalty.projectedTier !== loyalty.oldTier ? (
+                  <>
+                    🎉 This order upgrades you to <b>{loyalty.projectedTier}</b>{" "}
+                    tier.
+                  </>
+                ) : (
+                  <>
+                    ⭐ This order adds{" "}
+                    <b>{formatPrice(loyalty.qualifyingSpend)}</b> toward tier
+                    progress —{" "}
+                    <b>{formatPrice(loyalty.dollarsNeededForNextTier)}</b> to
+                    go.
+                  </>
+                )}
+              </div>
+            </>
+          )}
           <Button
             variant="primary"
             style={{ width: "100%" }}
             isLoading={placingOrder}
             loadingText="Placing order…"
+            isDisabled={!overview}
             onClick={handlePlaceOrder}
           >
             ✓ Place order

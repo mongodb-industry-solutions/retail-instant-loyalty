@@ -5,6 +5,8 @@ import { selectModal, closeModal } from "@/redux/slices/GlobalSlice";
 import TalkTrackModal from "./TalkTrackModal/TalkTrackModal";
 import AdminModal from "./AdminModal/AdminModal";
 import OrderDetailModal from "./OrderDetailModal/OrderDetailModal";
+import DocumentModal from "./DocumentModal/DocumentModal";
+import ProfileEditModal from "./ProfileEditModal/ProfileEditModal";
 import styles from "./Modal.module.css";
 import SyncModal from "./SyncModal/SyncModal";
 const MODAL_SIZE_CLASS = {
@@ -33,8 +35,14 @@ export default function ModalRoot() {
       <div className={`${styles.card} ${sizeClass}`}>
         {modal.type === "talkTrack" && <TalkTrackModal onClose={close} />}
         {modal.type === "admin" && <AdminModal onClose={close} />}
+        {modal.type === "profileEdit" && <ProfileEditModal onClose={close} />}
         {modal.type === "sync" && <SyncModal onClose={close} />}
-        {modal.type === "orderDetail" && <OrderDetailModal onClose={close} />}
+        {modal.type === "orderDetail" && (
+          <OrderDetailModal orderId={modal.props?.id} onClose={close} />
+        )}
+        {modal.type === "userDoc" && (
+          <DocumentModal onClose={close} variant="userDoc" />
+        )}
       </div>
     </div>
   );

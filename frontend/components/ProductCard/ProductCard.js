@@ -1,9 +1,10 @@
 import { Skeleton } from "@via-ds/components/skeleton";
 import { Card } from "@via-ds/components/card";
+import { Text } from "@via-ds/components";
 import { useDispatch } from "react-redux";
 import Image from "next/image";
 import styles from "./ProductCard.module.css";
-import { formatPrice } from "../../lib/helper";
+import { formatPrice } from "@/lib/helper";
 import { Button } from "@via-ds/components/button";
 import { addToCart } from "@/redux/slices/GlobalSlice";
 
@@ -30,20 +31,28 @@ export default function ProductCard({ product }) {
           unoptimized
           className={styles.pThumbImg}
         />
-        {<span className={styles.pBadge}>{"Best Seller"}</span>}
+        {/* {<span className={styles.pBadge}>{"Best Seller"}</span>} */}
       </div>
       <div className={styles.pBodyText}>
-        <div className={styles.pCat}>{product.category}</div>
-        <div className={styles.pName}>{product.name}</div>
+        <div className={styles.pCat}>
+          <Text elementType="span">{product.category}</Text>
+        </div>
+        <div className={styles.pName}>
+          <Text>{product.name}</Text>
+        </div>
         <div className={styles.pRating}>
-          <span className={styles.star}>{5} ★</span> {product.reviews.length}{" "}
-          reviews
+          <Text elementType="span" className={styles.star}>
+            {5} ★
+          </Text>{" "}
+          {product.reviews.length} reviews
         </div>
       </div>
       <div className={styles.pFoot}>
         <div className={styles.pPriceWrap}>
           <div className={styles.pPrice}>
-            {formatPrice(product.price)}
+            <Text textStyle="heading5">
+              {formatPrice(parseFloat(product.price.$numberDecimal))}
+            </Text>
             {/* {<span className={styles.pWas}>{formatPrice(product.price)}</span>} */}
           </div>
         </div>

@@ -112,11 +112,26 @@ export function confirmRedeemRequest(body) {
   });
 }
 
-export function fetchOrders(id) {
-  return request(`/orders/${id}`, {
-    method: "GET",
+// Priced preview of an order — same engine as POST /orders, no writes.
+export function fetchOrderOverview({ items, coinsToApply = 0 }) {
+  return request("/orders/overview", {
+    method: "POST",
     headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items, coinsToApply }),
   });
+}
+
+// Order history for the current session — the backend resolves the customer
+// from the session id, so there is no id to pass.
+export async function fetchOrders({ page = 1, limit = 20 } = {}) {
+  const qs = new URLSearchParams({ page: String(page), limit: String(limit) });
+  const { orders } = await request(`/orders?${qs}`);
+  return orders;
+}
+
+// One order, scoped to the current session — proxies GET /orders/:orderId.
+export function fetchOrder(orderId) {
+  return request(`/orders/${orderId}`);
 }
 
 export function createOrder(order) {

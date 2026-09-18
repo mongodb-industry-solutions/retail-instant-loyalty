@@ -1,7 +1,8 @@
 import { createOrderEngine, sendError } from "../lib/orderEngine.js";
 
 export default function ordersRoutes(app) {
-  const { getNextSequence, computeOrderMath, scheduleOrderProgression } = createOrderEngine(app);
+  const { getNextSequence, computeOrderMath, scheduleOrderProgression } =
+    createOrderEngine(app);
 
   // live pricing preview, no writes.
   // ACID transaction
@@ -212,20 +213,36 @@ export default function ordersRoutes(app) {
     const { page = 1, limit = 20, explain } = request.query || {};
 
     if (!sessionId)
-      return sendError(reply, 400, "SESSION_REQUIRED", "x-session-id header is required");
+      return sendError(
+        reply,
+        400,
+        "SESSION_REQUIRED",
+        "x-session-id header is required",
+      );
 
     const db = app.mongo.db;
 
     try {
       const customer = await db.collection("customers").findOne({ sessionId });
       if (!customer)
-        return sendError(reply, 404, "CUSTOMER_NOT_FOUND", "No customer found for this session");
+        return sendError(
+          reply,
+          404,
+          "CUSTOMER_NOT_FOUND",
+          "No customer found for this session",
+        );
 
       const filter = { sessionId, customerId: customer.customerId };
 
       const skip = (Number(page) - 1) * Number(limit);
       const [orders, totalCount] = await Promise.all([
-        db.collection("orders").find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).toArray(),
+        db
+          .collection("orders")
+          .find(filter)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(Number(limit))
+          .toArray(),
         db.collection("orders").countDocuments(filter),
       ]);
 
@@ -233,7 +250,12 @@ export default function ordersRoutes(app) {
 
       if (explain === "true") {
         response.meta = {
-          explain: await db.collection("orders").find(filter).sort({ createdAt: -1 }).limit(Number(limit)).explain("executionStats"),
+          explain: await db
+            .collection("orders")
+            .find(filter)
+            .sort({ createdAt: -1 })
+            .limit(Number(limit))
+            .explain("executionStats"),
         };
       }
 

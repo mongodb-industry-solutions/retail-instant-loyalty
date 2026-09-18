@@ -36,26 +36,32 @@ export function liveFeedEventsForOrder(order, persona) {
       },
     ];
   }
+  const loyalty = order.loyalty ?? {};
+  const oldBalance = (loyalty.oldBalance ?? 0).toLocaleString();
+  const newBalance = (loyalty.newBalance ?? 0).toLocaleString();
+  const fullName = `${persona.profile?.firstName ?? ""} ${persona.profile?.lastName ?? ""}`.trim();
+
   return [
     {
       icon: "🧾",
       title: "Order confirmed",
-      body: `${order.orderId} was written to the order record and linked to ${persona.name}'s profile.`,
+      body: `${order.orderId} was written to the order record and linked to ${fullName}'s profile.`,
     },
     {
       icon: "🪙",
       title: "Loyalty balance updated",
       body:
-        order.coinsUsed > 0
-          ? `${order.loyalty.oldBalance.toLocaleString()} → ${order.loyalty.newBalance.toLocaleString()} coins after applying ${order.loyalty.coinsUsed.toLocaleString()} and earning ${order.coins.toLocaleString()}.`
-          : `${order.loyalty.oldBalance.toLocaleString()} → ${order.loyalty.newBalance.toLocaleString()} coins after earning ${persona.loyaltyDetails.coinBalance.toLocaleString()} from the purchase.`,
+        order.coinsApplied > 0
+          ? `${oldBalance} → ${newBalance} coins after applying ${order.coinsApplied.toLocaleString()} and earning ${(order.coinsEarned ?? 0).toLocaleString()}.`
+          : `${oldBalance} → ${newBalance} coins after earning ${(order.coinsEarned ?? 0).toLocaleString()} from the purchase.`,
     },
     {
       icon: "🏷️",
       title: "Tier progress recalculated",
-      body: order.loyalty.tierChanged
-        ? `${order.loyalty.oldTier} → ${order.loyalty.newTier} after ${formatPrice(order.loyalty.qualifyingSpend)} in qualifying merchandise spend.`
-        : `${order.loyalty.newTier} remains active because tiering is based on cumulative merchandise spend, not coin balance.`,
+      body:
+        loyalty.newTier !== loyalty.oldTier
+          ? `${loyalty.oldTier} → ${loyalty.newTier} after ${formatPrice(loyalty.qualifyingSpend)} in qualifying merchandise spend.`
+          : `${loyalty.newTier} remains active because tiering is based on cumulative merchandise spend, not coin balance.`,
     },
     {
       icon: "📚",

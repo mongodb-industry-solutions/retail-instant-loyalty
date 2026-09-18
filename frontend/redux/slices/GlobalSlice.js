@@ -110,11 +110,20 @@ const GlobalSlice = createSlice({
       // API response envelope: { order, loyalty }. loyalty already carries
       // oldBalance/newBalance and oldTier/newTier directly -- no separate
       // customer object is returned, so there is nothing to diff here.
-      const order = action.payload;
-      state.lastOrder = { order };
-      if (state.selectedUser) {
-        // state.selectedUser.loyaltyDetails.balance = loyalty.newBalance;
-        // state.selectedUser.loyaltyDetails.activeTier = loyalty.newTier;
+      const { order, loyalty } = action.payload;
+      state.lastOrder = { order, loyalty };
+      // Keep the persona in step with the write the backend just committed,
+      // so the navbar and tier track update without a refetch.
+      if (state.selectedUser && loyalty) {
+        state.selectedUser.loyaltyDetails.coinBalance = loyalty.newBalance;
+        state.selectedUser.loyaltyDetails.activeTier = loyalty.newTier;
+        state.selectedUser.loyaltyDetails.dollarsNeededForNextTier =
+          loyalty.dollarsNeededForNextTier;
+        state.selectedUser.loyaltyDetails.cumulativeSpendDollars =
+          (state.selectedUser.loyaltyDetails.cumulativeSpendDollars ?? 0) +
+          (loyalty.qualifyingSpend ?? 0);
+        state.selectedUser.ordersCount =
+          (state.selectedUser.ordersCount ?? 0) + 1;
       }
       state.cart = {};
     },
@@ -207,6 +216,7 @@ export const selectSelectedUser = (state) => state.Global.selectedUser;
 export const selectProductsState = (state) => state.Global.products;
 export const selectProductsData = (state) => state.Global.products.data;
 export const selectLastOrder = (state) => state.Global.lastOrder;
+export const selectLastRedeem = (state) => state.Global.lastRedeem;
 export const selectLoyaltyConfig = (state) => state.Global.loyaltyConfig;
 export const selectModal = (state) => state.Global.modal;
 export const selectCart = (state) => state.Global.cart;

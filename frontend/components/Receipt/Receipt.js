@@ -5,12 +5,13 @@ import { formatPrice } from "@/lib/helper";
 import styles from "./Receipt.module.css";
 
 function ItemRows({ item, amount }) {
-  console.log("Item image URL:", item.imageURL);
   return (
     <div className={styles.oiRow}>
       <div className={styles.oiLeft}>
         <div className={styles.oiThumb} style={{ background: "grey" }}>
-          <Image src={item.imageURL} alt={item.name} width={40} height={40} />
+          {item.imageUrl && (
+            <Image src={item.imageUrl} alt={item.name} width={40} height={40} />
+          )}
         </div>
         <div>
           <div className={styles.oiName}>{item.name}</div>
@@ -23,47 +24,9 @@ function ItemRows({ item, amount }) {
 }
 
 export default function Receipt({ order, lastRedeem }) {
-  console.log("last redeem:", lastRedeem);
+  const lastOrder = order;
+  if (!lastOrder) return null;
 
-  const FALLBACK_LAST_ORDER = {
-    order: {
-      orderId: "MS-118820",
-      customerId: "CUST-10002",
-      items: [
-        {
-          productId: "PROD-1001",
-          name: "Trail Runner Jacket",
-          price: 99.98,
-          quantity: 1,
-          imageURL:
-            "https://d1n5xguust3bkl.cloudfront.net/products/685bfe2b3d832cf7e161468f.png",
-        },
-      ],
-      amountSummary: {
-        subtotal: 99.98,
-        shipping: 0,
-        tax: 8.5,
-        total: 108.48,
-      },
-      transactionId: "TXN-99213",
-      rewardsEarned: 99,
-      statusHistory: [{ Status: "placed", lastUpdated: null }],
-      createdAt: "2026-09-03T15:12:00.000Z",
-      loyalty: {
-        oldBalance: 3240,
-        newBalance: 3939,
-        oldTier: "gold",
-        newTier: "gold",
-        tierChanged: false,
-        qualifyingSpend: 99.98,
-        coinsUsed: 0,
-      },
-    },
-  };
-  //const lastOrder = useSelector(selectLastOrder);
-  const lastOrder = FALLBACK_LAST_ORDER.order;
-
-  console.log("Last order:", lastOrder.items);
   const purchaseCard = (
     <div className={styles.itemsCard}>
       <H3>
@@ -73,11 +36,7 @@ export default function Receipt({ order, lastRedeem }) {
         </span>
       </H3>
       {lastOrder.items.map((i) => (
-        <ItemRows
-          key={i.productId}
-          item={i}
-          amount={formatPrice(i.price * i.quantity)}
-        />
+        <ItemRows key={i.productId} item={i} amount={formatPrice(i.lineTotal)} />
       ))}
       <div className={styles.totalsMini}>
         <div className={styles.row}>
@@ -86,12 +45,12 @@ export default function Receipt({ order, lastRedeem }) {
             {formatPrice(lastOrder.amountSummary.subtotal)}
           </span>
         </div>
-        {lastOrder.loyalty.coinsUsed ? (
+        {lastOrder.coinsApplied ? (
           <div className={styles.row}>
             <Text elementType="span">Coins applied at checkout</Text>
             <span className="mono">
-              −{lastOrder.loyalty.coinsUsed.toLocaleString()} (
-              {formatPrice(lastOrder.loyalty.coveredValue)})
+              −{lastOrder.coinsApplied.toLocaleString()} (
+              {formatPrice(lastOrder.coinsToDollarsApplied)})
             </span>
           </div>
         ) : null}
@@ -112,14 +71,14 @@ export default function Receipt({ order, lastRedeem }) {
         <div className={styles.row}>
           <Text elementType="span">Coins earned</Text>
           <span className="mono">
-            +{lastOrder.rewardsEarned.toLocaleString()}
+            +{(lastOrder.coinsEarned ?? 0).toLocaleString()}
           </span>
         </div>
         <div className={styles.row}>
           <Text elementType="span">Tier qualifying spend</Text>
           <span className="mono">
             {formatPrice(
-              lastOrder.loyalty.qualifyingSpend ||
+              lastOrder.loyalty?.qualifyingSpend ??
                 lastOrder.amountSummary.subtotal,
             )}
           </span>

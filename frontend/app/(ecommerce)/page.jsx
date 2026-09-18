@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { H1, H2, Body, H3 } from "@via-ds/components/typography";
+import { H1, H2, Body, H3, Text } from "@via-ds/components/typography";
+import { Button } from "@via-ds/components/button";
 import {
   SegmentedControl,
   SegmentedControlItem,
@@ -47,40 +48,60 @@ export default function StoreView() {
 
   return (
     <main className={sharedStyles.page}>
-      {selectedUser?.loyaltyDetails ? (
+      {!selectedUser.isAlwaysNewUser ? (
         <div className={styles.hero}>
           <div>
-            <div className={styles.heroEyebrow}> Welcome back </div>
-            <H2>Hi, {selectedUser.profile.firstName} 👋</H2>
+            <div className={styles.heroEyebrow}>
+              <Text textStyle="subtitle"> Welcome back </Text>
+            </div>
+            <Text textStyle="heading3">
+              Hi, {selectedUser.profile.firstName} 👋
+            </Text>
             <div className={styles.memberPerkLine}>
-              {selectedUser.loyaltyDetails?.activeTier} member - redemption
-              value{" "}
-              {formatCoinValue(
-                selectedUser.loyaltyDetails?.activeTier,
-                rewardDetails,
-              )}{" "}
-              per coin · free shipping over $200.
+              <Text elementType="span">
+                {selectedUser.loyaltyDetails?.activeTier} member - redemption
+              </Text>
+              <Text elementType="span">
+                value{" "}
+                {formatCoinValue(
+                  selectedUser.loyaltyDetails?.activeTier,
+                  rewardDetails,
+                )}{" "}
+                per coin · free shipping over $200.
+              </Text>
             </div>
           </div>
           <div className={styles.heroRight}>
             <div className={styles.heroStats}>
               <div className={styles.statBox}>
                 <div className={styles.num}>
-                  {selectedUser.ordersCount ?? 0}
+                  <Text textStyle="heading4">
+                    {selectedUser.ordersCount ?? 0}
+                  </Text>
                 </div>
-                <div className={styles.lbl}>Orders</div>
+                <div className={styles.lbl}>
+                  <Text elementType="span">Orders</Text>
+                </div>
               </div>
               <div className={`${styles.statBox} ${styles.statBoxGold}`}>
                 <div className={styles.num}>
-                  {selectedUser.loyaltyDetails?.activeTier}
+                  <Text textStyle="heading4">
+                    {selectedUser.loyaltyDetails?.activeTier}
+                  </Text>
                 </div>
-                <div className={styles.lbl}>Tier</div>
+                <div className={styles.lbl}>
+                  <Text elementType="span">Tier</Text>
+                </div>
               </div>
               <div className={styles.statBox}>
                 <div className={`${styles.num} mono`}>
-                  {selectedUser.loyaltyDetails?.coinBalance?.toLocaleString()}
+                  <Text textStyle="heading4">
+                    {selectedUser.loyaltyDetails?.coinBalance?.toLocaleString()}
+                  </Text>
                 </div>
-                <div className={styles.lbl}>Coins</div>
+                <div className={styles.lbl}>
+                  <Text elementType="span">Coins</Text>
+                </div>
               </div>
             </div>
             <TierTrack
@@ -94,29 +115,37 @@ export default function StoreView() {
       ) : (
         <div className={styles.hero}>
           <div>
-            <div className={styles.heroEyebrow}>Welcome</div>
-            <H2>Leafy Loyalty, built to show instant rewards.</H2>
-            <Body>
+            <div className={styles.heroEyebrow}>
+              <Text textStyle="subtitle">Welcome</Text>
+            </div>
+            <Text textStyle="heading3">
+              Leafy Loyalty, built to show instant rewards.
+            </Text>
+            <Text elementType="span">
               Explore the store, place a first order, and show how a modern
               loyalty platform can credit rewards immediately instead of waiting
               on overnight processing.
-            </Body>
+            </Text>
           </div>
           <div className={styles.heroRight}>
             <div
               className={`${styles.profileCard} ${styles.profileCardHighlight}`}
               style={{ padding: 18, margin: 0, minWidth: 280 }}
             >
-              <div className={styles.detailLabel}>Loyalty journey</div>
+              <div className={styles.detailLabel}>
+                <Text>Loyalty journey</Text>
+              </div>
               <div className={styles.detailValue} style={{ marginTop: 6 }}>
-                Start with the first purchase
+                <Text textStyle="headline4">Start with the first purchase</Text>
               </div>
               <div
                 className={styles.profileSectionIntro}
                 style={{ margin: "10px 0 0" }}
               >
-                Earn coins, unlock tiers, and bring the customer back into the
-                journey while purchase intent is still high.
+                <Text elementType="span">
+                  Earn coins, unlock tiers, and bring the customer back into the
+                  journey while purchase intent is still high.
+                </Text>
               </div>
             </div>
           </div>
@@ -138,7 +167,7 @@ export default function StoreView() {
                 </button>
               </H3>
               <div className={styles.sectionSubnote}>
-                Inspired by your recent orders
+                <Text elementType="span">Inspired by your recent orders</Text>
               </div>
             </div>
           </div>
@@ -158,8 +187,8 @@ export default function StoreView() {
           <H3 className={styles.sectionHeadInline}>
             {selectedUser ? (
               <>
-                More to explore
-                <button
+                <Text textStyle="headline3">More to explore</Text>
+                <Button
                   className={sharedStyles.wandIconBtn}
                   title="How Atlas Search facets shape this section"
                   aria-label="How Atlas Search facets shape this section"
@@ -168,10 +197,10 @@ export default function StoreView() {
                   }
                 >
                   <WandIcon />
-                </button>
+                </Button>
               </>
             ) : (
-              "Explore the store"
+              <Text textStyle="headline3">Explore the store</Text>
             )}
           </H3>
         </div>
@@ -186,7 +215,7 @@ export default function StoreView() {
           >
             {categories.map((category) => (
               <SegmentedControlItem key={category} value={category}>
-                {category}
+                <Text elementType="span">{category}</Text>
               </SegmentedControlItem>
             ))}
           </SegmentedControl>

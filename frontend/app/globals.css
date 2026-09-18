@@ -1,4 +1,4 @@
-@font-face {
+/* @font-face {
   font-family: "Euclid Circular A";
   src: url("https://d2va9gm4j17fy9.cloudfront.net/fonts/euclid-circular/EuclidCircularA-Regular-WebXL.woff2")
     format("woff2");
@@ -29,7 +29,7 @@
   font-weight: 700;
   font-style: normal;
   font-display: swap;
-}
+} */
 
 :root {
   --bg: #f9fbfa; /* was #F9FBFA — palette.gray.light3 (exact) */

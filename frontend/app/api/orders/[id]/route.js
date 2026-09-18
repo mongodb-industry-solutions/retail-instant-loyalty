@@ -1,37 +1,28 @@
 import { NextResponse } from "next/server";
-import { PLACEHOLDER_ORDERS } from "../route";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
-// TODO(backend): this module is not registered in backend/src/server.js yet,
-// so the seed data below is still the source of truth. Flip to true once it is.
-const BACKEND_SERVES_THIS = false;
-
-// GET /api/orders/:customerId -> every order belonging to that customer.
+// GET /api/orders/:orderId -> one order, scoped to the current session.
 export async function GET(request, { params }) {
-  const { id: customerId } = await params;
+  const { id: orderId } = await params;
 
-  if (!BACKEND_SERVES_THIS || !BACKEND_URL) {
+  if (!BACKEND_URL) {
     return NextResponse.json(
-      PLACEHOLDER_ORDERS.filter((o) => o.customerId === customerId),
+      { error: "NEXT_PUBLIC_API_URL is not set" },
+      { status: 503 },
     );
   }
 
   try {
-    console.log(`Fetching orders for customerId: ${customerId}`);
-    const res = await fetch(`${BACKEND_URL}/orders/${customerId}`, {
-      headers: { "Content-Type": "application/json" },
+    const res = await fetch(`${BACKEND_URL}/orders/${orderId}`, {
+      headers: {
+        "Content-Type": "application/json",
+        "x-session-id": request.headers.get("x-session-id") ?? "",
+      },
       cache: "no-store",
     });
 
-    if (!res.ok) {
-      return NextResponse.json(
-        { error: `Backend responded with ${res.status}` },
-        { status: res.status },
-      );
-    }
-
-    return NextResponse.json(await res.json());
+    return NextResponse.json(await res.json(), { status: res.status });
   } catch (err) {
     return NextResponse.json(
       { error: String(err?.message ?? err) },

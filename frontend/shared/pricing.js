@@ -56,51 +56,6 @@ export function activeCampaignMultiplier(campaign) {
   return active ? Number(active.multiplier || 1) : 1;
 }
 
-export function computeCheckoutTotals({
-  subtotal,
-  tier,
-  balance,
-  checkoutRedeem,
-  rewardDetails,
-  campaign,
-}) {
-  const coinValue = coinDollarValue(tier);
-  const maxCoinsForMerchandise =
-    subtotal > 0 && coinValue > 0
-      ? Math.floor((subtotal + Number.EPSILON) / coinValue)
-      : 0;
-  const maxCoinsUsable = Math.min(
-    Math.max(0, Number(balance || 0)),
-    maxCoinsForMerchandise,
-  );
-  const enabled = Boolean(checkoutRedeem?.enabled && maxCoinsUsable > 0);
-  const requestedCoins = Number(checkoutRedeem?.coins ?? maxCoinsUsable);
-  const coinsUsed = enabled
-    ? Math.max(0, Math.min(Math.floor(requestedCoins), maxCoinsUsable))
-    : 0;
-  const coveredValue = Math.min(
-    subtotal,
-    roundCurrency(dollarsForCoins(coinsUsed, tier.tierKey, rewardDetails)),
-  );
-  const cashSubtotal = roundCurrency(Math.max(0, subtotal - coveredValue));
-  const shipping = subtotal >= 200 || subtotal === 0 ? 0 : 9.99;
-  const tax = roundCurrency(cashSubtotal * TAX_RATE);
-  const total = roundCurrency(cashSubtotal + shipping + tax);
-  const coinsEarned = Math.round(
-    cashSubtotal * activeCampaignMultiplier(campaign),
-  );
-  return {
-    maxCoinsUsable,
-    coinsUsed,
-    coveredValue,
-    cashSubtotal,
-    shipping,
-    tax,
-    total,
-    coinsEarned,
-  };
-}
-
 /* ---------- Redeem-from-receipt totals ---------- */
 export function computeRedeemTotals(items, balance, tierKey, rewardDetails) {
   const coinTotal = items.reduce((s, i) => s + i.coinPrice * i.qty, 0);

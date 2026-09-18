@@ -20,33 +20,31 @@ export default function OrdersView() {
   const persona = useSelector(selectSelectedUser);
   const { rewardDetails } = useSelector(selectLoyaltyConfig);
   const [orders, setOrders] = useState(null);
-  console.log("Persona:", persona.customerId);
 
   useEffect(() => {
     let cancelled = false;
-    fetchOrders(persona.customerId)
+    fetchOrders()
       .then((ordersData) => {
         if (cancelled) return;
-        setOrders(ordersData);
+        setOrders(ordersData ?? []);
       })
       .catch((error) => {
         if (cancelled) return;
         console.error("Failed to fetch orders:", error);
+        setOrders([]);
       });
     return () => {
       cancelled = true;
     };
-  }, [persona.customerId]);
-
-  console.log("Orders:", orders);
+  }, []);
 
   const loading = orders === null;
 
+  console.log("Orders state:", orders);
+
   const completedOrders = loading
     ? 0
-    : orders.filter((order) =>
-        ["Delivered", "Fulfilled"].includes(order.status),
-      ).length;
+    : orders.filter((order) => order.currentStatus === "delivered").length;
   const tier = persona.loyaltyDetails
     ? persona.loyaltyDetails.activeTier
     : null;
@@ -97,7 +95,7 @@ export default function OrdersView() {
               </div>
               <div className={styles.summarySub}>
                 {tier
-                  ? `${tier.tierName} tier · ${formatCoinValue(tier.tierKey, rewardDetails)} per coin`
+                  ? `${tier} tier · ${formatCoinValue(tier, rewardDetails)} per coin`
                   : "New customer profile"}
               </div>
             </div>
@@ -123,8 +121,10 @@ export default function OrdersView() {
                   }
                 >
                   <div className={styles.rowMain}>
+                    {/* TODO: redeem orders are only distinguishable by their
+                        transaction's type, which this list doesn't load. */}
                     <div className={styles.rowKicker}>
-                      {order.type === "redeem" ? "Reward order" : "Purchase"}
+                      {order.coinsApplied > 0 ? "Reward order" : "Purchase"}
                     </div>
                     <div className={`${styles.rowId} mono`}>
                       {order.orderId}
@@ -138,9 +138,9 @@ export default function OrdersView() {
                       {/* {orderCommercialValue(o)} */}
                     </div>
                     <div className={`${styles.rowCoins} mono`}>
-                      {order.type === "redeem"
-                        ? `${order.loyalty.coinsUsed.toLocaleString()} coins applied`
-                        : `+${order.rewardsEarned.toLocaleString()} coins earned`}
+                      {order.coinsApplied > 0
+                        ? `${order.coinsApplied.toLocaleString()} coins applied`
+                        : `+${(order.coinsEarned ?? 0).toLocaleString()} coins earned`}
                     </div>
                   </div>
                   <div className={styles.rowRight}>
@@ -150,9 +150,9 @@ export default function OrdersView() {
                       🌐 Online
                     </span>
                     <span
-                      className={`${styles.statusPill} ${order.type === "redeem" ? styles.statusPillRedeem : ""}`}
+                      className={`${styles.statusPill} ${order.coinsApplied > 0 ? styles.statusPillRedeem : ""}`}
                     >
-                      {order.status}
+                      {order.currentStatus}
                     </span>
                     <ChevronRightIcon className={styles.chevRight} />
                   </div>
