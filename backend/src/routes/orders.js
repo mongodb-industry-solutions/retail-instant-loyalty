@@ -101,6 +101,7 @@ export default function ordersRoutes(app) {
           customerId: math.customer.customerId,
           storeId: storeId || null,
           orderType: orderType || "ONLINE",
+          purchaseType: "purchase",
           items: math.resolvedItems,
           amountSummary: math.amountSummary,
           transactionId,
@@ -117,7 +118,6 @@ export default function ordersRoutes(app) {
           orderId,
           sessionId,
           customerId: math.customer.customerId,
-          type: "purchase",
           status: "completed",
           tenders: [
             ...(math.coinsApplied > 0
@@ -130,7 +130,13 @@ export default function ordersRoutes(app) {
                 ]
               : []),
             ...(math.amountSummary.total > 0
-              ? [{ method: "card", amount: math.amountSummary.total }]
+              ? [
+                  {
+                    method: "card",
+                    amount: math.amountSummary.total,
+                    paymentDetails: math.customer.paymentDetails,
+                  },
+                ]
               : []),
           ],
           createdAt: now,
@@ -209,30 +215,30 @@ export default function ordersRoutes(app) {
 
   // Order history list for this customer
   app.get("/orders", async (request, reply) => {
-    const sessionId = request.headers["x-session-id"];
+    const customerId = request.headers["x-customer-id"];
     const { page = 1, limit = 20, explain } = request.query || {};
 
-    if (!sessionId)
+    if (!customerId)
       return sendError(
         reply,
         400,
-        "SESSION_REQUIRED",
-        "x-session-id header is required",
+        "CUSTOMER_ID_REQUIRED",
+        "x-customer-id header is required",
       );
 
     const db = app.mongo.db;
 
     try {
-      const customer = await db.collection("customers").findOne({ sessionId });
+      const customer = await db.collection("customers").findOne({ customerId });
       if (!customer)
         return sendError(
           reply,
           404,
           "CUSTOMER_NOT_FOUND",
-          "No customer found for this session",
+          "No customer found for this customer ID",
         );
 
-      const filter = { sessionId, customerId: customer.customerId };
+      const filter = { customerId: customer.customerId };
 
       const skip = (Number(page) - 1) * Number(limit);
       const [orders, totalCount] = await Promise.all([
@@ -292,7 +298,20 @@ export default function ordersRoutes(app) {
           "ORDER_NOT_FOUND",
           "Order not found for this session",
         );
-      return reply.send({ data: order });
+
+      const transaction = await db
+        .collection("transactions")
+        .findOne({ transactionId: order.transactionId });
+      if (!transaction)
+        return sendError(
+          reply,
+          404,
+          "TRANSACTION_NOT_FOUND",
+          "Transaction not found for this order",
+        );
+      return reply.send({
+        data: { ...order, tenders: transaction.tenders || [] },
+      });
     } catch (err) {
       app.log.error(err);
       return sendError(reply, 500, "ORDER_LOOKUP_FAILED", err.message);
