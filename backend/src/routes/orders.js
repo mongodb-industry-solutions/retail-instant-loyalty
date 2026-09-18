@@ -129,7 +129,13 @@ export default function ordersRoutes(app) {
                 ]
               : []),
             ...(math.amountSummary.total > 0
-              ? [{ method: "card", amount: math.amountSummary.total }]
+              ? [
+                  {
+                    method: "card",
+                    amount: math.amountSummary.total,
+                    paymentDetails: math.customer.paymentDetails,
+                  },
+                ]
               : []),
           ],
           createdAt: now,
@@ -270,7 +276,18 @@ export default function ordersRoutes(app) {
           "ORDER_NOT_FOUND",
           "Order not found for this session",
         );
-      return reply.send({ data: order });
+      
+      const transaction = await db
+        .collection("transactions")
+        .findOne({ transactionId: order.transactionId });
+        if (!transaction)
+        return sendError(
+          reply,
+          404,
+          "TRANSACTION_NOT_FOUND",
+          "Transaction not found for this order",
+        );
+      return reply.send({ data: {...order, tenders: transaction.tenders || []  } });
     } catch (err) {
       app.log.error(err);
       return sendError(reply, 500, "ORDER_LOOKUP_FAILED", err.message);

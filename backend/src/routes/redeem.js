@@ -128,7 +128,9 @@ export default function redeemRoutes(app) {
             ...(math.coinsApplied > 0
               ? [{ method: "coins", rewardsApplied: math.coinsApplied, rewardsInCurrency: math.coinsToDollarsApplied }]
               : []),
-            ...(math.amountSummary.total > 0 ? [{ method: "card", amount: math.amountSummary.total }] : []),
+            ...(math.amountSummary.total > 0
+              ? [{ method: "card", amount: math.amountSummary.total, paymentDetails: math.customer.paymentDetails }]
+              : []),
           ],
           loyalty: { rewardsRedeemed: math.coinsApplied, rewardsEarned: math.coinsEarned, balanceAfter: math.newBalance },
           createdAt: now,
