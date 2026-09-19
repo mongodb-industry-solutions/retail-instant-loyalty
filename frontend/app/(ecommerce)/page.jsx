@@ -26,6 +26,7 @@ export default function StoreView() {
   const selectedUser = useSelector(selectSelectedUser);
   const { data: products, loading } = useSelector(selectProductsState);
   const { rewardDetails, campaign } = useSelector(selectLoyaltyConfig);
+
   const recommended = products
     .filter((p) => selectedUser?.profile?.interests?.includes(p.category))
     .slice(0, 4); // Filter products based on selected user's interests and limit to 4

@@ -4,53 +4,53 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // TODO(backend): this module is not registered in backend/src/server.js yet,
 // so the seed data below is still the source of truth. Flip to true once it is.
-const BACKEND_SERVES_THIS = false;
+//const BACKEND_SERVES_THIS = false;
 
 // TEMPORARY: seed data lives here until the backend serves it.
 // Once BACKEND_URL is available, delete this and use the fetch below.
-const PLACEHOLDER_LOYALTY_CONFIG = {
-  rewardDetails: [
-    {
-      tierKey: "bronze",
-      tierName: "Bronze",
-      threshold: 1000,
-      currencyValueForDolar: 1000,
-    },
-    {
-      tierKey: "silver",
-      tierName: "Silver",
-      threshold: 2500,
-      currencyValueForDolar: 500,
-    },
-    {
-      tierKey: "gold",
-      tierName: "Gold",
-      threshold: 5000,
-      currencyValueForDolar: 250,
-    },
-    {
-      tierKey: "diamond",
-      tierName: "Diamond",
-      threshold: 10000,
-      currencyValueForDolar: 100,
-    },
-  ],
+// const PLACEHOLDER_LOYALTY_CONFIG = {
+//   rewardDetails: [
+//     {
+//       tierKey: "bronze",
+//       tierName: "Bronze",
+//       threshold: 1000,
+//       currencyValueForDolar: 1000,
+//     },
+//     {
+//       tierKey: "silver",
+//       tierName: "Silver",
+//       threshold: 2500,
+//       currencyValueForDolar: 500,
+//     },
+//     {
+//       tierKey: "gold",
+//       tierName: "Gold",
+//       threshold: 5000,
+//       currencyValueForDolar: 250,
+//     },
+//     {
+//       tierKey: "diamond",
+//       tierName: "Diamond",
+//       threshold: 10000,
+//       currencyValueForDolar: 100,
+//     },
+//   ],
 
-  campaign: [
-    {
-      promoID: "PROMO-SUMMER-2026",
-      promoName: "Summer Rewards Bonus",
-      banner: "Earn double points on all summer purchases",
-      isActive: true,
-    },
-    {
-      promoID: "PROMO-WELCOME-2026",
-      promoName: "Welcome Bonus",
-      banner: "Get 500 bonus points when you join",
-      isActive: false,
-    },
-  ],
-};
+//   campaign: [
+//     {
+//       promoID: "PROMO-SUMMER-2026",
+//       promoName: "Summer Rewards Bonus",
+//       banner: "Earn double points on all summer purchases",
+//       isActive: true,
+//     },
+//     {
+//       promoID: "PROMO-WELCOME-2026",
+//       promoName: "Welcome Bonus",
+//       banner: "Get 500 bonus points when you join",
+//       isActive: false,
+//     },
+//   ],
+// };
 
 const PATCHABLE_FIELDS = ["rewardDetails", "campaign"];
 
@@ -69,13 +69,15 @@ export async function PATCH(request) {
     );
   }
 
-  if (!BACKEND_SERVES_THIS || !BACKEND_URL) {
-    Object.assign(PLACEHOLDER_LOYALTY_CONFIG, patch);
-    return NextResponse.json(PLACEHOLDER_LOYALTY_CONFIG);
+  if (!BACKEND_URL) {
+    return NextResponse.json(
+      { error: "Backend URL is not configured" },
+      { status: 500 },
+    );
   }
 
   try {
-    const res = await fetch(`${BACKEND_URL}/loyalty-config`, {
+    const res = await fetch(`${BACKEND_URL}/loyalty-configuration`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(patch),
@@ -97,14 +99,20 @@ export async function PATCH(request) {
   }
 }
 
-export async function GET() {
-  if (!BACKEND_SERVES_THIS || !BACKEND_URL) {
-    return NextResponse.json(PLACEHOLDER_LOYALTY_CONFIG);
+export async function GET(request) {
+  if (!BACKEND_URL) {
+    return NextResponse.json(
+      { error: "Backend URL is not configured" },
+      { status: 500 },
+    );
   }
 
   try {
-    const res = await fetch(`${BACKEND_URL}/loyalty-config`, {
-      headers: { "Content-Type": "application/json" },
+    const res = await fetch(`${BACKEND_URL}/loyalty-configuration`, {
+      headers: {
+        "Content-Type": "application/json",
+        "x-session-id": request.headers.get("x-session-id") ?? "",
+      },
       cache: "no-store",
     });
 

@@ -20,7 +20,11 @@ import { clearActivePersonaCookie } from "@/lib/cookies";
 import { resetGlobalState } from "@/redux/slices/GlobalSlice";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
-import { selectSelectedUser, getCartCount } from "@/redux/slices/GlobalSlice";
+import {
+  selectSelectedUser,
+  getCartCount,
+  selectLoyaltyConfig,
+} from "@/redux/slices/GlobalSlice";
 import { openModal } from "@/redux/slices/GlobalSlice";
 import styles from "./Navbar.module.css";
 import shared from "@/components/shared.module.css";
@@ -37,11 +41,11 @@ import {
 } from "@/components/Icons/Icons";
 import { tierBadgeVariant } from "@/components/tierBadgeVariant";
 
-function PromoBanner() {
+function PromoBanner({ activeCampaign }) {
   return (
     <div className={styles.promoBanner}>
-      🎉 Current promotion: <b>Winter</b> · Earn <b>{2}× loyalty coins</b> on
-      every purchase.
+      🎉 Current promotion: <b>{activeCampaign[0]?.banner}</b> · Earn{" "}
+      <b>{activeCampaign[0]?.multiplier}x loyalty coins</b> on every purchase.
     </div>
   );
 }
@@ -57,23 +61,20 @@ export default function Navbar() {
   const router = useRouter();
   const dispatch = useDispatch();
   const persona = useSelector(selectSelectedUser);
-  console.log("selected user in Navbar.jsx:", persona);
+  const loyaltyConfig = useSelector(selectLoyaltyConfig);
+  console.log("loyaltyConfig in Navbar.jsx:", loyaltyConfig);
+  const activeCampaign = loyaltyConfig?.campaign.filter(
+    (campaign) => campaign.isActive,
+  ) || [{ banner: "Promotion Coming Soon..." }];
   const count = useSelector(getCartCount);
   async function handleLogout() {
     try {
-      // Releases the persona back to the pool. Without this the customer
-      // stays claimed and disappears from the login grid for good.
       await endSession();
     } catch (err) {
-      // Nothing useful to offer the user here — they're leaving either way,
-      // and a stuck claim can be cleared with /sessions/end-all.
       console.error("Couldn't end the session:", err.message);
     } finally {
-      // Always clear the cookie, even if the release failed: otherwise
-      // middleware keeps the user in the store with no way back to /login.
       await clearActivePersonaCookie();
-      // Navigate before clearing the user: resetting first re-runs the
-      // layout's session effect against a cookie that is already gone.
+
       router.replace("/login");
       dispatch(resetGlobalState());
     }
@@ -87,7 +88,7 @@ export default function Navbar() {
 
   return (
     <div>
-      <PromoBanner />
+      <PromoBanner activeCampaign={activeCampaign} />
       <header className={styles.topnav}>
         <div className={styles.brand}>
           <Logo logo="MongoDBLogoMark" size="medium" />

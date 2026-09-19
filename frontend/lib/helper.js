@@ -58,6 +58,8 @@ export function cartItemList(cart, products) {
 
 export function findTierDetails(rewardDetails, tierKey) {
   // Customer records carry display-cased tiers ("Silver") while the loyalty
+  console.log("Finding tier details for tierKey:", tierKey);
+  console.log("Reward details:", rewardDetails);
   // config keys them lowercase, so compare case-insensitively.
   const key = tierKey?.toLowerCase();
   return rewardDetails?.find((t) => t.tierKey.toLowerCase() === key);

@@ -105,6 +105,10 @@ const GlobalSlice = createSlice({
         }
       }
     },
+    cartRemove(state, action) {
+      delete state.cart[action.payload];
+    },
+
     placeOrderSuccess(state, action) {
       // API response envelope: { order, loyalty }. loyalty already carries
       // oldBalance/newBalance and oldTier/newTier directly -- no separate
@@ -207,6 +211,7 @@ export const {
   saveCampaignSuccess,
   cartIncrement,
   cartDecrement,
+  cartRemove,
   resetGlobalState,
 } = GlobalSlice.actions;
 

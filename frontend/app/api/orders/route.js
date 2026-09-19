@@ -16,8 +16,6 @@ function unreachable(err) {
   );
 }
 
-// Order history for the current session. The backend derives the customer
-// from x-session-id, so no id is passed.
 export async function GET(request) {
   console.log("This is being called: ", request.url);
   console.log("x-customer-id:", request.headers.get("x-customer-id") ?? "");

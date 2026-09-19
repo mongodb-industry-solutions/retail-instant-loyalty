@@ -81,13 +81,13 @@ export function fetchProducts() {
 }
 
 export function fetchLoyaltyConfig() {
-  return request("/loyalty-config");
+  return request("/loyalty-configuration");
 }
 
 // Accepts any subset of the config — { rewardDetails }, { campaign }, or both.
 // The route merges the given keys into the stored document.
 export function updateLoyaltyConfig(patch) {
-  return request("/loyalty-config", {
+  return request("/loyalty-configuration", {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(patch),
@@ -135,8 +135,10 @@ export async function fetchOrders({ page = 1, limit = 20, customerId } = {}) {
 }
 
 // One order, scoped to the current session — proxies GET /orders/:orderId.
-export function fetchOrder(orderId) {
-  return request(`/orders/${orderId}`);
+export function fetchOrder({ orderId, customerId }) {
+  return request(`/orders/${orderId}`, {
+    headers: { "x-customer-id": customerId ?? "" },
+  });
 }
 
 export function createOrder(order) {

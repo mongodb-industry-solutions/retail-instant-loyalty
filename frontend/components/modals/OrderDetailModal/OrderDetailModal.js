@@ -136,7 +136,7 @@ export default function OrderDetailModal({ orderId, onClose }) {
     let cancelled = false;
     setOrder(null);
     setError(null);
-    fetchOrder(orderId)
+    fetchOrder({ orderId, customerId: persona.customerId })
       .then((data) => {
         if (cancelled) return;
         setOrder(data);
@@ -159,9 +159,7 @@ export default function OrderDetailModal({ orderId, onClose }) {
             ✕
           </button>
         </div>
-        <div className={modal.body}>
-          Couldn&apos;t load this order: {error}
-        </div>
+        <div className={modal.body}>Couldn&apos;t load this order: {error}</div>
       </>
     );
   }

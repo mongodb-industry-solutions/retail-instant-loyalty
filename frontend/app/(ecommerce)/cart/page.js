@@ -4,32 +4,77 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { H3 } from "@via-ds/components/typography";
 import { Button } from "@via-ds/components/button";
-import { useSelector } from "react-redux";
-import { selectCart, selectProductsData } from "@/redux/slices/GlobalSlice";
+import { useSelector, useDispatch } from "react-redux";
+import { useEffect, useState } from "react";
+import {
+  selectCart,
+  selectProductsData,
+  cartIncrement,
+  cartDecrement,
+  cartRemove,
+} from "@/redux/slices/GlobalSlice";
 import shared from "@/components/shared.module.css";
 import styles from "./CartView.module.css";
 import { cartItemList, formatPrice } from "@/lib/helper";
 import { Icon } from "@via-ds/icons";
+import { fetchOrderOverview } from "@/lib/api";
 
 export default function CartView() {
   const router = useRouter();
   const cart = useSelector(selectCart);
   const products = useSelector(selectProductsData);
-  const itemsList = cartItemList(cart, products);
-  const subtotal = 48;
-  const shipping = 0;
-  const TAX_RATE = 0.07;
-  const tax = subtotal * TAX_RATE;
-  const total = subtotal + shipping + tax;
-  const coins = Math.floor(total / 10);
+  const dispatch = useDispatch();
+  const cartItems = cartItemList(cart, products);
+  const [overview, setOverview] = useState(null);
+  const [overviewError, setOverviewError] = useState(null);
 
-  console.log("CartView itemsList:", itemsList);
+  const orderItems = cartItems.map((item) => ({
+    productId: item.productId,
+    quantity: item.cartQuantity,
+  }));
+
+  const itemsKey = JSON.stringify(orderItems);
+
+  useEffect(() => {
+    if (!cartItems.length) {
+      setOverview(null);
+      return;
+    }
+    let cancelled = false;
+
+    const timer = setTimeout(() => {
+      fetchOrderOverview({ items: JSON.parse(itemsKey), coinsToApply: 0 })
+        .then((data) => {
+          console.log("Fetched order overview:", data);
+          if (cancelled) return;
+          setOverview(data);
+          setOverviewError(null);
+        })
+        .catch((err) => {
+          if (cancelled) return;
+          setOverview(null);
+          setOverviewError(err.message);
+        });
+    }, 200);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [itemsKey]);
+
+  const amounts = overview?.order;
+
+  const subtotal = amounts?.amountSummary.subtotal || 0;
+  const shipping = amounts?.amountSummary.shipping || 0;
+  const tax = amounts?.amountSummary.tax || 0;
+  const total = amounts?.amountSummary.total || 0;
+  const coins = amounts?.coinsEarned || 0;
 
   function go(view) {
     router.push(view === "store" ? "/" : `/${view}`);
   }
 
-  if (itemsList.length === 0) {
+  if (cartItems.length === 0) {
     return (
       <main className={shared.page}>
         <div className={shared.crumb}>
@@ -73,13 +118,13 @@ export default function CartView() {
         </a>{" "}
         {"  "}
         <span className={`${shared.current} ${styles.cartTitleWrap}`}>
-          My Cart ({itemsList.length} item{itemsList.length > 1 ? "s" : ""}
+          My Cart ({cartItems.length} item{cartItems.length > 1 ? "s" : ""}
           ){" "}
         </span>
       </div>
       <div className={shared.layoutSplit}>
         <div>
-          {itemsList.map((item) => {
+          {cartItems.map((item) => {
             console.log("CartView item:", item);
             return (
               <div className={styles.cartItem} key={item.productId}>
@@ -100,11 +145,15 @@ export default function CartView() {
                   </div>
                 </div>
                 <div className={shared.qtyStepper}>
-                  <button onClick={() => dispatch(cartDec(item.productId))}>
+                  <button
+                    onClick={() => dispatch(cartDecrement(item.productId))}
+                  >
                     −
                   </button>
                   <span>{item.cartQuantity}</span>
-                  <button onClick={() => dispatch(cartInc(item.productId))}>
+                  <button
+                    onClick={() => dispatch(cartIncrement(item.productId))}
+                  >
                     +
                   </button>
                 </div>
@@ -121,6 +170,11 @@ export default function CartView() {
         </div>
         <div className={shared.summaryCard}>
           <H3>Order Summary</H3>
+          {overviewError && (
+            <div className={shared.summaryRow} style={{ color: "#C4342A" }}>
+              Couldn&apos;t price this order: {overviewError}
+            </div>
+          )}
           <div className={shared.summaryRow}>
             <span>Subtotal</span>
             <span className="mono">{formatPrice(subtotal)}</span>
@@ -132,7 +186,7 @@ export default function CartView() {
             </span>
           </div>
           <div className={shared.summaryRow}>
-            <span>Tax ({(TAX_RATE * 100).toFixed(0)}%)</span>
+            <span>Tax</span>
             <span className="mono">{formatPrice(tax)}</span>
           </div>
           <div className={`${shared.summaryRow} ${shared.summaryRowTotal}`}>

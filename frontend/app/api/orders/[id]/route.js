@@ -17,7 +17,7 @@ export async function GET(request, { params }) {
     const res = await fetch(`${BACKEND_URL}/orders/${orderId}`, {
       headers: {
         "Content-Type": "application/json",
-        "x-session-id": request.headers.get("x-session-id") ?? "",
+        "x-customer-id": request.headers.get("x-customer-id") ?? "",
       },
       cache: "no-store",
     });
