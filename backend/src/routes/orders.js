@@ -1,10 +1,6 @@
 import { createOrderEngine, sendError } from "../lib/orderEngine.js";
 
 export default function ordersRoutes(app) {
-<<<<<<< HEAD
-  const { getNextSequence, computeOrderMath, scheduleOrderProgression } =
-    createOrderEngine(app);
-=======
   const {
     getNextSequence,
     computeOrderMath,
@@ -12,7 +8,6 @@ export default function ordersRoutes(app) {
     processPayment,
     buildLoyaltyHistoryEntries,
   } = createOrderEngine(app);
->>>>>>> origin/back/apis
 
   // live pricing preview, no writes.
   // ACID transaction
