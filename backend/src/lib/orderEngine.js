@@ -95,7 +95,7 @@ export function createOrderEngine(app) {
         };
 
       const unitPrice = Number(product.price?.toString?.() ?? product.price);
-      const lineTotal = unitPrice * requested.quantity;
+      const lineTotal =unitPrice * requested.quantity;
       subtotal += lineTotal;
 
       return {
@@ -104,7 +104,7 @@ export function createOrderEngine(app) {
         imageUrl: product.imageURL,
         quantity: requested.quantity,
         unitPrice,
-        lineTotal,
+        lineTotal: lineTotal,
       };
     });
 
@@ -121,8 +121,7 @@ export function createOrderEngine(app) {
     const oldBalance = customer.loyaltyDetails.coinBalance;
     let requestedCoins = coinsToApply || 0;
 
-    let coinsToDollarsApplied =
-      requestedCoins / tierEntry.currencyValueForDollar;
+    let coinsToDollarsApplied =  Math.round((requestedCoins / tierEntry.currencyValueForDollar) * 100) / 100;
     const qualifyingSpend = Math.max(0, subtotal - coinsToDollarsApplied);
     const tax = Math.round(subtotal * TAX_RATE * 100) / 100;
     const shipping = 0;
@@ -155,15 +154,15 @@ export function createOrderEngine(app) {
       resolvedItems,
       amountSummary: {
         subtotal,
-        coinsDiscountValue: coinsToDollarsApplied,
+        coinsDiscountValue: Math.round(coinsToDollarsApplied * 100) / 100,
         tax,
         shipping,
         total,
       },
       coinsApplied: requestedCoins,
-      coinsToDollarsApplied,
+      coinsToDollarsApplied: Math.round(coinsToDollarsApplied * 100) / 100,
       coinsEarned,
-      qualifyingSpend,
+      qualifyingSpend: Math.round(qualifyingSpend * 100) / 100,
       multiplier,
       oldBalance,
       oldTier,
@@ -171,8 +170,8 @@ export function createOrderEngine(app) {
       newTierKey: resolved.tierKey,
       nextTierKey: resolved.nextTierKey,
       tierChanged,
-      newCumulativeSpendDollars: newCumulativeSpend,
-      dollarsNeededForNextTier: resolved.dollarsNeededForNextTier,
+      newCumulativeSpendDollars: Math.round(newCumulativeSpend * 100) / 100,
+      dollarsNeededForNextTier: Math.round(resolved.dollarsNeededForNextTier * 100) / 100,
     };
   }
 
