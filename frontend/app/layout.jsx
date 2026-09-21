@@ -1,6 +1,8 @@
 import Providers from "@/components/Providers/Providers";
-import "./globals.css";
+
 import "@via-ds/components/index.css";
+
+import "./globals.css";
 
 export const metadata = {
   title: "Leafy Loyalty Store — MongoDB Demo",
