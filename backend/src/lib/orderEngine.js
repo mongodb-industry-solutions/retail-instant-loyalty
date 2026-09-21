@@ -109,9 +109,7 @@ export function createOrderEngine(app) {
     });
 
     const currentTierKey = customer.loyaltyDetails.activeTier;
-    const tierEntry = loyaltyConfig.rewardDetails.find(
-      (t) => t.tierKey === currentTierKey,
-    );
+    let tierEntry = loyaltyConfig.rewardDetails.find((t) => t.tierKey === currentTierKey,);
     // Only throw an error if the customer is not always considered a new user
     // New customers start with a tier Null, so we don't throw an error for them
     if (!tierEntry && isAlwaysNewUser == false)
@@ -119,6 +117,9 @@ export function createOrderEngine(app) {
         code: "TIER_NOT_FOUND",
         message: `Customer's active tier ${currentTierKey} not found in loyalty config`,
       };
+    if(!currentTierKey && isAlwaysNewUser == true){
+      tierEntry = loyaltyConfig.rewardDetails[0];
+    }
 
     const oldBalance = customer.loyaltyDetails.coinBalance;
     let requestedCoins = coinsToApply || 0;
