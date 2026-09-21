@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { H3 } from "@via-ds/components/typography";
 import { useDispatch, useSelector } from "react-redux";
+import { selectLoyaltyConfig } from "@/redux/slices/GlobalSlice";
 import { toast } from "@via-ds/components/toast";
 import {
   selectSelectedUser,
@@ -31,6 +32,48 @@ export default function CheckoutView() {
   const [coinsToApply, setCoinsToApply] = useState(0);
   const [overview, setOverview] = useState(null);
   const [overviewError, setOverviewError] = useState(null);
+  const loyaltyConfig = useSelector(selectLoyaltyConfig);
+  const currentTierConfig = loyaltyConfig.rewardDetails.find(
+    (tier) => tier.tierKey === persona.loyaltyDetails?.activeTier,
+  );
+
+  console.log("current tier config:", currentTierConfig);
+
+  const merchandiseValue = Math.max(
+    0,
+    Number(overview?.order?.amountSummary?.subtotal ?? 0),
+  );
+  console.log("Merchandise value:", merchandiseValue);
+
+  const balance = Math.max(
+    0,
+    Math.floor(Number(persona.loyaltyDetails?.coinBalance ?? 0)),
+  );
+
+  console.log("Balance:", balance);
+
+  const coinsPerDollar = Number(currentTierConfig.currencyValueForDollar ?? 0);
+  console.log("Coins per dollar:", coinsPerDollar);
+
+  const maxCoinsForMerchandise =
+    merchandiseValue > 0 && coinsPerDollar > 0
+      ? Math.floor(merchandiseValue * coinsPerDollar)
+      : 0;
+
+  console.log("Max coins for merchandise:", maxCoinsForMerchandise);
+
+  const maxCoinsUsable = Math.min(balance, maxCoinsForMerchandise);
+  console.log("Max coins usable:", maxCoinsUsable);
+
+  const canRedeem = maxCoinsUsable > 0;
+
+  // maxCoinsUsable shrinks if the cart changes or the tier's coin rate
+  // changes — keep the slider from sitting above its own max.
+  useEffect(() => {
+    if (coinsToApply > maxCoinsUsable) {
+      setCoinsToApply(maxCoinsUsable);
+    }
+  }, [maxCoinsUsable, coinsToApply]);
 
   // Every number on this page comes from /orders/overview, which runs the same
   // engine POST /orders does — so the total shown is the total charged.
@@ -178,7 +221,7 @@ export default function CheckoutView() {
               </span>
             </div>
           ))}
-          {coinBalance > 0 && (
+          {/* {coinBalance > 0 && (
             <div className={shared.field} style={{ marginTop: 12 }}>
               <label>
                 Redeem coins —{" "}
@@ -193,6 +236,62 @@ export default function CheckoutView() {
                 value={coinsToApply}
                 onChange={(e) => setCoinsToApply(Number(e.target.value))}
               />
+            </div>
+          )} */}
+          {canRedeem && (
+            <div className={styles.loyaltyCard}>
+              <div className={styles.loyaltyTop}>
+                <div>
+                  <div className={styles.loyaltyTitle}>
+                    Use loyalty coins at checkout
+                  </div>
+                </div>
+                <Button
+                  variant="primary"
+                  size="small"
+                  style={{ whiteSpace: "nowrap", flexShrink: 0 }}
+                  onClick={() =>
+                    setCoinsToApply(coinsToApply > 0 ? 0 : maxCoinsUsable)
+                  }
+                >
+                  {coinsToApply > 0 ? "Remove points" : "Use points"}
+                </Button>
+              </div>
+              {coinsToApply > 0 ? (
+                <div className={styles.sliderWrap}>
+                  <input
+                    type="range"
+                    className={styles.slider}
+                    min="0"
+                    max={maxCoinsUsable}
+                    step="1"
+                    value={coinsToApply}
+                    onChange={(e) => setCoinsToApply(Number(e.target.value))}
+                  />
+                  <div className={styles.loyaltyScale}>
+                    <span>0</span>
+                    <span>{maxCoinsUsable.toLocaleString()} coins</span>
+                  </div>
+                  {/* <div className={styles.loyaltyNote}>
+                    Applying <b>{coinsToApply.toLocaleString()}</b> coins
+                    offsets <b>{formatPrice(coinsCoveredValue)}</b> of
+                    merchandise and leaves <b>{formatPrice(subtotal)}</b>{" "}
+                    eligible for new loyalty coins.
+                  </div> */}
+                </div>
+              ) : (
+                <div className={styles.loyaltyNote}>
+                  Use up to <b>{maxCoinsUsable.toLocaleString()}</b> coins to
+                  offset{" "}
+                  <b>
+                    {formatPrice(
+                      coinsPerDollar > 0 ? maxCoinsUsable / coinsPerDollar : 0,
+                    )}
+                  </b>{" "}
+                  of merchandise. Tier progress still counts the full cart
+                  subtotal.
+                </div>
+              )}
             </div>
           )}
 

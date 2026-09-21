@@ -9,32 +9,37 @@ import { formatPrice } from "@/lib/helper";
 import {
   selectSelectedUser,
   selectLoyaltyConfig,
-  selectLastOrder,
 } from "@/redux/slices/GlobalSlice";
 import TierTrack from "@/components/TierTrack/TierTrack";
 import { Badge } from "@via-ds/components/badge";
 import { Icon } from "@via-ds/icons";
 
-export default function LoyaltyRewardCard() {
+// `order` is the currently active transaction — whichever of the last order
+// or last redeem happened most recently — with `loyalty` merged onto it by
+// the caller (confirm/page.js), so this card (and its tier track) reflects
+// a redeem instead of staying stuck on the original purchase.
+export default function LoyaltyRewardCard({ order }) {
   const [phase, setPhase] = useState("after");
   const [tierupGlow, setTierupGlow] = useState(false);
-
-  // { order, loyalty } — the POST /orders response envelope.
-  const lastOrder = useSelector(selectLastOrder);
   const selectedUser = useSelector(selectSelectedUser);
   const { rewardDetails } = useSelector(selectLoyaltyConfig);
 
   useEffect(() => {
     setPhase("before");
-    const t = setTimeout(() => setPhase("after"), 250);
+    setTierupGlow(false);
+    const loyaltyForOrder = order?.loyalty ?? {};
+    const changed = loyaltyForOrder.newTier !== loyaltyForOrder.oldTier;
+    const t = setTimeout(() => {
+      setPhase("after");
+      if (changed) setTierupGlow(true);
+    }, 250);
     return () => clearTimeout(t);
-  }, [lastOrder]);
+  }, [order]);
 
-  if (!lastOrder) return null;
+  if (!order) return null;
 
-  const order = lastOrder.order;
-  const loyalty = lastOrder.loyalty ?? {};
-  // The API reports the tier pair rather than a flag.
+  const loyalty = order.loyalty ?? {};
+
   const tierChanged = loyalty.newTier !== loyalty.oldTier;
 
   const displayCoinTotal =
@@ -50,7 +55,7 @@ export default function LoyaltyRewardCard() {
   const cardClass = `${styles.rewardCard}${tierupGlow ? ` ${styles.rewardCardGlow}` : ""}`;
 
   const tierInfo = {
-    activeTier: loyalty.newTier,
+    activeTier: phase === "before" ? loyalty.oldTier : loyalty.newTier,
     nextTier: selectedUser.loyaltyDetails?.nextTier,
     dollarsNeededForNextTier: loyalty.dollarsNeededForNextTier,
   };
@@ -87,6 +92,7 @@ export default function LoyaltyRewardCard() {
           <span>Upgraded to {tierLabel}</span>
         </div>
       )}
+
       {balanceRow(
         `+${(order.coinsEarned ?? 0).toLocaleString()}${multiplier > 1 ? ` (${multiplier}× active)` : ""}`,
       )}
@@ -100,8 +106,8 @@ export default function LoyaltyRewardCard() {
           Applied <b>{order.coinsApplied.toLocaleString()}</b> coins at
           checkout, earned <b>{(order.coinsEarned ?? 0).toLocaleString()}</b>{" "}
           coins on <b>{formatPrice(order.amountSummary.subtotal)}</b> cash-paid
-          merchandise, and added{" "}
-          <b>{formatPrice(loyalty.qualifyingSpend)}</b> toward tier progress.
+          merchandise, and added <b>{formatPrice(loyalty.qualifyingSpend)}</b>{" "}
+          toward tier progress.
         </div>
       )}
     </div>

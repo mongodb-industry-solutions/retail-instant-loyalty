@@ -1,28 +1,34 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Variant } from "@via-ds/components/button";
+import { Button } from "@via-ds/components/button";
 import { Text } from "@via-ds/components/typography";
+import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
 import { CAT_COLOR } from "@/lib/data";
-import { docToJSON, fmt, productDocFor, seededStock } from "@/lib/helpers";
+import {
+  docToJSON,
+  formatPrice,
+  productDocFor,
+  seededStock,
+} from "@/lib/helper";
 import styles from "./ProductDetailModal.module.css";
 import modal from "../Modal.module.css";
 import {
   selectSelectedUser,
-  selectProducts,
+  selectProductsData,
   addToCart,
-} from "@/redux/globalSlice";
+} from "@/redux/slices/GlobalSlice";
 
 export default function ProductDetailModal({ id, onClose }) {
   const dispatch = useDispatch();
-  const products = useSelector(selectProducts);
+  const products = useSelector(selectProductsData);
   const persona = useSelector(selectSelectedUser);
   const [showProductDoc, setShowProductDoc] = useState(false);
   const [showInvDoc, setShowInvDoc] = useState(false);
 
   const pr = products.find((x) => x.id === id);
-  const catBg = (CAT_COLOR[pr.cat] || { bg: "#EEE" }).bg;
+  const catBg = (CAT_COLOR[pr.category] || { bg: "#EEE" }).bg;
   const city = (persona.addresses?.[0]?.city ?? "").split(",")[0];
   const stores = [
     `${city} Downtown`,
@@ -33,28 +39,35 @@ export default function ProductDetailModal({ id, onClose }) {
     stock: seededStock(pr.id + s),
   }));
 
+  console.log("product in ProductDetailModal.js:", pr);
   const productDoc = productDocFor(pr);
-  const inventoryDocs = stores.map((s, i) => ({
-    _id: `ObjectId("710c${pr.id}${i}0000001")`,
-    product_id: `ObjectId("64f1a2${pr.id}0000000001")`,
-    store: s.name,
-    quantity: s.stock,
-  }));
+  // const inventoryDocs = stores.map((s, i) => ({
+  //   _id: `ObjectId("710c${pr.id}${i}0000001")`,
+  //   product_id: `ObjectId("64f1a2${pr.id}0000000001")`,
+  //   store: s.name,
+  //   quantity: s.stock,
+  // }));
 
   return (
     <>
       <div className={modal.head}>
         <Text>Product details</Text>
-        <button className={modal.close} onClick={onClose}>
+        <Button className={modal.close} onClick={onClose}>
           ✕
-        </button>
+        </Button>
       </div>
       <div className={modal.body}>
         <div className={styles.grid}>
           <div>
             <div className={styles.hero}>
               <div className={styles.art} style={{ background: catBg }}>
-                {pr.icon}
+                <Image
+                  src={pr.imageURL}
+                  alt={pr.name}
+                  fill
+                  style={{ objectFit: "cover" }}
+                  className={styles.pThumbImg}
+                />
               </div>
               <div className={styles.copy}>
                 <div
@@ -66,7 +79,7 @@ export default function ProductDetailModal({ id, onClose }) {
                     letterSpacing: 0.3,
                   }}
                 >
-                  {pr.cat}
+                  {pr.category}
                 </div>
                 <div
                   style={{
@@ -86,20 +99,7 @@ export default function ProductDetailModal({ id, onClose }) {
                     marginTop: 6,
                   }}
                 >
-                  {fmt(pr.price)}
-                  {pr.was && (
-                    <span
-                      style={{
-                        textDecoration: "line-through",
-                        color: "var(--text-faint)",
-                        fontWeight: 500,
-                        fontSize: 14,
-                        marginLeft: 6,
-                      }}
-                    >
-                      {fmt(pr.was)}
-                    </span>
-                  )}
+                  {formatPrice(pr.price)}
                 </div>
                 <div className={styles.detailScoreRow}>
                   <span className={styles.detailScoreMeta}>
@@ -111,31 +111,19 @@ export default function ProductDetailModal({ id, onClose }) {
               </div>
             </div>
             <p>
-              A popular pick in {pr.cat.toLowerCase()} — {pr.name} is
+              A popular pick in {pr.category.toLowerCase()} — {pr.name} is
               well-reviewed and pairs naturally with the other items in this
               category.
             </p>
             <div className={styles.toggleSection}>
-              <button
+              <Button
                 className={`${styles.toggleHeader}${showProductDoc ? ` ${styles.toggleHeaderOpen}` : ""}`}
                 onClick={() => setShowProductDoc((v) => !v)}
               >
                 {"{ } Product document"} <span className={styles.chev}>⌄</span>
-              </button>
+              </Button>
               {showProductDoc && (
                 <pre className={modal.docJson}>{docToJSON(productDoc)}</pre>
-              )}
-            </div>
-            <div className={styles.toggleSection}>
-              <button
-                className={`${styles.toggleHeader}${showInvDoc ? ` ${styles.toggleHeaderOpen}` : ""}`}
-                onClick={() => setShowInvDoc((v) => !v)}
-              >
-                {"{ } Inventory documents"}{" "}
-                <span className={styles.chev}>⌄</span>
-              </button>
-              {showInvDoc && (
-                <pre className={modal.docJson}>{docToJSON(inventoryDocs)}</pre>
               )}
             </div>
           </div>
@@ -158,10 +146,10 @@ export default function ProductDetailModal({ id, onClose }) {
               their tier progress moving based on merchandise spend.
             </p>
             <Button
-              variant={Variant.BaseGreen}
+              variant="primary"
               style={{ width: "100%", marginTop: 18 }}
               onClick={() => {
-                dispatch(addToCart(pr.id));
+                dispatch(addToCart(pr.productId));
                 onClose();
               }}
             >

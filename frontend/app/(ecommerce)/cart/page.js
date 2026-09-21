@@ -64,6 +64,8 @@ export default function CartView() {
 
   const amounts = overview?.order;
 
+  console.log("Overview amounts:", amounts);
+
   const subtotal = amounts?.amountSummary.subtotal || 0;
   const shipping = amounts?.amountSummary.shipping || 0;
   const tax = amounts?.amountSummary.tax || 0;

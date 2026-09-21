@@ -16,7 +16,7 @@ export function tierByKey(rewardDetails, tierKey) {
 export function coinDollarValue(tier) {
   if (!tier) return 0;
   if (tier.currencyValue != null) return Number(tier.currencyValue);
-  const coinsPerDollar = Number(tier.currencyValueForDolar);
+  const coinsPerDollar = Number(tier.currencyValueForDollar);
   return coinsPerDollar > 0 ? 1 / coinsPerDollar : 0;
 }
 

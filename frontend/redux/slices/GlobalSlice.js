@@ -22,6 +22,10 @@ const INITIAL_STATE = {
   },
   lastOrder: null,
   lastRedeem: null,
+  // Which of the two happened most recently — drives the confirm page's
+  // header/receipt/tier-track so a redeem after an order doesn't keep
+  // showing the stale purchase.
+  lastEvent: null,
   cart: {},
 };
 
@@ -115,6 +119,7 @@ const GlobalSlice = createSlice({
       // customer object is returned, so there is nothing to diff here.
       const { order, loyalty } = action.payload;
       state.lastOrder = { order, loyalty };
+      state.lastEvent = "order";
       // Keep the persona in step with the write the backend just committed,
       // so the navbar and tier track update without a refetch.
       if (state.selectedUser && loyalty) {
@@ -136,6 +141,7 @@ const GlobalSlice = createSlice({
       // placeOrderSuccess, since POST /redeem and POST /orders share it.
       const { order, loyalty } = action.payload;
       state.lastRedeem = { order, loyalty };
+      state.lastEvent = "redeem";
       if (state.selectedUser && loyalty) {
         state.selectedUser.loyaltyDetails.coinBalance = loyalty.newBalance;
         state.selectedUser.loyaltyDetails.activeTier = loyalty.newTier;
@@ -222,6 +228,7 @@ export const selectProductsState = (state) => state.Global.products;
 export const selectProductsData = (state) => state.Global.products.data;
 export const selectLastOrder = (state) => state.Global.lastOrder;
 export const selectLastRedeem = (state) => state.Global.lastRedeem;
+export const selectLastEvent = (state) => state.Global.lastEvent;
 export const selectLoyaltyConfig = (state) => state.Global.loyaltyConfig;
 export const selectModal = (state) => state.Global.modal;
 export const selectCart = (state) => state.Global.cart;

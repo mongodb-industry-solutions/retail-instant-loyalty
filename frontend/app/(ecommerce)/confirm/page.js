@@ -8,6 +8,7 @@ import {
   selectSelectedUser,
   selectLastOrder,
   selectLastRedeem,
+  selectLastEvent,
 } from "../../../redux/slices/GlobalSlice";
 import Receipt from "../../../components/Receipt/Receipt";
 import LoyaltyRewardCard from "./LoyaltyRewardCard";
@@ -19,19 +20,19 @@ export default function ConfirmView() {
   const router = useRouter();
   const dispatch = useDispatch();
   const redemptionInProgress = false;
-  const redemptionJustConfirmed = false;
-  const redeemJustConfirmedOrderId = "123456";
-  const hasRedemption = false;
   const reviewing = false;
   const persona = useSelector(selectSelectedUser);
-  // POST /orders response envelope: { order, loyalty }. loyalty is a sibling
-  // of order in the API, but Receipt/ConfirmSidebar/LiveFeedEvent all read it
-  // off the order itself, so it's merged in once here rather than at each
-  // call site.
+  // POST /orders and POST /redeem share the same response envelope:
+  // { order, loyalty }. lastEvent says which of the two happened most
+  // recently, so a redeem after a purchase drives the page instead of the
+  // stale order it was reviewed from.
   const lastOrder = useSelector(selectLastOrder);
   const latestRedeem = useSelector(selectLastRedeem);
-  const finalOrder = lastOrder?.order
-    ? { ...lastOrder.order, loyalty: lastOrder.loyalty }
+  const lastEvent = useSelector(selectLastEvent);
+  const hasRedemption = lastEvent === "redeem";
+  const activeEvent = hasRedemption ? latestRedeem : lastOrder;
+  const finalOrder = activeEvent?.order
+    ? { ...activeEvent.order, loyalty: activeEvent.loyalty }
     : null;
   const shownOrderId = finalOrder?.orderId;
 
@@ -63,11 +64,11 @@ export default function ConfirmView() {
             <Icon glyph="Checkmark" />
           </div>
           <div className={styles.title}>
-            {hasRedemption ? "Reward order confirmed!" : "Order confirmed!"}
+            {hasRedemption ? "Redeem successful!" : "Order confirmed!"}
           </div>
           <div className={styles.sub}>
             {hasRedemption
-              ? "Your reward order is confirmed and your loyalty balance updated immediately."
+              ? "Your reward was redeemed and your loyalty balance updated immediately."
               : `Thanks, ${persona.profile.firstName}. Your order is placed and being processed.`}
           </div>
           <div className={styles.orderNumWrap}>
@@ -78,10 +79,13 @@ export default function ConfirmView() {
 
       <div className={styles.layout}>
         <div className={styles.main}>
-          <LoyaltyRewardCard animKey={shownOrderId} />
+          <LoyaltyRewardCard order={finalOrder} />
 
           {!reviewing && (
-            <Receipt order={finalOrder} lastRedeem={latestRedeem} />
+            <Receipt
+              order={finalOrder}
+              label={hasRedemption ? "Redeemed items" : "Items ordered"}
+            />
           )}
 
           {!reviewing &&
@@ -91,9 +95,7 @@ export default function ConfirmView() {
                 <p className={styles.addr}>
                   {persona.addresses[0].line1}, {persona.addresses[0].city}
                 </p>
-                <p>
-                  Tracking will be sent to {persona.profile.email}
-                </p>
+                <p>Tracking will be sent to {persona.profile.email}</p>
               </div>
             ) : (
               <div className={styles.deliveryCard}>

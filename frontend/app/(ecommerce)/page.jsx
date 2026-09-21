@@ -106,7 +106,9 @@ export default function StoreView() {
               </div>
             </div>
             <TierTrack
-              amountSpent={selectedUser.loyaltyDetails.cumulativeSpendDollars}
+              amountSpent={Math.round(
+                selectedUser.loyaltyDetails.cumulativeSpendDollars,
+              )}
               tierInfo={tierInfo}
               rewardDetails={rewardDetails}
               customerData={selectedUser}
@@ -158,14 +160,14 @@ export default function StoreView() {
             <div>
               <H3 className={styles.sectionHeadInline}>
                 Recommended for you
-                <button
+                {/* <button
                   className={sharedStyles.wandIconBtn}
                   title="How Atlas powers these recommendations"
                   aria-label="How Atlas powers these recommendations"
                   onClick={() => dispatch(openModal({ modalType: "recsInfo" }))}
                 >
                   <WandIcon />
-                </button>
+                </button> */}
               </H3>
               <div className={styles.sectionSubnote}>
                 <Text elementType="span">Inspired by your recent orders</Text>
@@ -189,7 +191,7 @@ export default function StoreView() {
             {selectedUser ? (
               <>
                 <Text textStyle="headline3">More to explore</Text>
-                <Button
+                {/* <Button
                   className={sharedStyles.wandIconBtn}
                   title="How Atlas Search facets shape this section"
                   aria-label="How Atlas Search facets shape this section"
@@ -198,7 +200,7 @@ export default function StoreView() {
                   }
                 >
                   <WandIcon />
-                </Button>
+                </Button> */}
               </>
             ) : (
               <Text textStyle="headline3">Explore the store</Text>
@@ -207,6 +209,7 @@ export default function StoreView() {
         </div>
         <div className={styles.categoryTabs}>
           <SegmentedControl
+            colorScheme="dark"
             value={activeCategory}
             labelPosition="side"
             onChange={(value) => {
@@ -216,7 +219,9 @@ export default function StoreView() {
           >
             {categories.map((category) => (
               <SegmentedControlItem key={category} value={category}>
-                <Text elementType="span">{category}</Text>
+                <Text colorScheme="dark" elementType="span">
+                  {category}
+                </Text>
               </SegmentedControlItem>
             ))}
           </SegmentedControl>

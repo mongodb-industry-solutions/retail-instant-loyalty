@@ -23,14 +23,14 @@ function ItemRows({ item, amount }) {
   );
 }
 
-export default function Receipt({ order, lastRedeem }) {
+export default function Receipt({ order, label = "Items ordered" }) {
   const lastOrder = order;
   if (!lastOrder) return null;
 
   const purchaseCard = (
     <div className={styles.itemsCard}>
       <H3>
-        Items ordered{" "}
+        {label}{" "}
         <span className={`${styles.ohcId} mono`} style={{ float: "right" }}>
           {lastOrder.orderId}
         </span>
@@ -97,83 +97,5 @@ export default function Receipt({ order, lastRedeem }) {
     </div>
   );
 
-  if (!lastRedeem) return purchaseCard;
-  // Same envelope as the main order: { order, loyalty }.
-
-  const r = lastRedeem.order;
-  const rLoyalty = lastRedeem.loyalty ?? {};
-
-  console.log("lastRedeem", lastRedeem);
-
-  if (!r) return purchaseCard;
-
-  return (
-    <>
-      {purchaseCard}
-      <div className={`${styles.itemsCard} ${styles.itemsCardFlash}`}>
-        <H3>
-          Purchased from this receipt{" "}
-          <span className={`${styles.ohcId} mono`} style={{ float: "right" }}>
-            {r.orderId}
-          </span>
-        </H3>
-        <p
-          style={{
-            fontSize: 13,
-            color: "var(--text-muted)",
-            margin: "-8px 0 14px",
-          }}
-        >
-          Completed without leaving the receipt. MongoDB applied the coin
-          balance and cash remainder in one confirmation flow.
-        </p>
-        {r.items.map((i) => (
-          <ItemRows
-            key={i.productId}
-            item={i}
-            amount={formatPrice(i.lineTotal)}
-          />
-        ))}
-        <div className={styles.totalsMini}>
-          <div className={styles.row}>
-            <Text elementType="span">Coins applied</Text>
-            <span className="mono">
-              {(r.coinsApplied ?? 0).toLocaleString()}
-            </span>
-          </div>
-          {r.amountSummary?.total > 0 ? (
-            <>
-              <div className={styles.row}>
-                <Text elementType="span">Remaining merchandise due</Text>
-                <span className="mono">
-                  {formatPrice(r.amountSummary.subtotal)}
-                </span>
-              </div>
-              <div className={styles.row}>
-                <Text elementType="span">Tax</Text>
-                <span className="mono">{formatPrice(r.amountSummary.tax)}</span>
-              </div>
-              <div className={styles.row}>
-                <Text elementType="span">Total cash due</Text>
-                <span className="mono">
-                  {formatPrice(r.amountSummary.total)}
-                </span>
-              </div>
-            </>
-          ) : (
-            <div className={styles.row}>
-              <Text elementType="span">Total cash due</Text>
-              <span className="mono">$0.00</span>
-            </div>
-          )}
-          <div className={`${styles.row} ${styles.grand}`}>
-            <Text elementType="span">Updated coin balance</Text>
-            <span className="mono">
-              {(rLoyalty.newBalance ?? 0).toLocaleString()} coins
-            </span>
-          </div>
-        </div>
-      </div>
-    </>
-  );
+  return purchaseCard;
 }

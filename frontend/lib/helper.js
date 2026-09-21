@@ -57,7 +57,6 @@ export function cartItemList(cart, products) {
 }
 
 export function findTierDetails(rewardDetails, tierKey) {
-  // Customer records carry display-cased tiers ("Silver") while the loyalty
   console.log("Finding tier details for tierKey:", tierKey);
   console.log("Reward details:", rewardDetails);
   // config keys them lowercase, so compare case-insensitively.
@@ -141,4 +140,11 @@ export function loyaltySyncDocFor(persona, rewardDetails) {
       updated_at: `ISODate("${new Date().toISOString()}")`,
     },
   };
+}
+
+export function seededStock(seedStr) {
+  let h = 0;
+  for (let i = 0; i < seedStr.length; i++)
+    h = (h * 31 + seedStr.charCodeAt(i)) >>> 0;
+  return h % 40;
 }

@@ -3,7 +3,8 @@ import { createOrderEngine, sendError } from "../lib/orderEngine.js";
 const MAX_REDEEM_CASH_GAP = 25; // BUSINESS RULE
 
 export default function redeemRoutes(app) {
-  const { getNextSequence, computeOrderMath, scheduleOrderProgression } = createOrderEngine(app);
+  const { getNextSequence, computeOrderMath, scheduleOrderProgression } =
+    createOrderEngine(app);
 
   // GET /redeem/candidates — up to `limit` redeem-eligible products this
   // customer can fully or near-fully cover with coins
@@ -11,31 +12,82 @@ export default function redeemRoutes(app) {
     const sessionId = request.headers["x-session-id"];
     const { excludeProducts = [], limit = 4, explain } = request.body || {};
 
-    if (!sessionId) return sendError(reply, 400, "SESSION_REQUIRED", "x-session-id header is required");
+    if (!sessionId)
+      return sendError(
+        reply,
+        400,
+        "SESSION_REQUIRED",
+        "x-session-id header is required",
+      );
 
     const db = app.mongo.db;
 
     try {
       const customer = await db.collection("customers").findOne({ sessionId });
-      if (!customer) return sendError(reply, 404, "CUSTOMER_NOT_FOUND", "No customer found for this session");
+      if (!customer)
+        return sendError(
+          reply,
+          404,
+          "CUSTOMER_NOT_FOUND",
+          "No customer found for this session",
+        );
 
-      const loyaltyConfig = await db.collection("loyaltyConfiguration").findOne({ sessionId });
-      if (!loyaltyConfig) return sendError(reply, 404, "LOYALTY_CONFIG_NOT_FOUND", "No loyalty configuration for this session");
+      const loyaltyConfig = await db
+        .collection("loyaltyConfiguration")
+        .findOne({ sessionId });
+      if (!loyaltyConfig)
+        return sendError(
+          reply,
+          404,
+          "LOYALTY_CONFIG_NOT_FOUND",
+          "No loyalty configuration for this session",
+        );
 
-      const tierEntry = loyaltyConfig.rewardDetails.find((t) => t.tierName === customer.loyaltyDetails.activeTier);
-      if (!tierEntry) return sendError(reply, 409, "TIER_NOT_FOUND", "Customer's active tier not found in loyalty config");
+      const tierEntry = loyaltyConfig.rewardDetails.find(
+        (t) => t.tierName === customer.loyaltyDetails.activeTier,
+      );
+      if (!tierEntry)
+        return sendError(
+          reply,
+          409,
+          "TIER_NOT_FOUND",
+          "Customer's active tier not found in loyalty config",
+        );
 
-      const rate = tierEntry.currencyValueForDolar; // coins per dollar at this customer's tier
+      const rate = tierEntry.currencyValueForDollar; // coins per dollar at this customer's tier
       const coinBalance = customer.loyaltyDetails.coinBalance;
 
       const pipeline = [
-        { $match: { isRedeemElegible: true, productId: { $nin: excludeProducts } } },
+        {
+          $match: {
+            isRedeemElegible: true,
+            productId: { $nin: excludeProducts },
+          },
+        },
         { $addFields: { priceDouble: { $toDouble: "$price" } } }, // handles Decimal128-stored prices
-        { $addFields: { coinsToFullyCover: { $multiply: ["$priceDouble", rate] } } },
-        { $addFields: { coinsApplied: { $min: ["$coinsToFullyCover", coinBalance] } } },
         {
           $addFields: {
-            cash: { $max: [0, { $subtract: ["$priceDouble", { $divide: ["$coinsApplied", rate] }] }] },
+            coinsToFullyCover: { $multiply: ["$priceDouble", rate] },
+          },
+        },
+        {
+          $addFields: {
+            coinsApplied: { $min: ["$coinsToFullyCover", coinBalance] },
+          },
+        },
+        {
+          $addFields: {
+            cash: {
+              $max: [
+                0,
+                {
+                  $subtract: [
+                    "$priceDouble",
+                    { $divide: ["$coinsApplied", rate] },
+                  ],
+                },
+              ],
+            },
           },
         },
         { $match: { cash: { $lte: MAX_REDEEM_CASH_GAP } } },
@@ -55,12 +107,22 @@ export default function redeemRoutes(app) {
         },
       ];
 
-      const products = await db.collection("products").aggregate(pipeline).toArray();
+      const products = await db
+        .collection("products")
+        .aggregate(pipeline)
+        .toArray();
 
-      const response = { data: { products, maxAmountOfCash: MAX_REDEEM_CASH_GAP } };
+      const response = {
+        data: { products, maxAmountOfCash: MAX_REDEEM_CASH_GAP },
+      };
 
       if (explain === true) {
-        response.meta = { explain: await db.collection("products").aggregate(pipeline).explain("executionStats") };
+        response.meta = {
+          explain: await db
+            .collection("products")
+            .aggregate(pipeline)
+            .explain("executionStats"),
+        };
       }
 
       return reply.send(response);
@@ -76,9 +138,20 @@ export default function redeemRoutes(app) {
     const sessionId = request.headers["x-session-id"];
     const { items, coinsToApply, explain } = request.body || {};
 
-    if (!sessionId) return sendError(reply, 400, "SESSION_REQUIRED", "x-session-id header is required");
+    if (!sessionId)
+      return sendError(
+        reply,
+        400,
+        "SESSION_REQUIRED",
+        "x-session-id header is required",
+      );
     if (!coinsToApply || coinsToApply <= 0)
-      return sendError(reply, 400, "COINS_REQUIRED", "coinsToApply is required and must be greater than 0");
+      return sendError(
+        reply,
+        400,
+        "COINS_REQUIRED",
+        "coinsToApply is required and must be greater than 0",
+      );
 
     const db = app.mongo.db;
     const mongoSession = db.client.startSession();
@@ -90,7 +163,7 @@ export default function redeemRoutes(app) {
         const math = await computeOrderMath(
           db,
           { sessionId, items, coinsToApply, requireRedeemEligible: true },
-          mongoSession
+          mongoSession,
         );
         const customerId = math.customer.customerId;
 
@@ -126,18 +199,38 @@ export default function redeemRoutes(app) {
           status: "completed",
           tenders: [
             ...(math.coinsApplied > 0
-              ? [{ method: "coins", rewardsApplied: math.coinsApplied, rewardsInCurrency: math.coinsToDollarsApplied }]
+              ? [
+                  {
+                    method: "coins",
+                    rewardsApplied: math.coinsApplied,
+                    rewardsInCurrency: math.coinsToDollarsApplied,
+                  },
+                ]
               : []),
             ...(math.amountSummary.total > 0
-              ? [{ method: "card", amount: math.amountSummary.total, paymentDetails: math.customer.paymentDetails }]
+              ? [
+                  {
+                    method: "card",
+                    amount: math.amountSummary.total,
+                    paymentDetails: math.customer.paymentDetails,
+                  },
+                ]
               : []),
           ],
-          loyalty: { rewardsRedeemed: math.coinsApplied, rewardsEarned: math.coinsEarned, balanceAfter: math.newBalance },
+          loyalty: {
+            rewardsRedeemed: math.coinsApplied,
+            rewardsEarned: math.coinsEarned,
+            balanceAfter: math.newBalance,
+          },
           createdAt: now,
         };
 
-        await db.collection("orders").insertOne(orderDoc, { session: mongoSession });
-        await db.collection("transactions").insertOne(transactionDoc, { session: mongoSession });
+        await db
+          .collection("orders")
+          .insertOne(orderDoc, { session: mongoSession });
+        await db
+          .collection("transactions")
+          .insertOne(transactionDoc, { session: mongoSession });
 
         const customerUpdate = {
           $set: {
@@ -153,11 +246,17 @@ export default function redeemRoutes(app) {
         };
         if (math.tierChanged) {
           customerUpdate.$push = {
-            "loyaltyDetails.loyaltyHistory": { tierKey: math.newTierKey, activatedAt: now, previousTier: math.oldTier },
+            "loyaltyDetails.loyaltyHistory": {
+              tierKey: math.newTierKey,
+              activatedAt: now,
+              previousTier: math.oldTier,
+            },
           };
         }
 
-        await db.collection("customers").updateOne({ sessionId }, customerUpdate, { session: mongoSession });
+        await db
+          .collection("customers")
+          .updateOne({ sessionId }, customerUpdate, { session: mongoSession });
 
         createdOrderId = orderId;
 
@@ -180,7 +279,9 @@ export default function redeemRoutes(app) {
       scheduleOrderProgression(createdOrderId);
 
       if (explain === true) {
-        responsePayload.meta = { explain: "N/A — explain not applicable to write operations" };
+        responsePayload.meta = {
+          explain: "N/A — explain not applicable to write operations",
+        };
       }
 
       return reply.send(responsePayload);

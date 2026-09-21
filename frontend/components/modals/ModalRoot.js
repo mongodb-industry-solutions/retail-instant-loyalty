@@ -3,6 +3,7 @@
 import { useDispatch, useSelector } from "react-redux";
 import { selectModal, closeModal } from "@/redux/slices/GlobalSlice";
 import TalkTrackModal from "./TalkTrackModal/TalkTrackModal";
+import ProductDetailModal from "./ProductDetailModal/ProductDetailModal";
 import AdminModal from "./AdminModal/AdminModal";
 import OrderDetailModal from "./OrderDetailModal/OrderDetailModal";
 import DocumentModal from "./DocumentModal/DocumentModal";
@@ -34,6 +35,9 @@ export default function ModalRoot() {
     >
       <div className={`${styles.card} ${sizeClass}`}>
         {modal.type === "talkTrack" && <TalkTrackModal onClose={close} />}
+        {modal.type === "productDetail" && (
+          <ProductDetailModal id={modal.props.id} onClose={close} />
+        )}
         {modal.type === "admin" && <AdminModal onClose={close} />}
         {modal.type === "profileEdit" && <ProfileEditModal onClose={close} />}
         {modal.type === "sync" && <SyncModal onClose={close} />}
