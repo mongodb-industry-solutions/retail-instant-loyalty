@@ -110,8 +110,12 @@ export default function ordersRoutes(app) {
 
       const isFullyCoinCovered = math.amountSummary.total === 0;
 
+      const txnSeq = await getNextSequence(db, "transactionId");
+      const transactionId = `TXN-${90000 + txnSeq}`;
+
       const orderDoc = {
         orderId,
+        transactionId,
         sessionId,
         customerId,
         storeId: storeId || null,
@@ -136,8 +140,6 @@ export default function ordersRoutes(app) {
         ? "approved"
         : await processPayment(validCard);
 
-      const txnSeq = await getNextSequence(db, "transactionId");
-      const transactionId = `TXN-${90000 + txnSeq}`;
       const settledAt = new Date();
 
       const tenders = [

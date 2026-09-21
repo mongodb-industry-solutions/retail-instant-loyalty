@@ -1,5 +1,5 @@
 export default function loyaltyHistoryRoutes(app) {
-  const collectionName = "customers";
+  const loyaltyHistoryCollectionName = "loyaltyHistory";
 
   function sendError(reply, status, code, message) {
     return reply.code(status).send({ error: { code, message } });
@@ -33,13 +33,13 @@ export default function loyaltyHistoryRoutes(app) {
       const skip = (Number(page) - 1) * Number(limit);
       const [loyaltyHistory, totalCount] = await Promise.all([
         db
-          .collection("loyaltyHistory")
+          .collection(loyaltyHistoryCollectionName)
           .find(filter, { projection: { _id: 0, sessionId: 0, transactionId: 0 } })
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(Number(limit))
           .toArray(),
-        db.collection("loyaltyHistory").countDocuments(filter),
+        db.collection(loyaltyHistoryCollectionName).countDocuments(filter),
       ]);
 
       const response = {
@@ -49,7 +49,7 @@ export default function loyaltyHistoryRoutes(app) {
       if (explain === "true") {
         response.meta = {
           explain: await db
-            .collection("loyaltyHistory")
+            .collection(loyaltyHistoryCollectionName)
             .find(filter)
             .sort({ createdAt: -1 })
             .limit(Number(limit))
