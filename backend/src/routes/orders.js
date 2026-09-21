@@ -1,14 +1,25 @@
 import { createOrderEngine, sendError } from "../lib/orderEngine.js";
 
 export default function ordersRoutes(app) {
+<<<<<<< HEAD
   const { getNextSequence, computeOrderMath, scheduleOrderProgression } =
     createOrderEngine(app);
+=======
+  const {
+    getNextSequence,
+    computeOrderMath,
+    scheduleOrderProgression,
+    processPayment,
+    buildLoyaltyHistoryEntries,
+  } = createOrderEngine(app);
+>>>>>>> origin/back/apis
 
   // live pricing preview, no writes.
   // ACID transaction
   app.post("/orders/overview", async (request, reply) => {
     const sessionId = request.headers["x-session-id"];
-    const { items, coinsToApply, explain } = request.body || {};
+    const { items, coinsToApply, explain = false } = request.body || {};
+    console.log("🔌 Orders Overview: ", { items, coinsToApply, explain });
 
     if (!sessionId)
       return sendError(
@@ -38,8 +49,8 @@ export default function ordersRoutes(app) {
           },
           loyalty: {
             oldBalance: math.oldBalance,
-            oldTier: math.oldTier,
             projectedBalance: math.newBalance,
+            oldTier: math.oldTier,
             projectedTier: math.newTierKey,
             multiplier: math.multiplier,
             dollarsNeededForNextTier: math.dollarsNeededForNextTier,
@@ -65,8 +76,14 @@ export default function ordersRoutes(app) {
   // Commits what /orders/overview would have previewed
   app.post("/orders", async (request, reply) => {
     const sessionId = request.headers["x-session-id"];
-    const { storeId, orderType, items, coinsToApply, explain } =
-      request.body || {};
+    const {
+      storeId,
+      orderType,
+      items,
+      coinsToApply,
+      validCard = true,
+      explain,
+    } = request.body || {};
 
     if (!sessionId)
       return sendError(
@@ -77,125 +94,211 @@ export default function ordersRoutes(app) {
       );
 
     const db = app.mongo.db;
-    const mongoSession = db.client.startSession();
-    let responsePayload;
-    let createdOrderId;
 
     try {
-      await mongoSession.withTransaction(async () => {
-        const math = await computeOrderMath(
-          db,
-          { sessionId, items, coinsToApply },
-          mongoSession,
+      // 1. Pure validation + pricing - no writes yet. Throws if the request
+      // is invalid (bad items, insufficient balance, etc)
+      const math = await computeOrderMath(db, {
+        sessionId,
+        items,
+        coinsToApply,
+      });
+      const customerId = math.customer.customerId;
+
+      // 2. Create the order eagerly, before we know the payment outcome.
+      // Not wrapped in a transaction - it's a single document, and a real
+      // retailer's equivalent order-created-pending-payment state is exactly
+      // this: a real, recoverable, expected transient state.
+      const orderSeq = await getNextSequence(db, "orderId");
+      const orderId = `MS-${100000 + orderSeq}`;
+      const now = new Date();
+
+      const isFullyCoinCovered = math.amountSummary.total === 0;
+
+      const orderDoc = {
+        orderId,
+        sessionId,
+        customerId,
+        storeId: storeId || null,
+        orderType: orderType || "ONLINE",
+        purchaseType: "purchase",
+        items: math.resolvedItems,
+        amountSummary: math.amountSummary,
+        coinsApplied: math.coinsApplied,
+        coinsToDollarsApplied: math.coinsToDollarsApplied,
+        coinsEarned: math.coinsEarned,
+        currentStatus: "authorizing",
+        statusHistory: [{ Status: "authorizing", lastUpdated: now }],
+        createdAt: now,
+      };
+
+      await db.collection("orders").insertOne(orderDoc);
+
+      // 3. "Call" the payment processor. Outside any transaction, deliberately -
+      // in production this is a real network call to a bank/processor and a
+      // Mongo transaction should never hold open across it.
+      const outcome = isFullyCoinCovered
+        ? "approved"
+        : await processPayment(validCard);
+
+      const txnSeq = await getNextSequence(db, "transactionId");
+      const transactionId = `TXN-${90000 + txnSeq}`;
+      const settledAt = new Date();
+
+      const tenders = [
+        ...(math.coinsApplied > 0
+          ? [
+              {
+                method: "coins",
+                rewardsApplied: math.coinsApplied,
+                rewardsInCurrency: math.coinsToDollarsApplied,
+              },
+            ]
+          : []),
+        ...(math.amountSummary.total > 0
+          ? [
+              {
+                method: "card",
+                amount: math.amountSummary.total,
+                paymentDetails: math.customer.paymentDetails,
+              },
+            ]
+          : []),
+      ];
+
+      if (outcome === "declined") {
+        // Record the failed attempt - this is real business data (decline
+        // analytics, retry prompts), not an error state to hide.
+        await db.collection("transactions").insertOne({
+          transactionId,
+          orderId,
+          sessionId,
+          customerId,
+          status: "failed",
+          tenders,
+          createdAt: settledAt,
+        });
+
+        await db.collection("orders").updateOne(
+          { orderId },
+          {
+            $set: {
+              currentStatus: "payment_failed",
+              failureReason: "card_declined",
+            },
+            $push: {
+              statusHistory: {
+                Status: "payment_failed",
+                lastUpdated: settledAt,
+              },
+            },
+          },
         );
 
-        const orderSeq = await getNextSequence(db, "orderId", mongoSession);
-        const txnSeq = await getNextSequence(db, "transactionId", mongoSession);
-        const orderId = `MS-${100000 + orderSeq}`;
-        const transactionId = `TXN-${90000 + txnSeq}`;
-        const now = new Date();
+        // No customer update, no loyaltyHistory - nothing loyalty-related
+        // happened. No scheduleOrderProgression call - nothing to progress.
+        return sendError(
+          reply,
+          402,
+          "PAYMENT_DECLINED",
+          `Payment was declined for order ${orderId}`,
+        );
+      }
 
-        const orderDoc = {
-          orderId,
-          sessionId,
-          customerId: math.customer.customerId,
-          storeId: storeId || null,
-          orderType: orderType || "ONLINE",
-          purchaseType: "purchase",
-          items: math.resolvedItems,
-          amountSummary: math.amountSummary,
-          transactionId,
-          coinsApplied: math.coinsApplied,
-          coinsToDollarsApplied: math.coinsToDollarsApplied,
-          coinsEarned: math.coinsEarned,
-          currentStatus: "placed",
-          statusHistory: [{ Status: "placed", lastUpdated: now }],
-          createdAt: now,
-        };
-
-        const transactionDoc = {
-          transactionId,
-          orderId,
-          sessionId,
-          customerId: math.customer.customerId,
-          status: "completed",
-          tenders: [
-            ...(math.coinsApplied > 0
-              ? [
-                  {
-                    method: "coins",
-                    rewardsApplied: math.coinsApplied,
-                    rewardsInCurrency: math.coinsToDollarsApplied,
-                  },
-                ]
-              : []),
-            ...(math.amountSummary.total > 0
-              ? [
-                  {
-                    method: "card",
-                    amount: math.amountSummary.total,
-                    paymentDetails: math.customer.paymentDetails,
-                  },
-                ]
-              : []),
-          ],
-          createdAt: now,
-        };
-
-        await db
-          .collection("orders")
-          .insertOne(orderDoc, { session: mongoSession });
-        await db
-          .collection("transactions")
-          .insertOne(transactionDoc, { session: mongoSession });
-
-        const customerUpdate = {
-          $set: {
-            "loyaltyDetails.coinBalance": math.newBalance,
-            "loyaltyDetails.activeTier": math.newTierKey,
-            "loyaltyDetails.nextTier": math.nextTierKey,
-          },
-          $inc: {
-            "loyaltyDetails.lifetimeCoins": math.coinsEarned,
-            cumulativeSpend: math.qualifyingSpend,
-            ordersCount: 1,
-          },
-        };
-        if (math.tierChanged) {
-          customerUpdate.$push = {
-            "loyaltyDetails.loyaltyHistory": {
-              tierKey: math.newTierKey,
-              activatedAt: now,
-              previousTier: math.oldTier,
-            },
-          };
-        }
-
-        await db
-          .collection("customers")
-          .updateOne({ sessionId }, customerUpdate, {
-            session: mongoSession,
-          });
-
-        createdOrderId = orderId;
-
-        responsePayload = {
-          data: {
-            order: orderDoc,
-            loyalty: {
-              oldBalance: math.oldBalance,
-              newBalance: math.newBalance,
-              oldTier: math.oldTier,
-              newTier: math.newTierKey,
-              multiplier: math.multiplier,
-              dollarsNeededForNextTier: math.dollarsNeededForNextTier,
-              qualifyingSpend: math.qualifyingSpend,
-            },
-          },
-        };
+      // 4. Payment succeeded. Insert the completed transaction (outside the
+      // transaction below - it's independent of the customer/loyaltyHistory
+      // pair, and its own insert can't meaningfully "roll back" anything).
+      await db.collection("transactions").insertOne({
+        transactionId,
+        orderId,
+        sessionId,
+        customerId,
+        status: "completed",
+        tenders,
+        createdAt: settledAt,
       });
 
-      scheduleOrderProgression(createdOrderId);
+      // 5. The only part that actually needs atomicity: the customer's
+      // loyalty state and its ledger entries must never disagree with each
+      // other. This is the one place a partial write would be genuinely
+      // dangerous (silent, unexplainable balance drift) rather than just an
+      // expected in-flight state.
+      const mongoSession = db.client.startSession();
+      try {
+        await mongoSession.withTransaction(async () => {
+          const historyEntries = buildLoyaltyHistoryEntries({
+            math,
+            orderId,
+            transactionId,
+            customerId,
+            sessionId,
+            now: settledAt,
+          });
+
+          if (historyEntries.length > 0) {
+            await db
+              .collection("loyaltyHistory")
+              .insertMany(historyEntries, { session: mongoSession });
+          }
+
+          const customerUpdate = {
+            $set: {
+              "loyaltyDetails.coinBalance": math.newBalance,
+              "loyaltyDetails.activeTier": math.newTierKey,
+              "loyaltyDetails.nextTier": math.nextTierKey,
+              "loyaltyDetails.cumulativeSpendDollars":
+                math.newCumulativeSpendDollars,
+            },
+            $inc: { "loyaltyDetails.ordersCount": 1 },
+          };
+          if (math.tierChanged) {
+            customerUpdate.$push = {
+              "loyaltyDetails.loyaltyHistory": {
+                tierKey: math.newTierKey,
+                activatedAt: settledAt,
+                previousTier: math.oldTier,
+              },
+            };
+          }
+
+          await db
+            .collection("customers")
+            .updateOne({ sessionId }, customerUpdate, {
+              session: mongoSession,
+            });
+        });
+      } finally {
+        await mongoSession.endSession();
+      }
+
+      // 6. Only now, after the transaction committed, flip the order to
+      // "placed" and start its fulfillment clock.
+      await db.collection("orders").updateOne(
+        { orderId },
+        {
+          $set: { currentStatus: "placed" },
+          $push: {
+            statusHistory: { Status: "placed", lastUpdated: settledAt },
+          },
+        },
+      );
+
+      scheduleOrderProgression(orderId);
+
+      const responsePayload = {
+        data: {
+          order: { ...orderDoc, currentStatus: "placed", transactionId },
+          loyalty: {
+            oldBalance: math.oldBalance,
+            newBalance: math.newBalance,
+            oldTier: math.oldTier,
+            newTier: math.newTierKey,
+            multiplier: math.multiplier,
+            dollarsNeededForNextTier: math.dollarsNeededForNextTier,
+            qualifyingSpend: math.qualifyingSpend,
+          },
+        },
+      };
 
       if (explain === true) {
         responsePayload.meta = {
@@ -208,8 +311,6 @@ export default function ordersRoutes(app) {
       app.log.error(err);
       if (err.code) return sendError(reply, 409, err.code, err.message);
       return sendError(reply, 500, "ORDER_PLACEMENT_FAILED", err.message);
-    } finally {
-      await mongoSession.endSession();
     }
   });
 

@@ -1,14 +1,12 @@
 export const STATUS_SEQUENCE = ["placed", "processing", "shipped", "delivered"];
 export const ADVANCE_INTERVAL_MS = 2000;
 export const TAX_RATE = 0.085;
+const PAYMENT_DELAY_MS = 1200; // ASSUMPTION - simulated gateway latency, tune for demo pacing
 
 export function sendError(reply, status, code, message) {
   return reply.code(status).send({ error: { code, message } });
 }
 
-// Factory - needs `app` for db access and scheduling. Both orders.js and
-// redeem.js call this to get the exact same pricing/tier/persistence logic,
-// so the two routes can never drift out of sync with each other.
 export function createOrderEngine(app) {
   async function getNextSequence(db, name, session) {
     const result = await db
@@ -26,7 +24,7 @@ export function createOrderEngine(app) {
       (a, b) => a.tierThreshold - b.tierThreshold,
     );
 
-    let currentIndex = 0; // floor - lowest tier, even if its own threshold isn't yet met
+    let currentIndex = 0;
     for (let i = 0; i < sorted.length; i++) {
       if (cumulativeSpend >= sorted[i].tierThreshold) currentIndex = i;
     }
@@ -35,29 +33,19 @@ export function createOrderEngine(app) {
     const next = sorted[currentIndex + 1] || null;
 
     return {
-      tierKey: current.tierName,
+      tierKey: current.tierKey,
       currencyValueForDollar: current.currencyValueForDollar,
-      nextTierKey: next ? next.tierName : null,
+      nextTierKey: next ? next.tierKey : null,
       dollarsNeededForNextTier: next
         ? Math.max(0, next.tierThreshold - cumulativeSpend)
         : 0,
     };
   }
 
-  // Shared pricing/loyalty math. Used by /orders/overview, POST /orders, and
-  // POST /redeem. Never trusts client-sent price/tier - always reads live
-  // products + the customer's actual loyaltyDetails.
-  //
-  // requireRedeemEligible: when true (redeem flow only), every item must
-  // have isRedeemElegible: true on its product doc, or the whole request fails.
-  async function computeOrderMath(
-    db,
-    { sessionId, items, coinsToApply, requireRedeemEligible = false },
-    session,
-  ) {
-    const customer = await db
-      .collection("customers")
-      .findOne({ sessionId }, { session });
+  // Pure calculation + validation - no writes. Safe to call before any
+  // order/payment attempt exists, since it only reads current state.
+  async function computeOrderMath(db, { sessionId, items, coinsToApply }) {
+    const customer = await db.collection("customers").findOne({ sessionId });
     if (!customer)
       throw {
         code: "CUSTOMER_NOT_FOUND",
@@ -71,7 +59,7 @@ export function createOrderEngine(app) {
 
     const loyaltyConfig = await db
       .collection("loyaltyConfiguration")
-      .findOne({ sessionId }, { session });
+      .findOne({ sessionId });
     if (!loyaltyConfig)
       throw {
         code: "LOYALTY_CONFIG_NOT_FOUND",
@@ -93,7 +81,7 @@ export function createOrderEngine(app) {
     const productIds = items.map((i) => i.productId);
     const products = await db
       .collection("products")
-      .find({ productId: { $in: productIds } }, { session })
+      .find({ productId: { $in: productIds } })
       .toArray();
     const productMap = new Map(products.map((p) => [p.productId, p]));
 
@@ -106,14 +94,6 @@ export function createOrderEngine(app) {
           message: `Product ${requested.productId} not found`,
         };
 
-      if (requireRedeemEligible && product.isRedeemElegible !== true) {
-        throw {
-          code: "PRODUCT_NOT_REDEEMABLE",
-          message: `Product ${requested.productId} is not redeem-eligible`,
-        };
-      }
-
-      // Explicit conversion - product.price may be stored as Decimal128
       const unitPrice = Number(product.price?.toString?.() ?? product.price);
       const lineTotal = unitPrice * requested.quantity;
       subtotal += lineTotal;
@@ -130,7 +110,7 @@ export function createOrderEngine(app) {
 
     const currentTierKey = customer.loyaltyDetails.activeTier;
     const tierEntry = loyaltyConfig.rewardDetails.find(
-      (t) => t.tierName === currentTierKey,
+      (t) => t.tierKey === currentTierKey,
     );
     if (!tierEntry)
       throw {
@@ -139,24 +119,29 @@ export function createOrderEngine(app) {
       };
 
     const oldBalance = customer.loyaltyDetails.coinBalance;
-    const requestedCoins = coinsToApply || 0;
+    let requestedCoins = coinsToApply || 0;
 
-    const coinsToDollarsApplied =
+    let coinsToDollarsApplied =
       requestedCoins / tierEntry.currencyValueForDollar;
-
     const qualifyingSpend = Math.max(0, subtotal - coinsToDollarsApplied);
-
-    const tax = qualifyingSpend * TAX_RATE;
-
-    const shipping = 0; // ASSUMPTION
-
-    const total = qualifyingSpend + tax + shipping;
-
+    const tax = Math.round(subtotal * TAX_RATE * 100) / 100;
+    const shipping = 0;
+    const total = Math.round((qualifyingSpend + tax + shipping) * 100) / 100;
     const coinsEarned = Math.round(qualifyingSpend * multiplier);
 
+    // validate we do not use more coins than the orders total amount
+    // i.e. if user applies 2000 coins but the subtotal can be covered with 700 coins we just take 700
+    if (coinsToDollarsApplied > subtotal) {
+      coinsToDollarsApplied = subtotal;
+      requestedCoins = Math.round(
+        coinsToDollarsApplied * tierEntry.currencyValueForDollar,
+      );
+    }
+
     const oldTier = currentTierKey;
-    const newCumulativeSpend =
-      (customer.cumulativeSpend || 0) + qualifyingSpend;
+    const oldCumulativeSpendDollars =
+      customer.loyaltyDetails.cumulativeSpendDollars || 0;
+    const newCumulativeSpend = oldCumulativeSpendDollars + qualifyingSpend;
     const resolved = resolveTier(
       loyaltyConfig.rewardDetails,
       newCumulativeSpend,
@@ -186,8 +171,56 @@ export function createOrderEngine(app) {
       newTierKey: resolved.tierKey,
       nextTierKey: resolved.nextTierKey,
       tierChanged,
+      newCumulativeSpendDollars: newCumulativeSpend,
       dollarsNeededForNextTier: resolved.dollarsNeededForNextTier,
     };
+  }
+
+  // Simulated payment gateway call. Deliberately outside any transaction -
+  // in production this would be a real network call to a processor, and a
+  // Mongo transaction should never wrap an external call it doesn't control.
+  async function processPayment(validCard) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(validCard === true ? "approved" : "declined");
+      }, PAYMENT_DELAY_MS);
+    });
+  }
+
+  function buildLoyaltyHistoryEntries({
+    math,
+    orderId,
+    transactionId,
+    customerId,
+    sessionId,
+    now,
+  }) {
+    const entries = [];
+    if (math.coinsApplied > 0) {
+      entries.push({
+        historyId: `LH-${orderId}-REDEEM`, // deterministic - naturally idempotent if this ever ran twice for the same order
+        customerId,
+        sessionId,
+        orderId,
+        transactionId,
+        type: "redeem",
+        coins: math.coinsApplied,
+        createdAt: now,
+      });
+    }
+    if (math.coinsEarned > 0) {
+      entries.push({
+        historyId: `LH-${orderId}-EARN`,
+        customerId,
+        sessionId,
+        orderId,
+        transactionId,
+        type: "earn",
+        coins: math.coinsEarned,
+        createdAt: now,
+      });
+    }
+    return entries;
   }
 
   function scheduleOrderProgression(orderId, startIndex = 0) {
@@ -220,6 +253,8 @@ export function createOrderEngine(app) {
     getNextSequence,
     resolveTier,
     computeOrderMath,
+    processPayment,
+    buildLoyaltyHistoryEntries,
     scheduleOrderProgression,
   };
 }
