@@ -112,7 +112,9 @@ export function createOrderEngine(app) {
     const tierEntry = loyaltyConfig.rewardDetails.find(
       (t) => t.tierKey === currentTierKey,
     );
-    if (!tierEntry)
+    // Only throw an error if the customer is not always considered a new user
+    // New customers start with a tier Null, so we don't throw an error for them
+    if (!tierEntry && isAlwaysNewUser == false)
       throw {
         code: "TIER_NOT_FOUND",
         message: `Customer's active tier ${currentTierKey} not found in loyalty config`,
