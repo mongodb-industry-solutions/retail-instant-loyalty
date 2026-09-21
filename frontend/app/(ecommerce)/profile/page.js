@@ -19,7 +19,6 @@ import TierTrack from "@/components/TierTrack/TierTrack";
 import { Text, H3 } from "@via-ds/components/typography";
 
 function TierBenefits({ rewardDetails, currentTierKey }) {
-  console.log("TierBenefits props:", { rewardDetails, currentTierKey });
   return (
     <div className={styles.compactGrid}>
       {rewardDetails.map((t) => {
@@ -78,7 +77,6 @@ export default function ProfileView() {
     dollarsNeededForNextTier: persona.loyaltyDetails?.dollarsNeededForNextTier,
   };
 
-  console.log("The tier is ", tier);
   return (
     <main className={shared.page}>
       <div className={shared.crumb}>

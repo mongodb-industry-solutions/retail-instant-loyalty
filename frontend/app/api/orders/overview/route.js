@@ -16,7 +16,6 @@ export async function POST(request) {
   }
 
   try {
-    console.log("the session id is", request.headers.get("x-session-id"));
     const res = await fetch(`${BACKEND_URL}/orders/overview`, {
       method: "POST",
       headers: {

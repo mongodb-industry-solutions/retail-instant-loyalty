@@ -62,7 +62,6 @@ export default function Navbar() {
   const dispatch = useDispatch();
   const persona = useSelector(selectSelectedUser);
   const loyaltyConfig = useSelector(selectLoyaltyConfig);
-  console.log("loyaltyConfig in Navbar.jsx:", loyaltyConfig);
   const activeCampaign = loyaltyConfig?.campaign.filter(
     (campaign) => campaign.isActive,
   ) || [{ banner: "Promotion Coming Soon..." }];

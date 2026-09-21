@@ -20,7 +20,6 @@ import { promoDateWindow, formatPrice, roundCurrency } from "@/lib/helper";
 import { coinDollarValue } from "@/shared/pricing";
 
 function RewardValueTab({ loyaltyData, dispatch, onSaved }) {
-  console.log("loyaltyData", loyaltyData);
   const [values, setValues] = useState(() => {
     const init = {};
     loyaltyData.rewardDetails.forEach((loyalty) => {

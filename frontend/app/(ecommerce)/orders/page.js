@@ -39,9 +39,6 @@ export default function OrdersView() {
   }, []);
 
   const loading = orders === null;
-
-  console.log("Orders state:", orders);
-
   const completedOrders = loading
     ? 0
     : orders.filter((order) => order.currentStatus === "delivered").length;

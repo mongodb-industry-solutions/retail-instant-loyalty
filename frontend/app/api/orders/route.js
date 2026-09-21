@@ -17,8 +17,6 @@ function unreachable(err) {
 }
 
 export async function GET(request) {
-  console.log("This is being called: ", request.url);
-  console.log("x-customer-id:", request.headers.get("x-customer-id") ?? "");
   if (!BACKEND_URL) return missingBackend();
 
   const { searchParams } = new URL(request.url);
@@ -32,8 +30,6 @@ export async function GET(request) {
       },
       cache: "no-store",
     });
-
-    console.log("The orders are ", await res.clone().json());
 
     return NextResponse.json(await res.json(), { status: res.status });
   } catch (err) {

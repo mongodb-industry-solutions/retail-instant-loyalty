@@ -35,9 +35,6 @@ export function formatPromoDate(dateStr) {
 }
 
 export function tierProgressValue(personaObj) {
-  // Tier progress always reads cumulative merchandise spend, never the loyalty coin balance.
-  console.log("Tier progress value for personaObj:", personaObj);
-
   return roundCurrency(personaObj?.loyaltyDetails.cumulativeSpendDollars || 0);
 }
 export function currentTierFor(personaObj, rewardDetails) {
@@ -57,8 +54,6 @@ export function cartItemList(cart, products) {
 }
 
 export function findTierDetails(rewardDetails, tierKey) {
-  console.log("Finding tier details for tierKey:", tierKey);
-  console.log("Reward details:", rewardDetails);
   // config keys them lowercase, so compare case-insensitively.
   const key = tierKey?.toLowerCase();
   return rewardDetails?.find((t) => t.tierKey.toLowerCase() === key);

@@ -5,6 +5,7 @@ import {
   confirmRedeemOrderSuccess,
   selectSelectedUser,
   selectLoyaltyConfig,
+  selectLastRedeem,
 } from "../../redux/slices/GlobalSlice";
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -16,9 +17,6 @@ import { toast } from "@via-ds/components/toast";
 import styles from "./RedeemView.module.css";
 
 function CandidateCard({ product, selected, onSelect, onDeselect }) {
-  // coins / cash are priced server-side and arrive on the product — see
-  // POST /redeem/candidates in backend/src/routes/redeem.js. cash is what's
-  // still owed after coins are applied.
   const coversWithCoins = product.cash === 0;
 
   return (
@@ -89,8 +87,6 @@ function ReviewPanel({ persona, reward, onConfirmed }) {
   async function handleConfirm() {
     setConfirming(true);
     try {
-      // Same request/response contract as POST /orders: { items, coinsToApply }
-      // in, { order, loyalty } out.
       const { order, loyalty } = await confirmRedeemRequest({
         items: [{ productId: reward.productId, quantity: 1 }],
         coinsToApply,
@@ -161,23 +157,27 @@ function ReviewPanel({ persona, reward, onConfirmed }) {
 export default function RedeemSection({ excludeItemIds }) {
   const persona = useSelector(selectSelectedUser);
   const { rewardDetails } = useSelector(selectLoyaltyConfig);
-  // Which product is expanded for review — UI-only, so it lives here rather
-  // than in the global store.
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [offer, setOffer] = useState(null);
   const excludeKey = [...(excludeItemIds ?? [])].sort().join(",");
 
+  const lastRedeem = useSelector(selectLastRedeem);
+
+  console.log("Last redeem:", lastRedeem);
+
   useEffect(() => {
     let cancelled = false;
-    fetchRedeemCandidates({
-      excludeProducts: excludeKey ? excludeKey.split(",") : [],
-    })
-      .then((data) => {
-        if (!cancelled) setOffer(data);
+    if (!lastRedeem) {
+      fetchRedeemCandidates({
+        excludeProducts: excludeKey ? excludeKey.split(",") : [],
       })
-      .catch((err) => {
-        if (!cancelled) console.error("Couldn't load rewards:", err.message);
-      });
+        .then((data) => {
+          if (!cancelled) setOffer(data);
+        })
+        .catch((err) => {
+          if (!cancelled) console.error("Couldn't load rewards:", err.message);
+        });
+    }
     return () => {
       cancelled = true;
     };
@@ -186,44 +186,47 @@ export default function RedeemSection({ excludeItemIds }) {
   const products = offer?.products ?? [];
   if (!products.length) return null;
 
-  const reward = products.find((p) => p.productId === selectedProductId) || null;
+  const reward =
+    products.find((p) => p.productId === selectedProductId) || null;
   const activeTier = persona.loyaltyDetails?.activeTier;
 
   return (
-    <div className={styles.redeemSection}>
-      <div className={styles.redeemHead}>
-        <h3>✨ Buy again from this receipt</h3>
-        <span className={styles.redeemBalance}>
-          Balance:{" "}
-          <b className="mono">
-            {(persona.loyaltyDetails?.coinBalance ?? 0).toLocaleString()}
-          </b>{" "}
-          coins
-        </span>
-      </div>
-      <p className={styles.redeemSub}>
-        {`Purchase with your coins at ${activeTier} tier — 1 coin = ${formatCoinValue(activeTier, rewardDetails)}.`}
-      </p>
+    !lastRedeem && (
+      <div className={styles.redeemSection}>
+        <div className={styles.redeemHead}>
+          <h3>✨ Buy again from this receipt</h3>
+          <span className={styles.redeemBalance}>
+            Balance:{" "}
+            <b className="mono">
+              {(persona.loyaltyDetails?.coinBalance ?? 0).toLocaleString()}
+            </b>{" "}
+            coins
+          </span>
+        </div>
+        <p className={styles.redeemSub}>
+          {`Purchase with your coins at ${activeTier} tier — 1 coin = ${formatCoinValue(activeTier, rewardDetails)}.`}
+        </p>
 
-      <div className={styles.redeemList}>
-        {products.map((pr) => (
-          <CandidateCard
-            key={pr.productId}
-            product={pr}
-            selected={pr.productId === selectedProductId}
-            onSelect={() => setSelectedProductId(pr.productId)}
-            onDeselect={() => setSelectedProductId(null)}
+        <div className={styles.redeemList}>
+          {products.map((pr) => (
+            <CandidateCard
+              key={pr.productId}
+              product={pr}
+              selected={pr.productId === selectedProductId}
+              onSelect={() => setSelectedProductId(pr.productId)}
+              onDeselect={() => setSelectedProductId(null)}
+            />
+          ))}
+        </div>
+
+        {reward && (
+          <ReviewPanel
+            persona={persona}
+            reward={reward}
+            onConfirmed={() => setSelectedProductId(null)}
           />
-        ))}
+        )}
       </div>
-
-      {reward && (
-        <ReviewPanel
-          persona={persona}
-          reward={reward}
-          onConfirmed={() => setSelectedProductId(null)}
-        />
-      )}
-    </div>
+    )
   );
 }

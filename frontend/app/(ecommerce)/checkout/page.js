@@ -33,50 +33,39 @@ export default function CheckoutView() {
   const [overview, setOverview] = useState(null);
   const [overviewError, setOverviewError] = useState(null);
   const loyaltyConfig = useSelector(selectLoyaltyConfig);
-  const currentTierConfig = loyaltyConfig.rewardDetails.find(
-    (tier) => tier.tierKey === persona.loyaltyDetails?.activeTier,
-  );
-
-  console.log("current tier config:", currentTierConfig);
+  const currentTierConfig = persona.loyaltyDetails?.activeTier
+    ? loyaltyConfig.rewardDetails.find(
+        (tier) => tier.tierKey === persona.loyaltyDetails?.activeTier,
+      )
+    : loyaltyConfig.rewardDetails[0];
 
   const merchandiseValue = Math.max(
     0,
     Number(overview?.order?.amountSummary?.subtotal ?? 0),
   );
-  console.log("Merchandise value:", merchandiseValue);
 
   const balance = Math.max(
     0,
     Math.floor(Number(persona.loyaltyDetails?.coinBalance ?? 0)),
   );
-
-  console.log("Balance:", balance);
-
   const coinsPerDollar = Number(currentTierConfig.currencyValueForDollar ?? 0);
-  console.log("Coins per dollar:", coinsPerDollar);
 
   const maxCoinsForMerchandise =
     merchandiseValue > 0 && coinsPerDollar > 0
       ? Math.floor(merchandiseValue * coinsPerDollar)
       : 0;
 
-  console.log("Max coins for merchandise:", maxCoinsForMerchandise);
-
   const maxCoinsUsable = Math.min(balance, maxCoinsForMerchandise);
-  console.log("Max coins usable:", maxCoinsUsable);
+  const canRedeem = persona.loyaltyDetails.activeTier
+    ? maxCoinsUsable > 0
+    : false;
 
-  const canRedeem = maxCoinsUsable > 0;
-
-  // maxCoinsUsable shrinks if the cart changes or the tier's coin rate
-  // changes — keep the slider from sitting above its own max.
   useEffect(() => {
     if (coinsToApply > maxCoinsUsable) {
       setCoinsToApply(maxCoinsUsable);
     }
   }, [maxCoinsUsable, coinsToApply]);
 
-  // Every number on this page comes from /orders/overview, which runs the same
-  // engine POST /orders does — so the total shown is the total charged.
   const orderItems = cartItems.map((item) => ({
     productId: item.productId,
     quantity: item.cartQuantity,
@@ -94,7 +83,6 @@ export default function CheckoutView() {
     const timer = setTimeout(() => {
       fetchOrderOverview({ items: JSON.parse(itemsKey), coinsToApply })
         .then((data) => {
-          console.log("Fetched order overview:", data);
           if (cancelled) return;
           setOverview(data);
           setOverviewError(null);
@@ -221,23 +209,6 @@ export default function CheckoutView() {
               </span>
             </div>
           ))}
-          {/* {coinBalance > 0 && (
-            <div className={shared.field} style={{ marginTop: 12 }}>
-              <label>
-                Redeem coins —{" "}
-                <b className="mono">{coinsToApply.toLocaleString()}</b> of{" "}
-                {coinBalance.toLocaleString()}
-              </label>
-              <input
-                type="range"
-                min="0"
-                max={coinBalance}
-                step="10"
-                value={coinsToApply}
-                onChange={(e) => setCoinsToApply(Number(e.target.value))}
-              />
-            </div>
-          )} */}
           {canRedeem && (
             <div className={styles.loyaltyCard}>
               <div className={styles.loyaltyTop}>

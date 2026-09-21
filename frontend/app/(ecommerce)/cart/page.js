@@ -45,7 +45,6 @@ export default function CartView() {
     const timer = setTimeout(() => {
       fetchOrderOverview({ items: JSON.parse(itemsKey), coinsToApply: 0 })
         .then((data) => {
-          console.log("Fetched order overview:", data);
           if (cancelled) return;
           setOverview(data);
           setOverviewError(null);
@@ -63,9 +62,6 @@ export default function CartView() {
   }, [itemsKey]);
 
   const amounts = overview?.order;
-
-  console.log("Overview amounts:", amounts);
-
   const subtotal = amounts?.amountSummary.subtotal || 0;
   const shipping = amounts?.amountSummary.shipping || 0;
   const tax = amounts?.amountSummary.tax || 0;
@@ -127,7 +123,6 @@ export default function CartView() {
       <div className={shared.layoutSplit}>
         <div>
           {cartItems.map((item) => {
-            console.log("CartView item:", item);
             return (
               <div className={styles.cartItem} key={item.productId}>
                 <div className={styles.ciThumb} style={{ background: "#EEE" }}>

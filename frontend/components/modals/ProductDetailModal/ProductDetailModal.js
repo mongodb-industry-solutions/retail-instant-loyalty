@@ -39,7 +39,6 @@ export default function ProductDetailModal({ id, onClose }) {
     stock: seededStock(pr.id + s),
   }));
 
-  console.log("product in ProductDetailModal.js:", pr);
   const productDoc = productDocFor(pr);
   // const inventoryDocs = stores.map((s, i) => ({
   //   _id: `ObjectId("710c${pr.id}${i}0000001")`,

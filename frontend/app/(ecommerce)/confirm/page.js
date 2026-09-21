@@ -36,11 +36,12 @@ export default function ConfirmView() {
     : null;
   const shownOrderId = finalOrder?.orderId;
 
+  console.log("Final order:", finalOrder);
+
   const excludeItemIds = new Set(
     (finalOrder?.items ?? []).map((item) => item.productId),
   );
 
-  // Redux isn't persisted, so a refresh on /confirm leaves nothing to show.
   if (!finalOrder) {
     return (
       <main className={styles.wrap}>

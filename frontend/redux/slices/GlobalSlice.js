@@ -186,7 +186,6 @@ export const getCartCount = (state) => {
 // To be used as a thunk action for adding a product to the cart
 export function addToCart(productId) {
   return (dispatch, getState) => {
-    console.log("state of cart is ", getState().Global.cart);
     const product = selectProductsData(getState()).find(
       (product) => product.productId === productId,
     );

@@ -105,8 +105,6 @@ export function fetchRedeemCandidates({ excludeProducts = [] } = {}) {
 }
 
 export function confirmRedeemRequest(body) {
-  console.log("Confirm redeem request body:", body);
-
   return request("/redeem", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

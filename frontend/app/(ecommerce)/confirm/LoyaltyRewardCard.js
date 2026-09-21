@@ -81,7 +81,11 @@ export default function LoyaltyRewardCard({ order }) {
   return (
     <div className={cardClass}>
       <div className={styles.rewardHead}>
-        <h3>🪙 Loyalty rewards earned</h3>
+        {order.coinsEarned > 0 ? (
+          <h3>🪙 Loyalty rewards earned</h3>
+        ) : (
+          <h3>Loyalty Progress</h3>
+        )}
         {tierChanged && <span className={styles.tierupBadge}>Tier up!</span>}
       </div>
       {tierChanged && (
@@ -93,9 +97,10 @@ export default function LoyaltyRewardCard({ order }) {
         </div>
       )}
 
-      {balanceRow(
-        `+${(order.coinsEarned ?? 0).toLocaleString()}${multiplier > 1 ? ` (${multiplier}× active)` : ""}`,
-      )}
+      {order.coinsEarned > 0 &&
+        balanceRow(
+          `+${(order.coinsEarned ?? 0).toLocaleString()}${multiplier > 1 ? ` (${multiplier}× active)` : ""}`,
+        )}
       <TierTrack
         amountSpent={displayTierSpend}
         tierInfo={tierInfo}
