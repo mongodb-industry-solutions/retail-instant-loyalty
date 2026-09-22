@@ -40,6 +40,7 @@ export function createLoyaltyEngine(app) {
         transactionId,
         type: "redeem",
         coins: math.coinsApplied,
+        coinBalance: math.newBalance,
         createdAt: now,
       });
     }
@@ -52,6 +53,7 @@ export function createLoyaltyEngine(app) {
         transactionId,
         type: "earn",
         coins: math.coinsEarned,
+        coinBalance: math.newBalance,
         createdAt: now,
       });
     }
@@ -63,11 +65,12 @@ export function createLoyaltyEngine(app) {
         orderId,
         transactionId,
         type: "tier-change",
-        coins: 0,
+        coins: null,
         createdAt: now,
         tierKey: math.newTierKey,
         activatedAt: now,
         previousTier: math.oldTier,
+        coinBalance: math.newBalance,
       });
     }
     return entries;
