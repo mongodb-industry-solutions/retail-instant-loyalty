@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
+import { API_URL } from "@/lib/helper";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+const BACKEND_URL = API_URL;
 
 export async function GET(request) {
   const customerId = request.headers.get("x-customer-id");
@@ -10,7 +11,7 @@ export async function GET(request) {
       {
         error: {
           code: "BACKEND_UNAVAILABLE",
-          message: "NEXT_PUBLIC_API_URL is not set",
+          message: "API_URL is not set",
         },
       },
       { status: 503 },

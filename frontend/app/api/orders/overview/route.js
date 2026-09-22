@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
+import { API_URL } from "@/lib/helper";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+const BACKEND_URL = API_URL;
 
 // Dry run of POST /orders: same pricing engine, no writes. The server resolves
 // live prices, balance and tier from the session, so the client only sends
@@ -10,7 +11,7 @@ export async function POST(request) {
 
   if (!BACKEND_URL) {
     return NextResponse.json(
-      { error: "NEXT_PUBLIC_API_URL is not set" },
+      { error: "API_URL is not set" },
       { status: 503 },
     );
   }
