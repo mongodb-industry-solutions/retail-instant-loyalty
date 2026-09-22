@@ -50,6 +50,9 @@ const GlobalSlice = createSlice({
     setSelectedUser(state, action) {
       state.selectedUser = action.payload;
     },
+    updateSelectedUser(state, action) {
+      state.selectedUser = action.payload;
+    },
     setProductsLoading(state, action) {
       state.products.loading = action.payload;
     },
@@ -201,6 +204,7 @@ export const {
   setUsersLoading,
   setUsersError,
   setSelectedUser,
+  updateSelectedUser,
   setUsersData,
   setProductsLoading,
   setProductsData,

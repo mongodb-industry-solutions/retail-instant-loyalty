@@ -34,6 +34,16 @@ async function request(path, options = {}) {
   return body?.data ?? body;
 }
 
+export async function getProductsWithSearch(query = "", filter = {}) {
+  console.log("Get products wthen the search bar is used");
+  const searchedProduct = await request(`/search`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query, facets: filter }),
+  });
+  return searchedProduct;
+}
+
 export function fetchCustomers() {
   return request("/customers");
 }

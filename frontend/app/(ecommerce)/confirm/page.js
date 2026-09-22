@@ -38,6 +38,8 @@ export default function ConfirmView() {
 
   console.log("Final order:", finalOrder);
 
+  console.log("Persona:", persona);
+
   const excludeItemIds = new Set(
     (finalOrder?.items ?? []).map((item) => item.productId),
   );

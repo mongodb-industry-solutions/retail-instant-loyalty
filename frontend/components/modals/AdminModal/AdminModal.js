@@ -238,7 +238,7 @@ function TierThresholdsTab({ loyaltyData, dispatch, onSaved }) {
   const [mins, setMins] = useState(() => {
     const init = {};
     loyaltyData.rewardDetails.forEach((t) => {
-      init[t.tierKey] = t.threshold;
+      init[t.tierKey] = t.tierThreshold;
     });
     return init;
   });
@@ -262,7 +262,7 @@ function TierThresholdsTab({ loyaltyData, dispatch, onSaved }) {
     setSaving(true);
     const nextRewardDetails = loyaltyData.rewardDetails.map((t) => ({
       ...t,
-      threshold: mins[t.tierKey],
+      tierThreshold: mins[t.tierKey],
     }));
     try {
       const config = await updateLoyaltyConfig({
@@ -277,6 +277,8 @@ function TierThresholdsTab({ loyaltyData, dispatch, onSaved }) {
       setSaving(false);
     }
   }
+
+  console.log("editable mins", mins);
 
   return (
     <>

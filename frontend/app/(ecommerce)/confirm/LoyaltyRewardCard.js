@@ -24,6 +24,7 @@ export default function LoyaltyRewardCard({ order }) {
   const selectedUser = useSelector(selectSelectedUser);
   const { rewardDetails } = useSelector(selectLoyaltyConfig);
 
+  console.log("loyalty for order:", rewardDetails);
   useEffect(() => {
     setPhase("before");
     setTierupGlow(false);
@@ -34,7 +35,11 @@ export default function LoyaltyRewardCard({ order }) {
       if (changed) setTierupGlow(true);
     }, 250);
     return () => clearTimeout(t);
-  }, [order]);
+    // `order` is a fresh object identity every render (built inline by the
+    // caller) — key off orderId instead, or this refires and setPhase loops
+    // forever.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order?.orderId]);
 
   if (!order) return null;
 

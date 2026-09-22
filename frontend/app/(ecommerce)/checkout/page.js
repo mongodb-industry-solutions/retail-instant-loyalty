@@ -11,12 +11,13 @@ import {
   selectCart,
   selectProductsData,
   placeOrderSuccess,
+  updateSelectedUser,
 } from "@/redux/slices/GlobalSlice";
 import { Icon } from "@via-ds/icons";
 import { Button } from "@via-ds/components/button";
 import shared from "@/components/shared.module.css";
 import { cartItemList, formatPrice } from "@/lib/helper";
-import { createOrder, fetchOrderOverview } from "@/lib/api";
+import { createOrder, fetchOrderOverview, fetchCustomer } from "@/lib/api";
 import styles from "./CheckoutView.module.css";
 
 export default function CheckoutView() {
@@ -113,6 +114,10 @@ export default function CheckoutView() {
         orderType: "ONLINE",
       });
       dispatch(placeOrderSuccess({ order, loyalty: orderLoyalty }));
+      const getUpdatedUser = await fetchCustomer(persona.customerId);
+      console.log("Updated persona:", getUpdatedUser);
+      dispatch(updateSelectedUser(getUpdatedUser));
+      console.log("selectedUser after update:", persona);
       router.push("/confirm");
     } catch (err) {
       toast.error(`Couldn't place order: ${err.message}`);
