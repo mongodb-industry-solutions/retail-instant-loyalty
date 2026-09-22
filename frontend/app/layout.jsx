@@ -1,5 +1,7 @@
-import ClientProvider from "./ClientProvider";
-import Providers from "@/components/LeafyProvider/Providers";
+import Providers from "@/components/Providers/Providers";
+
+import "@via-ds/components/index.css";
+
 import "./globals.css";
 
 export const metadata = {
@@ -11,9 +13,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <ClientProvider>
-          <Providers>{children}</Providers>
-        </ClientProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

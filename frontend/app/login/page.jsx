@@ -2,7 +2,7 @@
 import Personas from "@/components/Personas/Personas";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { fetchCustomers } from "@/lib/api";
+import { fetchSessions } from "@/lib/api";
 import {
   setUsersData,
   setUsersError,
@@ -16,7 +16,7 @@ export default function Page() {
     dispatch(setUsersLoading(true));
     dispatch(setUsersError(null));
 
-    fetchCustomers()
+    fetchSessions()
       .then((customers) => {
         dispatch(setUsersData(customers ?? []));
       })

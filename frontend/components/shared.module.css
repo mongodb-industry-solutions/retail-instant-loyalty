@@ -1,0 +1,214 @@
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 28px 32px 64px;
+}
+
+.layoutSplit {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .layoutSplit {
+    grid-template-columns: 1fr;
+  }
+}
+
+.crumb {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.crumb a:hover {
+  color: var(--green-dark);
+}
+.current {
+  color: var(--forest);
+  font-weight: 700;
+}
+
+.wandIconBtn {
+  background: none;
+  border: none;
+  color: var(--green-dark);
+  padding: 5px;
+  border-radius: 6px;
+  display: flex;
+  flex-shrink: 0;
+}
+.wandIconBtn:hover {
+  background: var(--green-tint);
+}
+.wandIconBtnOutside {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+}
+.wandIconBtnOutside:hover {
+  border-color: var(--green-dark);
+}
+
+.coinPreview {
+  background: var(--amber-tint);
+  border: 1px solid var(--amber-border); /* was #F0DFB0 */
+  padding: 10px 12px;
+  font-size: 13.5px;
+  color: var(--amber); /* was #7A5A0A */
+  margin: 14px 0;
+  line-height: 1.5;
+  font-weight: 600;
+}
+.coinPreview b {
+  font-family: var(--mono);
+}
+
+.summaryCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  position: sticky;
+  top: 90px;
+}
+.summaryCard h3 {
+  font-size: 16.2px;
+  font-weight: 700;
+  margin: 0 0 14px;
+  color: var(--forest);
+}
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14.6px;
+  color: var(--text-muted);
+  margin-bottom: 9px;
+}
+.summaryRow .free {
+  color: var(--green-dark);
+  font-weight: 700;
+}
+.summaryRowTotal {
+  border-top: 1px solid var(--border);
+  margin-top: 10px;
+  padding-top: 12px;
+  font-size: 16.2px;
+  font-weight: 700;
+  color: var(--forest);
+}
+
+.orderReviewItem {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13.5px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--border);
+}
+.orderReviewItem .name {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.qtyStepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.qtyStepper button {
+  background: var(--bg);
+  border: none;
+  width: 26px;
+  height: 26px;
+  font-size: 15.1px;
+  font-weight: 700;
+  color: var(--text);
+}
+.qtyStepper button:hover {
+  background: var(--border);
+}
+.qtyStepper span {
+  width: 28px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.field label {
+  display: block;
+  font-size: 12.4px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+}
+.field input {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14.6px;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  font-family: inherit;
+}
+.field input:focus {
+  border-color: var(--green-dark);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--green-tint);
+}
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.channelBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.channelBadgeOnline {
+  background: var(--surface-blue);
+  color: var(--platinum);
+  border: 1px solid var(--border-blue);
+}
+
+.historyCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+}
+.historyCard h3 {
+  font-size: 15.1px;
+  font-weight: 700;
+  margin: 0 0 14px;
+  color: var(--forest);
+}
+.historyEmpty {
+  font-size: 14px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 24px 0;
+}

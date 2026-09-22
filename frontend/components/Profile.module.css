@@ -1,0 +1,60 @@
+.profileHead {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.profileAvatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 21.6px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.profileName {
+  font-size: 18.4px;
+  font-weight: 700;
+  color: var(--forest);
+  letter-spacing: -0.03em;
+}
+.profileSub {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.profileBalance {
+  margin-left: auto;
+  text-align: right;
+}
+.profileBalance .lbl {
+  font-size: 11.3px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.profileBalance .num {
+  font-size: 23.8px;
+  font-weight: 800;
+  color: var(--forest);
+}
+.profileTrackCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 650px) {
+  .profileHead {
+    flex-wrap: wrap;
+  }
+}

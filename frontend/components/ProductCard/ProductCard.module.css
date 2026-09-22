@@ -1,0 +1,151 @@
+.productCard {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  /* Via's Card ships a border but no shadow, so it reads flat next to the
+     LeafyGreen card it replaced. Restore elevation and match our own radius. */
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius);
+  color: var(--text);
+  transition:
+    box-shadow 160ms ease,
+    transform 160ms ease;
+  /* Via's .card sets 24px padding; the thumbnail has to bleed edge-to-edge.
+     Both selectors are a single class, so the winner would otherwise come
+     down to stylesheet order, which Next does not guarantee. */
+  padding: 0 !important;
+}
+
+.productCard:hover {
+  box-shadow: var(--via-shadow-light-02);
+  transform: translateY(-2px);
+}
+
+.docIconBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 3;
+  opacity: 0;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  padding: 3px 7px;
+  font-family: var(--mono);
+  font-size: 11.9px;
+  font-weight: 700;
+  color: var(--green-dark);
+  transition: opacity 0.15s;
+}
+.productCard:hover .docIconBtn {
+  opacity: 1;
+}
+.docIconBtn:hover {
+  background: var(--green-dark);
+  color: var(--surface);
+  border-color: var(--green-dark);
+}
+
+.pThumb {
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 41px;
+  position: relative;
+}
+.pBadge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: 8px;
+  font-weight: 900;
+  padding: 3px 8px;
+  border-radius: 5px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  background: var(--forest);
+  color: var(--surface);
+}
+
+.cardBody {
+  /* Reset default <button> chrome — this element is semantically a button
+     (for keyboard/focus support) but needs to look exactly like the plain
+     div it replaced. */
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.productCard:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.pBodyText {
+  padding: 12px 14px 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.pCat {
+  font-size: 11.3px;
+  font-weight: 700;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 4px;
+}
+.pName {
+  font-size: 14.6px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+  margin-bottom: 6px;
+  min-height: 36px;
+}
+.pRating {
+  font-size: 12.4px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+.pRating .star {
+  color: var(--amber);
+}
+
+/* .pFoot no longer needs margin-top:auto — .cardBody's flex:1 already
+   grows to fill the card's remaining height, so this sibling naturally
+   lands at the bottom. */
+.pFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 14px 14px;
+}
+.pPriceWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pPrice {
+  font-size: 16.2px;
+  font-weight: 800;
+  color: var(--forest);
+}
+.pWas {
+  font-size: 13px;
+  color: var(--text-faint);
+  text-decoration: line-through;
+  margin-left: 5px;
+  font-weight: 500;
+}

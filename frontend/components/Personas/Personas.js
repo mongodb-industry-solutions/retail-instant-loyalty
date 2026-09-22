@@ -1,21 +1,62 @@
-"use client"
-import { Card } from "@leafygreen-ui/card";
-import { CardSkeleton } from "@leafygreen-ui/skeleton-loader";
-import { H1, Body } from "@leafygreen-ui/typography";
+"use client";
+
+import { Card } from "@via-ds/components/card";
+import { Skeleton } from "@via-ds/components/skeleton";
+import { H1, Body } from "@via-ds/components/typography";
+import { toast } from "@via-ds/components/toast";
 import { useDispatch, useSelector } from "react-redux";
-import { selectUsers, setSelectedUser } from "@/redux/slices/GlobalSlice";
-import { selectUser } from "@/lib/cookies";
+import { useState } from "react";
+import {
+  selectUsers,
+  setSelectedUser,
+  setUsersData,
+} from "@/redux/slices/GlobalSlice";
+import { useRouter } from "next/navigation";
+import { startSession, fetchSessions } from "@/lib/api";
+import { setActivePersonaCookie } from "@/lib/cookies";
+import { personaAvatar } from "@/lib/data";
 import styles from "./Personas.module.css";
 import Image from "next/image";
 
 export default function Personas() {
-
   const dispatch = useDispatch();
-  const { loading, error, data: personas } = useSelector(selectUsers);
+  const router = useRouter();
+  const { loading, error, data } = useSelector(selectUsers);
+  const [claiming, setClaiming] = useState(null);
+
+  // Count within each gender so personas sharing one draw get different
+  // illustrations wherever the pool allows.
+  const seenByGender = {};
+  const avatars = data.map((p) => {
+    const gender = String(p.gender).toLowerCase();
+    seenByGender[gender] = seenByGender[gender] ?? 0;
+    return personaAvatar(p.gender, seenByGender[gender]++);
+  });
 
   async function handleSelect(persona) {
-    dispatch(setSelectedUser(persona));
-    await selectUser(persona.id);
+    setClaiming(persona.customerId);
+    try {
+      // Claims the persona and returns the full customer document — richer
+      // than the list projection, so it becomes the selected user directly.
+      const customer = await startSession(persona.customerId);
+      dispatch(setSelectedUser(customer));
+      // Cookie is what middleware.js gates on, so it has to be set before we
+      // navigate into the store.
+      await setActivePersonaCookie(customer.customerId);
+      router.push("/");
+    } catch (err) {
+      if (err.code === "CUSTOMER_ALREADY_IN_USE") {
+        // Expected when two demos run at once: refresh the grid so the
+        // claimed persona drops out rather than showing an error.
+        toast.error("That persona was just taken — pick another");
+        fetchSessions()
+          .then((customers) => dispatch(setUsersData(customers ?? [])))
+          .catch(() => {});
+      } else {
+        toast.error(`Couldn't start the session: ${err.message}`);
+      }
+      setClaiming(null);
+    }
   }
 
   return (
@@ -23,10 +64,15 @@ export default function Personas() {
       <div className={styles.inner}>
         <span className={styles.eyebrow}>This is a MongoDB demo</span>
         <H1 className={styles.title}>Welcome to Leafy Loyalty Store</H1>
-        <Body className={styles.sub}>Please select the user you would like to login as.</Body>
+        <Body className={styles.sub}>
+          Please select the user you would like to login as.
+        </Body>
 
         {error && (
-          <Body className={styles.sub} style={{ color: "var(--red-base, #C4342A)" }}>
+          <Body
+            className={styles.sub}
+            style={{ color: "var(--red-base, #C4342A)" }}
+          >
             Couldn&apos;t load the personas ({error})
           </Body>
         )}
@@ -34,28 +80,33 @@ export default function Personas() {
         <div className={styles.grid}>
           {loading
             ? Array.from({ length: 4 }).map((_, i) => (
-                <CardSkeleton key={i} className={styles.card} />
+                <Skeleton key={i} className={styles.card} />
               ))
-            : personas.map((p) => (
+            : data.map((p, i) => (
                 <Card
-                  key={p.id}
+                  key={p.customerId}
                   as="button"
                   className={styles.card}
+                  disabled={claiming !== null}
                   onClick={() => handleSelect(p)}
                 >
                   <div className={styles.top}>
                     <Image
-                      src={p.photo}
+                      src={avatars[i]}
                       alt={p.name}
                       className={styles.photo}
-                      width={64}
-                      height={64}
+                      width={74}
+                      height={74}
                       unoptimized
                     />
                   </div>
-                  <div className={styles.name}>{p.name}</div>
-                  <div className={`${styles.foot} ${p.returning ? styles.footReturning : styles.footNew}`}>
-                    {p.returning ? "Existing user" : "New user"}
+                  <div className={styles.name}>
+                    {p.name} {p.lastName}
+                  </div>
+                  <div
+                    className={`${styles.foot} ${p.isAlwaysNewUser ? styles.footNew : styles.footReturning}`}
+                  >
+                    {p.isAlwaysNewUser ? "New user" : "Existing user"}
                   </div>
                 </Card>
               ))}

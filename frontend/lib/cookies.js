@@ -1,27 +1,22 @@
-// lib/cookies.js
-'use server'
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
+// Which persona the browser is acting as. Separate from the backend session
+// (lib/session.js) — this cookie exists so middleware.js can gate routes
+// before any JS runs.
+const ACTIVE_PERSONA_URL = "/api/active-persona";
 
-export async function selectUser(userId) {
-  const cookieStore = await cookies()
-  cookieStore.set('selected_user', userId, {
-    httpOnly: true,
-    path: '/',
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-  })
-  redirect('/')
+export async function setActivePersonaCookie(id) {
+  await fetch(ACTIVE_PERSONA_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id }),
+  });
 }
 
-export async function logoutUser() {
-  const cookieStore = await cookies()
-  cookieStore.set('selected_user', '', {
-    httpOnly: true,
-    path: '/',
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 0,
-  })
-  redirect('/login')
+export async function clearActivePersonaCookie() {
+  await fetch(ACTIVE_PERSONA_URL, { method: "DELETE" });
+}
+
+export async function readActivePersonaCookie() {
+  const res = await fetch(ACTIVE_PERSONA_URL);
+  const { id } = await res.json();
+  return id;
 }
