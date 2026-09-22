@@ -1,3 +1,5 @@
+import { resolveTier } from "./loyaltyEngine.js";
+
 export const STATUS_SEQUENCE = ["placed", "processing", "shipped", "delivered"];
 export const ADVANCE_INTERVAL_MS = 2000;
 export const TAX_RATE = 0.085;
@@ -5,6 +7,10 @@ const PAYMENT_DELAY_MS = 1200; // ASSUMPTION - simulated gateway latency, tune f
 
 export function sendError(reply, status, code, message) {
   return reply.code(status).send({ error: { code, message } });
+}
+
+export function isFirstPurchase(customer) {
+  return customer.isAlwaysNewUser && customer.loyaltyDetails.activeTier === null;
 }
 
 export function createOrderEngine(app) {
@@ -17,29 +23,6 @@ export function createOrderEngine(app) {
         { upsert: true, returnDocument: "after", session },
       );
     return result.seq;
-  }
-
-  function resolveTier(rewardDetails, cumulativeSpend) {
-    const sorted = [...rewardDetails].sort(
-      (a, b) => a.tierThreshold - b.tierThreshold,
-    );
-
-    let currentIndex = 0;
-    for (let i = 0; i < sorted.length; i++) {
-      if (cumulativeSpend >= sorted[i].tierThreshold) currentIndex = i;
-    }
-
-    const current = sorted[currentIndex];
-    const next = sorted[currentIndex + 1] || null;
-
-    return {
-      tierKey: current.tierKey,
-      currencyValueForDollar: current.currencyValueForDollar,
-      nextTierKey: next ? next.tierKey : null,
-      dollarsNeededForNextTier: next
-        ? Math.max(0, next.tierThreshold - cumulativeSpend)
-        : 0,
-    };
   }
 
   // Pure calculation + validation - no writes. Safe to call before any
@@ -55,6 +38,11 @@ export function createOrderEngine(app) {
       throw {
         code: "INSUFFICIENT_BALANCE",
         message: "Customer does not have enough loyalty coins to apply",
+      };
+    if(isFirstPurchase(customer) && coinsToApply > 0)
+      throw {
+        code: "CANNOT_APPLY_COINS_ON_FIRST_PURCHASE",
+        message: "Loyalty coins cannot be applied on the first purchase",
       };
 
     const loyaltyConfig = await db
@@ -118,7 +106,9 @@ export function createOrderEngine(app) {
         message: `Customer's active tier ${currentTierKey} not found in loyalty config`,
       };
     if(!currentTierKey && customer.isAlwaysNewUser == true){
-      tierEntry = loyaltyConfig.rewardDetails[0];
+      tierEntry = loyaltyConfig.rewardDetails.reduce((lowestTier, tier) =>
+        tier.tierThreshold < lowestTier.tierThreshold ? tier : lowestTier,
+      );
     }
 
     const oldBalance = customer.loyaltyDetails.coinBalance;
@@ -189,42 +179,6 @@ export function createOrderEngine(app) {
     });
   }
 
-  function buildLoyaltyHistoryEntries({
-    math,
-    orderId,
-    transactionId,
-    customerId,
-    sessionId,
-    now,
-  }) {
-    const entries = [];
-    if (math.coinsApplied > 0) {
-      entries.push({
-        historyId: `LH-${orderId}-REDEEM`, // deterministic - naturally idempotent if this ever ran twice for the same order
-        customerId,
-        sessionId,
-        orderId,
-        transactionId,
-        type: "redeem",
-        coins: math.coinsApplied,
-        createdAt: now,
-      });
-    }
-    if (math.coinsEarned > 0) {
-      entries.push({
-        historyId: `LH-${orderId}-EARN`,
-        customerId,
-        sessionId,
-        orderId,
-        transactionId,
-        type: "earn",
-        coins: math.coinsEarned,
-        createdAt: now,
-      });
-    }
-    return entries;
-  }
-
   function scheduleOrderProgression(orderId, startIndex = 0) {
     if (startIndex >= STATUS_SEQUENCE.length - 1) return;
 
@@ -253,10 +207,8 @@ export function createOrderEngine(app) {
 
   return {
     getNextSequence,
-    resolveTier,
     computeOrderMath,
     processPayment,
-    buildLoyaltyHistoryEntries,
     scheduleOrderProgression,
   };
 }

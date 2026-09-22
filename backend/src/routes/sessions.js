@@ -1,5 +1,8 @@
+import { createLoyaltyEngine } from "../lib/loyaltyEngine.js";
+
 export default function sessionsRoutes(app) {
   const collectionName = "customers";
+  const { buildCustomerLoyaltyLogoutReset } = createLoyaltyEngine(app);
 
   function sendError(reply, status, code, message) {
     return reply.code(status).send({ error: { code, message } });
@@ -153,19 +156,21 @@ export default function sessionsRoutes(app) {
         "x-session-id header is required",
       );
     }
-
     const db = app.mongo.db;
+    const customer = await db.collection("customers").findOne({ sessionId });
+    if (!customer)
+      throw {
+        code: "CUSTOMER_NOT_FOUND",
+        message: "Customer not found for session " + sessionId,
+      };
 
     try {
+      const updatePipeline = await buildCustomerLoyaltyLogoutReset(db, {
+        customer,
+      });
       const result = await db.collection(collectionName).findOneAndUpdate(
         { sessionId },
-        {
-          $set: {
-            "preferences.isActive": false,
-            sessionId: null,
-            sessionStartedAt: null,
-          },
-        },
+        updatePipeline,
         { returnDocument: "after" },
       );
 

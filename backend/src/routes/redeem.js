@@ -1,4 +1,5 @@
 import { createOrderEngine, sendError } from "../lib/orderEngine.js";
+import { createLoyaltyEngine } from "../lib/loyaltyEngine.js";
 
 const MAX_REDEEM_CASH_GAP = 25; // BUSINESS RULE
 
@@ -8,8 +9,8 @@ export default function redeemRoutes(app) {
     computeOrderMath,
     scheduleOrderProgression,
     processPayment,
-    buildLoyaltyHistoryEntries,
   } = createOrderEngine(app);
+  const { buildLoyaltyHistoryEntries, buildCustomerLoyaltyDetailsUpdate } = createLoyaltyEngine(app);
 
   // GET /redeem/candidates — up to `limit` redeem-eligible products this
   // customer can fully or near-fully cover with coins
@@ -311,29 +312,11 @@ export default function redeemRoutes(app) {
               .insertMany(historyEntries, { session: mongoSession });
           }
 
-          const customerUpdate = {
-            $set: {
-              "loyaltyDetails.coinBalance": math.newBalance,
-              "loyaltyDetails.activeTier": math.newTierKey,
-              "loyaltyDetails.nextTier": math.nextTierKey,
-              "loyaltyDetails.cumulativeSpendDollars":
-                math.newCumulativeSpendDollars,
-            },
-            $inc: { "loyaltyDetails.ordersCount": 1 },
-          };
-          if (math.tierChanged) {
-            customerUpdate.$push = {
-              "loyaltyDetails.loyaltyHistory": {
-                tierKey: math.newTierKey,
-                activatedAt: settledAt,
-                previousTier: math.oldTier,
-              },
-            };
-          }
+          const customerUpdatePipeline = buildCustomerLoyaltyDetailsUpdate({ math });
 
           await db
             .collection("customers")
-            .updateOne({ sessionId }, customerUpdate, {
+            .updateOne({ sessionId }, customerUpdatePipeline, {
               session: mongoSession,
             });
         });
