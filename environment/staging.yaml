@@ -10,7 +10,7 @@ env:
   NODE_ENV: staging
 
 ## Single Pod Containers
-envSecrets:
+envSecrets: {}
   
 
 ## should be used in case of multiple sidecar containers
