@@ -11,7 +11,7 @@ env:
   BACKEND_URL: http://localhost:8000
 
 ## Single Pod Containers
-envSecrets:
+envSecrets: {}
 
 
 ## should be used in case of multi-pod container i.e: both frontend and backend in one pod
