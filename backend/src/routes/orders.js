@@ -1,4 +1,5 @@
 import { createOrderEngine, sendError } from "../lib/orderEngine.js";
+  import { createLoyaltyEngine } from "../lib/loyaltyEngine.js";
 
 export default function ordersRoutes(app) {
   const {
@@ -6,8 +7,12 @@ export default function ordersRoutes(app) {
     computeOrderMath,
     scheduleOrderProgression,
     processPayment,
-    buildLoyaltyHistoryEntries,
   } = createOrderEngine(app);
+  const{
+    buildLoyaltyHistoryEntries,
+    buildCustomerLoyaltyDetailsUpdate
+  } = createLoyaltyEngine(app);
+
 
   // live pricing preview, no writes.
   // ACID transaction
@@ -238,29 +243,11 @@ export default function ordersRoutes(app) {
               .insertMany(historyEntries, { session: mongoSession });
           }
 
-          const customerUpdate = {
-            $set: {
-              "loyaltyDetails.coinBalance": math.newBalance,
-              "loyaltyDetails.activeTier": math.newTierKey,
-              "loyaltyDetails.nextTier": math.nextTierKey,
-              "loyaltyDetails.cumulativeSpendDollars":
-                math.newCumulativeSpendDollars,
-            },
-            $inc: { "loyaltyDetails.ordersCount": 1 },
-          };
-          if (math.tierChanged) {
-            customerUpdate.$push = {
-              "loyaltyDetails.loyaltyHistory": {
-                tierKey: math.newTierKey,
-                activatedAt: settledAt,
-                previousTier: math.oldTier,
-              },
-            };
-          }
+          const customerUpdatePipeline = buildCustomerLoyaltyDetailsUpdate({ math });
 
           await db
             .collection("customers")
-            .updateOne({ sessionId }, customerUpdate, {
+            .updateOne({ sessionId }, customerUpdatePipeline, {
               session: mongoSession,
             });
         });
