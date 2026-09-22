@@ -1,6 +1,7 @@
+import { API_URL } from "@/lib/helper";
 import { NextResponse } from "next/server";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+const BACKEND_URL = API_URL;
 
 // TODO(backend): this module is not registered in backend/src/server.js yet,
 // so the seed data below is still the source of truth. Flip to true once it is.

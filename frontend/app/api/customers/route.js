@@ -1,11 +1,12 @@
+import { API_URL } from "@/lib/helper";
 import { NextResponse } from "next/server";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+const BACKEND_URL = API_URL;
 
 export async function GET() {
   if (!BACKEND_URL) {
     return NextResponse.json(
-      { error: "NEXT_PUBLIC_API_URL is not set" },
+      { error: "API_URL is not set" },
       { status: 503 },
     );
   }

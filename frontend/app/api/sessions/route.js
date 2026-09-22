@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
+import { API_URL } from "@/lib/helper";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+const BACKEND_URL = API_URL;
 
 // Step 1: the personas available to pick from. No session exists yet — one is
 // created when the user selects one (POST /api/sessions/start).
 export async function GET() {
   if (!BACKEND_URL) {
     return NextResponse.json(
-      { error: "NEXT_PUBLIC_API_URL is not set" },
+      { error: "API_URL is not set" },
       { status: 503 },
     );
   }

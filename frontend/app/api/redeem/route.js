@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
+import { API_URL } from "@/lib/helper";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+const BACKEND_URL = API_URL;
 
 // Same request/response contract as POST /orders — session-scoped and
 // requires x-session-id.
 export async function POST(request) {
   if (!BACKEND_URL) {
     return NextResponse.json(
-      { error: "NEXT_PUBLIC_API_URL is not set" },
+      { error: "API_URL is not set" },
       { status: 503 },
     );
   }
