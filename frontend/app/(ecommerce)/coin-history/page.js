@@ -72,8 +72,8 @@ export default function CoinHistoryView() {
             {persona.profile.firstName} {persona.profile.lastName}
           </div>
           <div className={profile.profileSub}>
-            {persona.returning
-              ? `${persona.loyaltyDetails.activeTier} tier · 1 Dollar = ${tierDetails.currencyValueForDollar}`
+            {persona.loyaltyDetails.cumulativeSpendDollars > 0
+              ? `${persona.loyaltyDetails.activeTier} tier · 1 Dollar = ${tierDetails[0].currencyValueForDollar}`
               : "New customer · no tier yet"}
           </div>
         </div>
@@ -84,7 +84,7 @@ export default function CoinHistoryView() {
           </div>
         </div>
       </div>
-      {persona.returning && (
+      {persona.loyaltyDetails.cumulativeSpendDollars > 0 && (
         <div className={profile.profileTrackCard}>
           <TierTrack
             amountSpent={Math.round(
@@ -105,7 +105,7 @@ export default function CoinHistoryView() {
             No coin activity yet. Place an order to start earning.
           </div>
         ) : (
-          loyaltyDetails.loyaltyHistory.map((loyalty, idx) => (
+          loyaltyDetails?.loyaltyHistory?.map((loyalty, idx) => (
             <div className={styles.historyRow} key={idx}>
               <div>
                 <div
@@ -120,14 +120,13 @@ export default function CoinHistoryView() {
               </div>
               <div className={styles.historyRight}>
                 <div
-                  className={`${styles.historyDelta} ${loyalty.type === "earned" ? styles.historyDeltaEarned : styles.historyDeltaRedeemed} mono`}
+                  className={`${styles.historyDelta} ${loyalty.type === "earn" ? styles.historyDeltaEarned : styles.historyDeltaRedeemed} mono`}
                 >
-                  {loyalty.points > 0 ? "+" : ""}
-                  {loyalty.points.toLocaleString()}
+                  {loyalty?.coins > 0 ? "+" : ""}
+                  {loyalty?.coins.toLocaleString()}
                 </div>
                 <div className={`${styles.historyBalance} mono`}>
-                  Balance:{" "}
-                  {(persona.loyaltyDetails?.coinBalance).toLocaleString()}
+                  Balance: {(loyalty?.coinBalance).toLocaleString()}
                 </div>
               </div>
             </div>

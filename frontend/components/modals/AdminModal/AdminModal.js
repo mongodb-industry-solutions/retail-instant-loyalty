@@ -224,6 +224,7 @@ function CampaignTab({ loyaltyData, dispatch, onSaved }) {
         isLoading={saving}
         loadingText="Saving…"
         onClick={save}
+        isDisabled={true}
       >
         Save campaign
       </Button>
