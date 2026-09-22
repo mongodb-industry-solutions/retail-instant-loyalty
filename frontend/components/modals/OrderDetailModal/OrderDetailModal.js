@@ -9,6 +9,7 @@ import styles from "./OrderDetailModal.module.css";
 import modal from "../Modal.module.css";
 import shared from "../../shared.module.css";
 import { selectSelectedUser } from "@/redux/slices/GlobalSlice";
+import { Step, Stepper } from "@via-ds/components/stepper";
 
 const STATUS_STAGES = ["placed", "processing", "shipped", "delivered"];
 
@@ -21,26 +22,20 @@ function formatOrderDate(date) {
   });
 }
 
-function StatusBar({ stages, current }) {
-  const idx = stages.indexOf(current);
+function StatusBar({ current }) {
+  const currentStep = STATUS_STAGES.indexOf(current);
+  console.log(currentStep);
+
+  if (currentStep === -1) return null;
+
   return (
-    <div className={styles.statusBar}>
-      {stages.map((s, i) => (
-        <div key={s} style={{ display: "contents" }}>
-          <div
-            className={`${styles.statusStep} ${i < idx ? styles.statusStepDone : i === idx ? styles.statusStepCurrent : ""}`}
-          >
-            <div className={styles.statusDot}></div>
-            <div className={styles.statusLabel}>{s}</div>
-          </div>
-          {i < stages.length - 1 && (
-            <div
-              className={`${styles.statusLine}${i < idx ? ` ${styles.statusLineDone}` : ""}`}
-            ></div>
-          )}
-        </div>
+    <Stepper currentStep={currentStep} aria-label="Order status">
+      {STATUS_STAGES.map((stage, index) => (
+        <Step key={index} textValue={stage}>
+          {stage}
+        </Step>
       ))}
-    </div>
+    </Stepper>
   );
 }
 
@@ -132,7 +127,7 @@ export default function OrderDetailModal({ orderId, onClose }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!orderId) return;
+    if (!orderId || !persona?.customerId) return;
     let cancelled = false;
     setOrder(null);
     setError(null);
@@ -148,7 +143,9 @@ export default function OrderDetailModal({ orderId, onClose }) {
     return () => {
       cancelled = true;
     };
-  }, [orderId]);
+  }, [orderId, persona?.customerId]);
+
+  console.log("orderId:", orderId);
 
   if (error) {
     return (
@@ -214,7 +211,8 @@ export default function OrderDetailModal({ orderId, onClose }) {
               <span className={styles.badge}>{order.currentStatus}</span>
             </div>
           </div>
-          <StatusBar stages={STATUS_STAGES} current={order.currentStatus} />
+          <StatusBar current={order.currentStatus} />
+
           <div className={styles.metaStrip}>
             <div className={styles.metaCard}>
               <div className={styles.metaLabel}>Rewards</div>

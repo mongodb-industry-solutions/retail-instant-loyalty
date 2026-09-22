@@ -154,7 +154,7 @@ export default function Navbar() {
                   <MenuItem
                     id="coin-history"
                     textValue="Coin history"
-                    onAction={() => go("coin-history")}
+                    onAction={() => go("coinHistory")}
                   >
                     <HistoryIcon slot="icon" />
                     <Text>Coin history</Text>

@@ -278,8 +278,6 @@ function TierThresholdsTab({ loyaltyData, dispatch, onSaved }) {
     }
   }
 
-  console.log("editable mins", mins);
-
   return (
     <>
       <p>

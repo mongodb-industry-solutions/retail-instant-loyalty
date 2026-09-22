@@ -34,7 +34,9 @@ export default function loyaltyHistoryRoutes(app) {
       const [loyaltyHistory, totalCount] = await Promise.all([
         db
           .collection(loyaltyHistoryCollectionName)
-          .find(filter, { projection: { _id: 0, sessionId: 0, transactionId: 0 } })
+          .find(filter, {
+            projection: { _id: 0, sessionId: 0, transactionId: 0 },
+          })
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(Number(limit))

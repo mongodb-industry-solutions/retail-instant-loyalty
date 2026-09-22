@@ -54,6 +54,12 @@ export async function fetchSessions() {
   return customers;
 }
 
+export async function fetchLoyaltyHistory({ customerId }) {
+  return request("/loyaltyHistory", {
+    headers: { "x-customer-id": customerId ?? "" },
+  });
+}
+
 // Selecting a persona is what starts a session: mint the id here, then claim.
 // The response carries the full customer document.
 export async function startSession(selectedCustomerId) {

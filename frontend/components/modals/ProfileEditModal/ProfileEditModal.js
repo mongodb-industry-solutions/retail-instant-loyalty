@@ -30,7 +30,6 @@ export default function ProfileEditModal({ onClose }) {
               <label htmlFor="profile-first">First name</label>
               <input
                 id="profile-first"
-                //ref={refs.first}
                 defaultValue={persona.profile.firstName || ""}
               />
             </div>
@@ -38,7 +37,6 @@ export default function ProfileEditModal({ onClose }) {
               <label htmlFor="profile-last">Last name</label>
               <input
                 id="profile-last"
-                //ref={refs.last}
                 defaultValue={persona.profile.lastName || ""}
               />
             </div>
@@ -48,7 +46,6 @@ export default function ProfileEditModal({ onClose }) {
             <input
               id="profile-email"
               type="email"
-              //ref={refs.email}
               defaultValue={persona.profile.email || ""}
             />
           </div>
@@ -57,15 +54,14 @@ export default function ProfileEditModal({ onClose }) {
             <input
               id="profile-address"
               //ref={refs.address}
-              defaultValue={persona.profile.address || ""}
+              defaultValue={persona.addresses[0].line1 || ""}
             />
           </div>
           <div className={shared.field}>
             <label htmlFor="profile-city">City, state and ZIP</label>
             <input
               id="profile-city"
-              //ref={refs.city}
-              defaultValue={persona.profile.city || ""}
+              defaultValue={`${persona.addresses[0].city || ""}, ${persona.addresses[0].state || ""}, ${persona.addresses[0].postalCode || ""}`}
             />
           </div>
           <div className={shared.formRow}>
@@ -76,7 +72,7 @@ export default function ProfileEditModal({ onClose }) {
                 //ref={refs.card}
                 inputMode="numeric"
                 maxLength={4}
-                defaultValue={persona.profile.card || ""}
+                defaultValue={persona.paymentDetails.last4 || ""}
               />
             </div>
             <div className={shared.field}>
@@ -85,7 +81,7 @@ export default function ProfileEditModal({ onClose }) {
                 id="profile-exp"
                 //ref={refs.exp}
                 placeholder="MM/YY"
-                defaultValue={persona.profile.exp || ""}
+                defaultValue={persona.paymentDetails.expiry || ""}
               />
             </div>
           </div>

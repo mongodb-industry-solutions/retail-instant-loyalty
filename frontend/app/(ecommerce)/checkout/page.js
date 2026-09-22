@@ -115,9 +115,7 @@ export default function CheckoutView() {
       });
       dispatch(placeOrderSuccess({ order, loyalty: orderLoyalty }));
       const getUpdatedUser = await fetchCustomer(persona.customerId);
-      console.log("Updated persona:", getUpdatedUser);
       dispatch(updateSelectedUser(getUpdatedUser));
-      console.log("selectedUser after update:", persona);
       router.push("/confirm");
     } catch (err) {
       toast.error(`Couldn't place order: ${err.message}`);
@@ -126,7 +124,6 @@ export default function CheckoutView() {
     }
   }
 
-  console.log("CheckoutView cartItems:", cartItems);
   function go(view) {
     router.push(view === "store" ? "/" : `/${view}`);
   }
@@ -187,13 +184,13 @@ export default function CheckoutView() {
             <div className={shared.field} style={{ marginBottom: 12 }}>
               <label>Card number</label>
               <input
-                defaultValue={`•••• •••• •••• ${persona.paymentDetails?.cardLast4}`}
+                defaultValue={`•••• •••• •••• ${persona.paymentDetails?.last4}`}
               />
             </div>
             <div className={shared.formRow} style={{ marginBottom: 0 }}>
               <div className={shared.field}>
                 <label>Expiry</label>
-                <input defaultValue={persona.paymentDetails?.cardExpiry} />
+                <input defaultValue={persona.paymentDetails?.expiry} />
               </div>
               <div className={shared.field}>
                 <label>CVV</label>

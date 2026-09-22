@@ -1,0 +1,54 @@
+.historyRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.historyRow:last-child {
+  border-bottom: none;
+}
+.historyType {
+  font-size: 11.9px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+  display: inline-block;
+  margin-bottom: 5px;
+}
+.historyTypeEarned {
+  background: var(--green-tint);
+  color: var(--green-dark);
+}
+.historyTypeRedeemed {
+  background: var(--amber-tint);
+  color: var(--amber);
+}
+.historyLabel {
+  font-size: 14.6px;
+  font-weight: 600;
+  color: var(--text);
+}
+.historyOrder {
+  font-size: 11.9px;
+  color: var(--text-faint);
+  margin-top: 2px;
+}
+.historyRight {
+  text-align: right;
+}
+.historyDelta {
+  font-size: 15.1px;
+  font-weight: 800;
+}
+.historyDeltaEarned {
+  color: var(--green-dark);
+}
+.historyDeltaRedeemed {
+  color: var(--amber);
+}
+.historyBalance {
+  font-size: 11.9px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}

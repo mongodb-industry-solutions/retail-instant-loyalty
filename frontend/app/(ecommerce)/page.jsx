@@ -47,8 +47,6 @@ export default function StoreView() {
       selectedUser.loyaltyDetails?.dollarsNeededForNextTier,
   };
 
-  console.log("Selected user:", selectedUser);
-
   return (
     <main className={sharedStyles.page}>
       {selectedUser.loyaltyDetails.activeTier !== null ? (

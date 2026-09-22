@@ -67,8 +67,8 @@ export default function ProfileView() {
     ? persona.loyaltyDetails.activeTier
     : null;
   const fullName = personaFullName(persona);
-  const paymentLabel = persona.card
-    ? `Visa ending in ${persona.card}`
+  const paymentLabel = persona.paymentDetails
+    ? `Visa ending in ${persona.paymentDetails.last4}`
     : "No payment method on file";
 
   const tierInfo = {
@@ -196,7 +196,8 @@ export default function ProfileView() {
               <div>
                 <Text textStyle="Subtitle">{paymentLabel}</Text>
                 <span>
-                  Default payment method · Expires {persona.exp || "—"}
+                  Default payment method · Expires{" "}
+                  {persona.paymentDetails.expiry || "—"}
                 </span>
               </div>
             </div>
