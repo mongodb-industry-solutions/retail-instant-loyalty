@@ -194,7 +194,7 @@ export default function RedeemSection({ excludeItemIds }) {
     !lastRedeem && (
       <div className={styles.redeemSection}>
         <div className={styles.redeemHead}>
-          <h3>✨ Buy again from this receipt</h3>
+          <h3>✨ Treat yourself with the coins you’ve earned</h3>
           <span className={styles.redeemBalance}>
             Balance:{" "}
             <b className="mono">
