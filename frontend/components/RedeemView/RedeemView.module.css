@@ -1,0 +1,141 @@
+.redeemSection {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  margin-bottom: 16px;
+}
+.redeemHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+  gap: 10px;
+}
+.redeemHead h3 {
+  font-size: 15.1px;
+  font-weight: 700;
+  color: var(--forest);
+  margin: 0;
+}
+.redeemBalance {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.redeemBalance b {
+  color: var(--forest);
+}
+.redeemSub {
+  font-size: 13px;
+  color: var(--text-faint);
+  margin: 0 0 14px;
+}
+.redeemList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.redeemCard {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  transition: border-color 0.15s;
+}
+.redeemCard:hover {
+  border-color: var(--border-strong);
+}
+.redeemCardTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.redeemThumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 21.6px;
+  flex-shrink: 0;
+}
+.redeemInfo {
+  flex: 1;
+  min-width: 0;
+}
+.redeemName {
+  font-size: 14.6px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.redeemPriceRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+.redeemCash {
+  font-weight: 700;
+  color: var(--forest);
+}
+.redeemCoins {
+  font-weight: 600;
+}
+.redeemAffordTag {
+  font-size: 11.3px;
+  font-weight: 700;
+  background: var(--green-tint);
+  color: var(--green-dark);
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.redeemCardSub {
+  font-size: 12.4px;
+  color: var(--text-faint);
+  margin-top: 4px;
+  line-height: 1.45;
+}
+.redeemAfford {
+  font-weight: 600;
+}
+.redeemAffordFull {
+  color: var(--green-dark);
+}
+.redeemAffordHybrid {
+  color: var(--amber-deep);
+}
+.redeemReviewNote {
+  font-size: 13px;
+  color: var(--text-muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+.redeemBreakdown {
+  margin-bottom: 12px;
+}
+.rbRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13.5px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.rbRow span:last-child {
+  color: var(--text);
+  font-weight: 700;
+  font-family: var(--mono-font);
+}
+.redeemActions {
+  display: flex;
+  gap: 8px;
+}
+.redeemReview {
+  padding-top: 2px;
+}

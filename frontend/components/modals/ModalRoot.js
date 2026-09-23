@@ -1,0 +1,53 @@
+"use client";
+
+import { useDispatch, useSelector } from "react-redux";
+import { selectModal, closeModal } from "@/redux/slices/GlobalSlice";
+import TalkTrackModal from "./TalkTrackModal/TalkTrackModal";
+import ProductDetailModal from "./ProductDetailModal/ProductDetailModal";
+import AdminModal from "./AdminModal/AdminModal";
+import OrderDetailModal from "./OrderDetailModal/OrderDetailModal";
+import DocumentModal from "./DocumentModal/DocumentModal";
+import ProfileEditModal from "./ProfileEditModal/ProfileEditModal";
+import styles from "./Modal.module.css";
+import SyncModal from "./SyncModal/SyncModal";
+const MODAL_SIZE_CLASS = {
+  productDetail: "cardProduct",
+  orderDetail: "cardOrder",
+};
+
+export default function ModalRoot() {
+  const modal = useSelector(selectModal);
+  const dispatch = useDispatch();
+  if (!modal) return null;
+
+  function close() {
+    dispatch(closeModal());
+  }
+
+  const sizeClass = styles[MODAL_SIZE_CLASS[modal.type]] || "";
+
+  return (
+    <div
+      className={styles.overlay}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) close();
+      }}
+    >
+      <div className={`${styles.card} ${sizeClass}`}>
+        {modal.type === "talkTrack" && <TalkTrackModal onClose={close} />}
+        {modal.type === "productDetail" && (
+          <ProductDetailModal id={modal.props.id} onClose={close} />
+        )}
+        {modal.type === "admin" && <AdminModal onClose={close} />}
+        {modal.type === "profileEdit" && <ProfileEditModal onClose={close} />}
+        {modal.type === "sync" && <SyncModal onClose={close} />}
+        {modal.type === "orderDetail" && (
+          <OrderDetailModal orderId={modal.props?.id} onClose={close} />
+        )}
+        {modal.type === "userDoc" && (
+          <DocumentModal onClose={close} variant="userDoc" />
+        )}
+      </div>
+    </div>
+  );
+}

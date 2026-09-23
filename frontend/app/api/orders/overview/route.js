@@ -1,0 +1,36 @@
+import { NextResponse } from "next/server";
+import { API_URL } from "@/lib/helper";
+
+const BACKEND_URL = API_URL;
+
+// Dry run of POST /orders: same pricing engine, no writes. The server resolves
+// live prices, balance and tier from the session, so the client only sends
+// product ids, quantities and how many coins to apply.
+export async function POST(request) {
+  const body = await request.json();
+
+  if (!BACKEND_URL) {
+    return NextResponse.json(
+      { error: "API_URL is not set" },
+      { status: 503 },
+    );
+  }
+
+  try {
+    const res = await fetch(`${BACKEND_URL}/orders/overview`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-session-id": request.headers.get("x-session-id") ?? "",
+      },
+      body: JSON.stringify(body),
+    });
+
+    return NextResponse.json(await res.json(), { status: res.status });
+  } catch (err) {
+    return NextResponse.json(
+      { error: String(err?.message ?? err) },
+      { status: 502 },
+    );
+  }
+}

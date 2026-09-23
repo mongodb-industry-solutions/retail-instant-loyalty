@@ -1,7 +1,21 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Kanopy
+knowledge_base_kanopy/
+
+# Security checks
+security_check.sh
+SECURITY_CHECK_README.md
+
+# Git hooks (included in template, ignored in derived repos)
+setup-hooks.sh
+.githooks/
+
+# Kanopy
+
+KANOPY_DEPLOYMENT_README.md
 
 # dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.js
 
@@ -9,7 +23,7 @@
 /coverage
 
 # next.js
-/.next/
+.next/
 /out/
 
 # production
@@ -34,3 +48,32 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Next.js
+frontend/.next/
+frontend/out/
+
+# Next.js
+frontend/.next/
+frontend/out/
+
+# Production builds
+frontend/build
+
+# Debug logs
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Environment files
+frontend/.env*
+
+# Vercel
+frontend/.vercel

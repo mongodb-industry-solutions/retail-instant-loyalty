@@ -1,0 +1,103 @@
+@font-face {
+  font-family: "Euclid Circular A";
+  src: url("https://d2va9gm4j17fy9.cloudfront.net/fonts/euclid-circular/EuclidCircularA-Regular-WebXL.woff2")
+    format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Euclid Circular A";
+  src: url("https://d2va9gm4j17fy9.cloudfront.net/fonts/euclid-circular/EuclidCircularA-Regular-WebXL.woff2")
+    format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Euclid Circular A";
+  src: url("https://d2va9gm4j17fy9.cloudfront.net/fonts/euclid-circular/EuclidCircularA-Regular-WebXL.woff2")
+    format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Euclid Circular A";
+  src: url("https://d2va9gm4j17fy9.cloudfront.net/fonts/euclid-circular/EuclidCircularA-Regular-WebXL.woff2")
+    format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --bg: #f9fbfa; /* was #F9FBFA — palette.gray.light3 (exact) */
+  --surface: #ffffff; /* was #FFFFFF — palette.white (exact) */
+  --surface-muted: #f9fbfa; /* was #FAFCFB — palette.gray.light3 */
+  --surface-blue: #e1f7ff; /* was #EEF3FF — palette.blue.light3, matches Badge's Blue variant background */
+  --border: #e8edeb; /* was #E3E9E7 — palette.gray.light2 */
+  --border-strong: #c1c7c6; /* was #C6D2CE — palette.gray.light1 */
+  --border-blue: #c3e7fe; /* was #D8E2FF — palette.blue.light2, matches Badge's Blue variant border */
+  --border-emerald: #c0fae6; /* was #C8E7D6 — palette.green.light2 */
+  --surface-emerald: #e3fcf7; /* was #F4FBF7 — palette.green.light3 */
+  --forest: #001e2b; /* was #001E2B — palette.black (exact) */
+  --green-dark: #00684a; /* was #00684A — palette.green.dark2 (exact) */
+  --green-darker: #023430; /* was #023430 — palette.green.dark3 (exact) */
+  --green-bright: #00ed64; /* was #00ED64 — palette.green.base (exact) */
+  --green-tint: #e3fcf7; /* was #E3FCEC — palette.green.light3 */
+  --text: #1c2d38; /* was #1C2B2F — palette.gray.dark3 */
+  --text-muted: #5c6c75; /* was #5C6C75 — palette.gray.dark1 (exact) */
+  --text-faint: #889397; /* was #8CA0A6 — palette.gray.base */
+  --amber: #944f01; /* was #B7791F — palette.yellow.dark2, matches Badge's Yellow variant text */
+  --amber-tint: #fef7db; /* was #FBF1DC — palette.yellow.light3, matches Badge's Yellow variant background */
+  --amber-deep: #4c2100; /* was #8A5A2B — palette.yellow.dark3 */
+  --amber-border: #ffec9e; /* new — palette.yellow.light2, was several raw #F0DFB0/#E8D9A8 borders across CheckoutView/ConfirmView/shared */
+  --platinum: #1254b7; /* was #3E63DD — palette.blue.dark1, matches Badge's Blue variant text */
+  --platinum-tint: #e1f7ff; /* was #E8ECFC — palette.blue.light3 */
+  --shadow-sm: 0 1px 2px rgba(0, 30, 20, 0.06);
+  --shadow-md: 0 4px 16px rgba(0, 30, 20, 0.08);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --ui-font: "Euclid Circular A", "Akzidenz", Helvetica, Arial, sans-serif;
+  --mono-font: "Euclid Circular A", "Liberation Mono", monospace;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--ui-font);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+body,
+input,
+select,
+textarea {
+  font-family: var(--ui-font);
+}
+
+a {
+  color: inherit;
+}
+[hidden] {
+  display: none !important;
+}
+
+.mono {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

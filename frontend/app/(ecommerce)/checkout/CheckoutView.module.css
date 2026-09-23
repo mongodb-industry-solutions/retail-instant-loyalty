@@ -1,0 +1,50 @@
+.formCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  margin-bottom: 20px;
+}
+
+.loyaltyCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-top: 12px;
+}
+.loyaltyTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.loyaltyTitle {
+  font-weight: 600;
+  font-size: 14.6px;
+  color: var(--text);
+}
+.sliderWrap {
+  margin-top: 12px;
+  width: 100%;
+}
+.slider {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+.loyaltyScale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.4px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.loyaltyNote {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.coinPreviewPolicy {
+  margin-top: 6px;
+}
