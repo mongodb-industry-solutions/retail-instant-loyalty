@@ -123,7 +123,7 @@ export default function CoinHistoryView() {
                   className={`${styles.historyDelta} ${loyalty.type === "earn" ? styles.historyDeltaEarned : styles.historyDeltaRedeemed} mono`}
                 >
                   {loyalty?.coins > 0 ? "+" : ""}
-                  {loyalty?.coins.toLocaleString()}
+                  {loyalty?.coins?.toLocaleString()}
                 </div>
                 <div className={`${styles.historyBalance} mono`}>
                   Balance: {(loyalty?.coinBalance).toLocaleString()}
