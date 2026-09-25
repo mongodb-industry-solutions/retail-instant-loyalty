@@ -1,7 +1,128 @@
 import { sendError } from "../lib/orderEngine.js";
-import { resolveTier } from "../lib/loyaltyEngine.js";
+import { createLoyaltyEngine } from "../lib/loyaltyEngine.js";
 
 export default function loyaltyConfigurationRoutes(app) {
+  const { recalculateSessionCustomerTier } = createLoyaltyEngine(app);
+
+
+  async function updateTierValues(request, reply, fieldName, valueName) {
+    const sessionId = request.headers["x-session-id"];
+    const { tiers } = request.body || {};
+
+    if (!sessionId)
+      return sendError(
+        reply,
+        400,
+        "SESSION_REQUIRED",
+        "x-session-id header is required",
+      );
+
+    if (
+      !Array.isArray(tiers) ||
+      tiers.length === 0 ||
+      tiers.some(
+        (tier) =>
+          !tier ||
+          typeof tier.tierKey !== "string" ||
+          tier.tierKey.length === 0 ||
+          typeof tier[valueName] !== "number" ||
+          !Number.isFinite(tier[valueName]) ||
+          tier[valueName] <= 0,
+      )
+    ) {
+      return sendError(
+        reply,
+        400,
+        "INVALID_TIER_UPDATES",
+        `tiers must contain tierKey and a finite positive ${valueName}`,
+      );
+    }
+
+    const db = app.mongo.db;
+
+    try {
+      const config = await db
+        .collection("loyaltyConfiguration")
+        .findOne({ sessionId });
+      if (!config)
+        return sendError(
+          reply,
+          404,
+          "LOYALTY_CONFIG_NOT_FOUND",
+          "No loyalty configuration for this session",
+        );
+
+      const configuredTierKeys = new Set(
+        (config.rewardDetails || []).map((tier) => tier.tierKey),
+      );
+      const requestedTierKeys = tiers.map((tier) => tier.tierKey);
+      const unknownTierKey = requestedTierKeys.find(
+        (tierKey) => !configuredTierKeys.has(tierKey),
+      );
+
+      if (unknownTierKey) {
+        return sendError(
+          reply,
+          400,
+          "TIER_NOT_FOUND",
+          `"${unknownTierKey}" does not match any configured tierKey`,
+        );
+      }
+
+      const updatesByTierKey = new Map(
+        tiers.map((tier) => [tier.tierKey, tier[valueName]]),
+      );
+      const updatedRewardDetails = config.rewardDetails.map((tier) =>
+        updatesByTierKey.has(tier.tierKey)
+          ? { ...tier, [fieldName]: updatesByTierKey.get(tier.tierKey) }
+          : tier,
+      );
+
+      await db.collection("loyaltyConfiguration").updateOne(
+        { sessionId },
+        { $set: { rewardDetails: updatedRewardDetails } },
+      );
+
+      await recalculateSessionCustomerTier(db, {
+        sessionId,
+        rewardDetails: updatedRewardDetails,
+      });
+
+      const updatedConfig = await db
+        .collection("loyaltyConfiguration")
+        .findOne({ sessionId });
+
+      return reply.send({ data: updatedConfig });
+    } catch (err) {
+      app.log.error(err);
+      return sendError(reply, 500, "TIER_UPDATE_FAILED", err.message);
+    }
+  }
+
+  // body =  {
+  //   "tiers": [
+  //     { "tierKey": "bronze", "newThreshold": 3 },
+  //     { "tierKey": "silver", "newThreshold": 1000 }
+  //   ]
+  // }
+  app.post("/loyalty-configuration/tiers-thresholds", (request, reply) =>
+    updateTierValues(request, reply, "tierThreshold", "newThreshold"),
+  );
+
+  // body =  {
+  //   "tiers": [
+  //     { "tierKey": "bronze", "newCurrencyValueForDollar": 30 }
+  //   ]
+  // }
+  app.post("/loyalty-configuration/tiers-values", (request, reply) =>
+    updateTierValues(
+      request,
+      reply,
+      "currencyValueForDollar",
+      "newCurrencyValueForDollar",
+    ),
+  );
+
   // GET /loyalty-configuration — full config doc for this session
   app.get("/loyalty-configuration", async (request, reply) => {
     const sessionId = request.headers["x-session-id"];
@@ -90,130 +211,6 @@ export default function loyaltyConfigurationRoutes(app) {
     } catch (err) {
       app.log.error(err);
       return sendError(reply, 500, "CAMPAIGNS_LOOKUP_FAILED", err.message);
-    }
-  });
-
-  // POST /loyalty-configuration/tiers — update one or more tiers' fields,
-  // then recompute every session customer's activeTier/nextTier against
-  // the new thresholds.
-  app.post("/loyalty-configuration/tiers", async (request, reply) => {
-    const sessionId = request.headers["x-session-id"];
-    const { explain, ...tierUpdates } = request.body || {};
-
-    if (!sessionId)
-      return sendError(
-        reply,
-        400,
-        "SESSION_REQUIRED",
-        "x-session-id header is required",
-      );
-
-    const requestedTierNames = Object.keys(tierUpdates);
-    if (requestedTierNames.length === 0) {
-      return sendError(
-        reply,
-        400,
-        "TIER_UPDATES_REQUIRED",
-        "At least one tier field is required",
-      );
-    }
-
-    const db = app.mongo.db;
-
-    try {
-      const config = await db
-        .collection("loyaltyConfiguration")
-        .findOne({ sessionId });
-      if (!config)
-        return sendError(
-          reply,
-          404,
-          "LOYALTY_CONFIG_NOT_FOUND",
-          "No loyalty configuration for this session",
-        );
-
-      for (const name of requestedTierNames) {
-        if (!config.rewardDetails.some((tier) => tier.tierName === name)) {
-          return sendError(
-            reply,
-            400,
-            "TIER_NOT_FOUND",
-            `"${name}" does not match any existing tierName`,
-          );
-        }
-      }
-
-      const updatedRewardDetails = config.rewardDetails.map((tier) => {
-        const patch = tierUpdates[tier.tierName];
-        if (!patch) return tier;
-
-        return {
-          ...tier,
-          ...(patch.tierThreshold !== undefined
-            ? { tierThreshold: patch.tierThreshold }
-            : {}),
-          ...(patch.currencyValueForDollar !== undefined
-            ? { currencyValueForDollar: patch.currencyValueForDollar }
-            : {}),
-        };
-      });
-
-      await db
-        .collection("loyaltyConfiguration")
-        .updateOne(
-          { sessionId },
-          { $set: { rewardDetails: updatedRewardDetails } },
-        );
-
-      const customers = await db
-        .collection("customers")
-        .find({ sessionId })
-        .toArray();
-      const bulkOps = [];
-
-      for (const customer of customers) {
-        const cumulativeSpend =
-          customer.loyaltyDetails?.cumulativeSpendDollars || 0;
-        const resolved = resolveTier(updatedRewardDetails, cumulativeSpend);
-
-        if (resolved.tierKey !== customer.loyaltyDetails?.activeTier) {
-          bulkOps.push({
-            updateOne: {
-              filter: { _id: customer._id },
-              update: {
-                $set: {
-                  "loyaltyDetails.activeTier": resolved.tierKey,
-                  "loyaltyDetails.nextTier": resolved.nextTierKey,
-                },
-                $push: {
-                  "loyaltyDetails.loyaltyHistory": {
-                    tierKey: resolved.tierKey,
-                    activatedAt: new Date(),
-                    previousTier: customer.loyaltyDetails?.activeTier,
-                  },
-                },
-              },
-            },
-          });
-        }
-      }
-
-      if (bulkOps.length > 0) {
-        await db.collection("customers").bulkWrite(bulkOps);
-      }
-
-      const response = { data: {} };
-
-      if (explain === true) {
-        response.meta = {
-          explain: "N/A — explain not applicable to write operations",
-        };
-      }
-
-      return reply.send(response);
-    } catch (err) {
-      app.log.error(err);
-      return sendError(reply, 500, "TIER_UPDATE_FAILED", err.message);
     }
   });
 
