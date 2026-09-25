@@ -6,7 +6,7 @@ import {
   SegmentedControl,
   SegmentedControlItem,
 } from "@via-ds/components/segmented-control";
-import { formatCoinValue, tierProgressValue } from "@/lib/helper";
+import { formatCoinValue } from "@/lib/helper";
 import { useSelector } from "react-redux";
 import {
   selectSelectedUser,

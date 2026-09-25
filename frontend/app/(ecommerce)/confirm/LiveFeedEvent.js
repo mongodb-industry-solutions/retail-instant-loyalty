@@ -1,5 +1,12 @@
 import { formatPrice, roundCurrency } from "@/lib/helper";
 
+export const PLACEMENT_MS = 1800;
+export const FEED_INTERVAL_MS = 300;
+
+export const placementDelay = (index, count) =>
+  ((index + 1) * PLACEMENT_MS) / count;
+export const feedDelay = (index) => PLACEMENT_MS + index * FEED_INTERVAL_MS;
+
 export function liveFeedEventsForOrder(order, persona) {
   if (!order || !persona) return [];
   if (order.type === "redeem") {
@@ -39,7 +46,8 @@ export function liveFeedEventsForOrder(order, persona) {
   const loyalty = order.loyalty ?? {};
   const oldBalance = (loyalty.oldBalance ?? 0).toLocaleString();
   const newBalance = (loyalty.newBalance ?? 0).toLocaleString();
-  const fullName = `${persona.profile?.firstName ?? ""} ${persona.profile?.lastName ?? ""}`.trim();
+  const fullName =
+    `${persona.profile?.firstName ?? ""} ${persona.profile?.lastName ?? ""}`.trim();
 
   return [
     {

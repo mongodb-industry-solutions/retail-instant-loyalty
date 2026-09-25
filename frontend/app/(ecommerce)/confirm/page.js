@@ -1,9 +1,10 @@
 "use client";
+import { useState, useEffect, useMemo } from "react";
 
 import styles from "./ConfirmView.module.css";
 import { Icon } from "@via-ds/icons";
 import { Text } from "@via-ds/components/typography";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import {
   selectSelectedUser,
   selectLastOrder,
@@ -16,16 +17,14 @@ import { useRouter } from "next/navigation";
 import RedeemView from "../../../components/RedeemView/RedeemView";
 import ConfirmSidebar from "../../../components/ConfirmSidebar/ConfirmSidebar";
 import { Button } from "@via-ds/components/button";
+import OrderStatusBar from "@/components/OrderStatusBar/OrderStatusBar";
+import { ORDER_STATUS_STAGES } from "@/lib/data";
+import { fetchOrder } from "@/lib/api";
 export default function ConfirmView() {
   const router = useRouter();
-  const dispatch = useDispatch();
   const redemptionInProgress = false;
   const reviewing = false;
   const persona = useSelector(selectSelectedUser);
-  // POST /orders and POST /redeem share the same response envelope:
-  // { order, loyalty }. lastEvent says which of the two happened most
-  // recently, so a redeem after a purchase drives the page instead of the
-  // stale order it was reviewed from.
   const lastOrder = useSelector(selectLastOrder);
   const latestRedeem = useSelector(selectLastRedeem);
   const lastEvent = useSelector(selectLastEvent);
@@ -35,9 +34,57 @@ export default function ConfirmView() {
     ? { ...activeEvent.order, loyalty: activeEvent.loyalty }
     : null;
   const shownOrderId = finalOrder?.orderId;
+  const [orderStatus, setOrderStatus] = useState("authorizing");
 
-  const excludeItemIds = new Set(
-    (finalOrder?.items ?? []).map((item) => item.productId),
+  const orderId = finalOrder?.orderId ?? finalOrder?.id;
+  const customerId = persona?.customerId;
+
+  useEffect(() => {
+    if (!orderId || !customerId) return;
+
+    let stopped = false;
+    let timer;
+
+    const statusPoll = async () => {
+      console.log("Poll request started");
+
+      try {
+        const orderData = await fetchOrder({ orderId, customerId });
+
+        console.log("Poll response:", orderData);
+
+        if (stopped) return;
+
+        const latestStatus = orderData?.currentStatus ?? "authorizing";
+
+        setOrderStatus(latestStatus);
+
+        if (latestStatus === "delivered") {
+          console.log("Polling stopped: delivered");
+          return;
+        }
+
+        timer = setTimeout(statusPoll, 1000);
+      } catch (error) {
+        console.error("Polling failed:", error);
+
+        if (!stopped) {
+          timer = setTimeout(statusPoll, 1000);
+        }
+      }
+    };
+
+    statusPoll();
+
+    return () => {
+      stopped = true;
+      clearTimeout(timer);
+    };
+  }, [orderId, customerId]);
+
+  const excludeItemIds = useMemo(
+    () => new Set((finalOrder?.items ?? []).map((item) => item.productId)),
+    [finalOrder?.items],
   );
 
   if (!finalOrder) {
@@ -51,8 +98,26 @@ export default function ConfirmView() {
     );
   }
 
+  const showOnlyStepper = ["authorizing", "placed"].includes(orderStatus);
+
+  // if (showOnlyStepper) {
+  //   console.log("Showing only stepper for order status:", orderStatus);
+  //   return (
+  //     <main className={styles.wrap}>
+  //       <OrderStatusBar stages={ORDER_STATUS_STAGES} current={orderStatus} />
+  //     </main>
+  //   );
+  // }
+
+  console.log(
+    "Rendering full confirmation page for order status:",
+    orderStatus,
+  );
+
   return (
     <main className={styles.wrap}>
+      <OrderStatusBar stages={ORDER_STATUS_STAGES} current={orderStatus} />
+
       {redemptionInProgress ? (
         <div className={styles.pendingNote}>
           🕒 Reviewing your redemption — nothing&apos;s been confirmed yet
@@ -75,11 +140,9 @@ export default function ConfirmView() {
           </div>
         </>
       )}
-
       <div className={styles.layout}>
         <div className={styles.main}>
           <LoyaltyRewardCard order={finalOrder} />
-
           {!reviewing && (
             <Receipt
               order={finalOrder}

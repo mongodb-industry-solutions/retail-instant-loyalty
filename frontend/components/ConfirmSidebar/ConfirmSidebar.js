@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import { Button } from "@via-ds/components/button";
 import { useDispatch } from "react-redux";
-import { liveFeedEventsForOrder } from "../../app/(ecommerce)/confirm/LiveFeedEvent";
+import {
+  liveFeedEventsForOrder,
+  feedDelay,
+} from "../../app/(ecommerce)/confirm/LiveFeedEvent";
 import styles from "./ConfirmSidebar.module.css";
 import { openModal } from "@/redux/slices/GlobalSlice";
 
@@ -30,7 +33,7 @@ export default function ConfirmSidebar({ persona, order, lastRedeem }) {
       : order;
     const events = liveFeedEventsForOrder(target, persona);
     const timers = events.map((evt, idx) =>
-      setTimeout(() => setFeedItems((prev) => [...prev, evt]), 250 + idx * 380),
+      setTimeout(() => setFeedItems((prev) => [...prev, evt]), feedDelay(idx)),
     );
     return () => timers.forEach(clearTimeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps

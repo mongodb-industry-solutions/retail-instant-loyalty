@@ -164,11 +164,6 @@ const GlobalSlice = createSlice({
     saveCampaignSuccess(state, action) {
       state.loyaltyConfig.campaign = action.payload.campaign;
     },
-    setOrdersData(state, action) {
-      state.orders.data = action.payload.orders;
-      state.orders.loading = false;
-      state.orders.error = null;
-    },
     setOrdersLoading(state) {
       state.orders.loading = true;
       state.orders.error = null;

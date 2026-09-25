@@ -3,10 +3,7 @@ import {
   roundCurrency,
   tierByKey,
   coinDollarValue,
-  dollarsForCoins,
   getTier,
-  activeCampaignMultiplier,
-  computeRedeemTotals,
 } from "@/shared/pricing";
 export { TAX_RATE, roundCurrency, getTier };
 export { getNextTier } from "@/shared/pricing";

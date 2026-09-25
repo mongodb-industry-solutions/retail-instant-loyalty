@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Badge } from "@via-ds/components/badge";
 import { Button } from "@via-ds/components/button";
 import {
@@ -85,6 +85,9 @@ export default function Navbar() {
     router.push(routeList[route]);
   }
 
+  const pathname = usePathname();
+  console.log("Current pathname:", pathname);
+
   return (
     <div>
       <PromoBanner activeCampaign={activeCampaign} />
@@ -93,20 +96,22 @@ export default function Navbar() {
           <Logo logo="MongoDBLogoMark" size="medium" />
           <Text size="large">Leafy Loyalty</Text>
         </div>
-        <div className={styles.navSearchGroup}>
-          <div className={styles.navSearch}>
-            <SearchIcon />
-            <input type="text" placeholder="Find your next favorite" />
+        {pathname === "/" ? (
+          <div className={styles.navSearchGroup}>
+            <div className={styles.navSearch}>
+              <SearchIcon />
+              <input type="text" placeholder="Find your next favorite" />
+            </div>
+            <button
+              className={`${shared.wandIconBtn} ${shared.wandIconBtnOutside}`}
+              title="About MongoDB Atlas Search"
+              aria-label="About MongoDB Atlas Search"
+              onClick={() => dispatch(openModal({ modalType: "searchInfo" }))}
+            >
+              <WandIcon size={16} />
+            </button>
           </div>
-          <button
-            className={`${shared.wandIconBtn} ${shared.wandIconBtnOutside}`}
-            title="About MongoDB Atlas Search"
-            aria-label="About MongoDB Atlas Search"
-            onClick={() => dispatch(openModal({ modalType: "searchInfo" }))}
-          >
-            <WandIcon size={16} />
-          </button>
-        </div>
+        ) : null}
         <div className={styles.navRight}>
           <button
             className={styles.utilBtn}

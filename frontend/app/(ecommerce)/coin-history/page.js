@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 
 import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
-import { currentTierFor, formatCoinValue } from "@/lib/helper";
 import TierTrack from "@/components/TierTrack/TierTrack";
 import styles from "./CoinHistoryView.module.css";
 import profile from "@/components/Profile.module.css";
