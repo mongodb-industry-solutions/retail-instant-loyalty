@@ -25,12 +25,14 @@ import {
   fetchProducts,
   fetchLoyaltyConfig,
   endSession,
+  subscribeToChanges,
 } from "@/lib/api";
 
 export default function EcommerceLayout({ children }) {
   const dispatch = useDispatch();
   const router = useRouter();
   const selectedUser = useSelector(selectSelectedUser);
+  const selectedCustomerId = selectedUser?.customerId;
   const products = useSelector(selectProductsState);
   const loyaltyConfig = useSelector(selectLoyaltyConfig);
   useEffect(() => {
@@ -68,6 +70,50 @@ export default function EcommerceLayout({ children }) {
       cancelled = true;
     };
   }, [selectedUser, dispatch, router]);
+
+  useEffect(() => {
+    if (!selectedCustomerId) return;
+
+    let active = true;
+    let refreshing = false;
+    let refreshAgain = false;
+
+    const refreshCustomer = async () => {
+      if (refreshing) {
+        refreshAgain = true;
+        return;
+      }
+
+      refreshing = true;
+      do {
+        refreshAgain = false;
+        try {
+          // TODO. CHnage stream shouldnt call backend
+          // TODO. change stream should receive the event object which contains event.fullDocument
+          const customer = await fetchCustomer(selectedCustomerId);
+          if (active) dispatch(setSelectedUser(customer));
+        } catch (err) {
+          console.error("Unable to refresh customer after change", err);
+        }
+      } while (active && refreshAgain);
+      refreshing = false;
+    };
+
+    const unsubscribe = subscribeToChanges(
+      {
+        collection: "customers",
+        field: "customerId",
+        value: selectedCustomerId,
+      },
+      refreshCustomer,
+    );
+
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, [selectedCustomerId, dispatch]);
+
   useEffect(() => {
     let cancelled = false;
     Promise.all([fetchProducts(), fetchLoyaltyConfig()])

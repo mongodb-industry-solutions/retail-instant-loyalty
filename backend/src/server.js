@@ -8,6 +8,7 @@ import redeemRoutes from "./routes/redeem.js";
 import loyaltyConfigurationRoutes from "./routes/loyaltyConfiguration.js";
 import productsRoutes from "./routes/products.js";
 import loyaltyHistoryRoutes from "./routes/loyaltyHistory.js";
+import changeStreamRoutes from "./routes/changeStreams.js";
 
 const app = Fastify({ logger: true });
 
@@ -26,6 +27,7 @@ await app.register(redeemRoutes);
 await app.register(loyaltyConfigurationRoutes);
 await app.register(productsRoutes);
 await app.register(loyaltyHistoryRoutes);
+await app.register(changeStreamRoutes);
 
 try {
   await app.listen({ port, host: "0.0.0.0" });

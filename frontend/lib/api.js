@@ -92,6 +92,22 @@ export function fetchCustomer(id) {
   return request(`/customers/${id}`);
 }
 
+export function subscribeToChanges({ collection, field, value }, onChange) {
+  const query = new URLSearchParams({ field, value });
+  const eventSource = new EventSource(
+    `/api/change-streams/${encodeURIComponent(collection)}?${query}`,
+  );
+
+  eventSource.addEventListener("connected", onChange);
+  eventSource.addEventListener("changed", onChange);
+
+  return () => {
+    eventSource.removeEventListener("connected", onChange);
+    eventSource.removeEventListener("changed", onChange);
+    eventSource.close();
+  };
+}
+
 export function fetchProducts() {
   return request("/products");
 }
