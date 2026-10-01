@@ -91,7 +91,7 @@ export function createLoyaltyEngine(app) {
   }
 
   async function buildCustomerLoyaltyLogoutReset(db, { customer, now = new Date() }) {
-    const { customerId, isAlwaysNewUser, loyaltyDetails = {} } = customer;
+    const { customerId, isAlwaysNewUser } = customer;
     let newOrdersCount;
     let coinBalance;
     let activeTier;
@@ -121,6 +121,14 @@ export function createLoyaltyEngine(app) {
               $group: {
                 _id: null,
                 cumulativeSpendDollars: { $sum: "$amountSummary.total" },
+                coinBalance: {
+                  $sum: {
+                    $subtract: [
+                      { $ifNull: ["$coinsEarned", 0] },
+                      { $ifNull: ["$coinsApplied", 0] },
+                    ],
+                  },
+                },
               },
             },
           ])
@@ -135,7 +143,7 @@ export function createLoyaltyEngine(app) {
       }
 
       newOrdersCount = newOrdersCountResult;
-      coinBalance = loyaltyDetails.coinBalance;
+      coinBalance = orderSummary?.coinBalance || 0;
       cumulativeSpendDollars = orderSummary?.cumulativeSpendDollars || 0;
       const resolvedTier = resolveTier(
         loyaltySeed.seedFields.rewardDetails,

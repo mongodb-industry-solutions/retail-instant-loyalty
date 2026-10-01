@@ -9,6 +9,7 @@ import loyaltyConfigurationRoutes from "./routes/loyaltyConfiguration.js";
 import productsRoutes from "./routes/products.js";
 import loyaltyHistoryRoutes from "./routes/loyaltyHistory.js";
 import changeStreamRoutes from "./routes/changeStreams.js";
+import adminRoutes from "./routes/admin.js";
 
 const app = Fastify({ logger: true });
 
@@ -28,6 +29,7 @@ await app.register(loyaltyConfigurationRoutes);
 await app.register(productsRoutes);
 await app.register(loyaltyHistoryRoutes);
 await app.register(changeStreamRoutes);
+await app.register(adminRoutes);
 
 try {
   await app.listen({ port, host: "0.0.0.0" });
