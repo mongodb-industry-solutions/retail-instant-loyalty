@@ -96,7 +96,8 @@ export default function Navbar() {
           <Logo logo="MongoDBLogoMark" size="medium" />
           <Text size="large">Leafy Loyalty</Text>
         </div>
-        {pathname === "/" ? (
+        {
+          /* {pathname === "/" ? (
           <div className={styles.navSearchGroup}>
             <div className={styles.navSearch}>
               <SearchIcon />
@@ -111,7 +112,9 @@ export default function Navbar() {
               <WandIcon size={16} />
             </button>
           </div>
-        ) : null}
+        ) : null} */
+          // To be used when the search functionality is in place
+        }
         <div className={styles.navRight}>
           <button
             className={styles.utilBtn}

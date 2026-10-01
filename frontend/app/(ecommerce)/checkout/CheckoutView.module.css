@@ -28,6 +28,10 @@
   margin-top: 12px;
   width: 100%;
 }
+.sliderValue {
+  font-weight: 700;
+  color: var(--forest);
+}
 .slider {
   display: block;
   width: 100%;

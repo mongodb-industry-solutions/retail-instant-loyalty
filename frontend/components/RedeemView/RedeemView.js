@@ -5,7 +5,8 @@ import {
   confirmRedeemOrderSuccess,
   selectSelectedUser,
   selectLoyaltyConfig,
-  selectLastRedeem,
+  selectLastEvent,
+  openModal,
 } from "../../redux/slices/GlobalSlice";
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -16,7 +17,7 @@ import shared from "@/components/shared.module.css";
 import { toast } from "@via-ds/components/toast";
 import styles from "./RedeemView.module.css";
 
-function CandidateCard({ product, selected, onSelect, onDeselect }) {
+function CandidateCard({ product, selected, onSelect, onDeselect, onShowDoc }) {
   const coversWithCoins = product.cash === 0;
 
   return (
@@ -61,15 +62,24 @@ function CandidateCard({ product, selected, onSelect, onDeselect }) {
             )}
           </div>
         </div>
-        {selected ? (
-          <Button variant="primary" size="small" onClick={onDeselect}>
-            ✓ Selected
+        <div className={styles.redeemCardActions}>
+          <Button
+            className={styles.docToggle}
+            aria-label={`Show document for ${product.name}`}
+            onClick={onShowDoc}
+          >
+            {"{ }"}
           </Button>
-        ) : (
-          <Button variant="primary" size="small" onClick={onSelect}>
-            Redeem now
-          </Button>
-        )}
+          {selected ? (
+            <Button variant="primary" size="small" onClick={onDeselect}>
+              ✓ Selected
+            </Button>
+          ) : (
+            <Button variant="primary" size="small" onClick={onSelect}>
+              Redeem now
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -155,43 +165,56 @@ function ReviewPanel({ persona, reward, onConfirmed }) {
 }
 
 export default function RedeemSection({ excludeItemIds }) {
+  const dispatch = useDispatch();
   const persona = useSelector(selectSelectedUser);
   const { rewardDetails } = useSelector(selectLoyaltyConfig);
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [offer, setOffer] = useState(null);
+  const [loadError, setLoadError] = useState(null);
   const excludeKey = [...(excludeItemIds ?? [])].sort().join(",");
 
-  const lastRedeem = useSelector(selectLastRedeem);
-
-  console.log("Last redeem:", lastRedeem);
+  // Keyed off the most recent event rather than "has ever redeemed": offering
+  // rewards straight after a redemption is noise, but the next order should
+  // bring the section back. lastRedeem is never cleared, so gating on it hid
+  // the section permanently after the first redemption.
+  const justRedeemed = useSelector(selectLastEvent) === "redeem";
 
   useEffect(() => {
     let cancelled = false;
-    if (!lastRedeem) {
+    if (!justRedeemed) {
       fetchRedeemCandidates({
         excludeProducts: excludeKey ? excludeKey.split(",") : [],
       })
         .then((data) => {
-          if (!cancelled) setOffer(data);
+          if (cancelled) return;
+          setOffer(data);
+          setLoadError(null);
         })
         .catch((err) => {
-          if (!cancelled) console.error("Couldn't load rewards:", err.message);
+          if (cancelled) return;
+          setOffer({ products: [] });
+          setLoadError(err.message);
         });
     }
     return () => {
       cancelled = true;
     };
-  }, [persona.customerId, persona.loyaltyDetails?.coinBalance, excludeKey]);
+  }, [
+    persona.customerId,
+    persona.loyaltyDetails?.coinBalance,
+    excludeKey,
+    justRedeemed,
+  ]);
 
+  const loading = offer === null;
   const products = offer?.products ?? [];
-  if (!products.length) return null;
 
   const reward =
     products.find((p) => p.productId === selectedProductId) || null;
   const activeTier = persona.loyaltyDetails?.activeTier;
 
   return (
-    !lastRedeem && (
+    !justRedeemed && (
       <div className={styles.redeemSection}>
         <div className={styles.redeemHead}>
           <h3>✨ Treat yourself with the coins you’ve earned</h3>
@@ -207,6 +230,16 @@ export default function RedeemSection({ excludeItemIds }) {
           {`Purchase with your coins at ${activeTier} tier — 1 coin = ${formatCoinValue(activeTier, rewardDetails)}.`}
         </p>
 
+        {loading && <div className={styles.redeemEmpty}>Loading rewards…</div>}
+
+        {!loading && !products.length && (
+          <div className={styles.redeemEmpty}>
+            {loadError
+              ? `Couldn't load rewards right now: ${loadError}`
+              : "Nothing to redeem just yet — keep earning and rewards you can cover with coins will show up here."}
+          </div>
+        )}
+
         <div className={styles.redeemList}>
           {products.map((pr) => (
             <CandidateCard
@@ -215,6 +248,14 @@ export default function RedeemSection({ excludeItemIds }) {
               selected={pr.productId === selectedProductId}
               onSelect={() => setSelectedProductId(pr.productId)}
               onDeselect={() => setSelectedProductId(null)}
+              onShowDoc={() =>
+                dispatch(
+                  openModal({
+                    modalType: "redeemDoc",
+                    props: { product: pr },
+                  }),
+                )
+              }
             />
           ))}
         </div>

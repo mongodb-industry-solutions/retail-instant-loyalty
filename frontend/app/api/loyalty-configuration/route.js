@@ -3,60 +3,12 @@ import { NextResponse } from "next/server";
 
 const BACKEND_URL = API_URL;
 
-// TODO(backend): this module is not registered in backend/src/server.js yet,
-// so the seed data below is still the source of truth. Flip to true once it is.
-//const BACKEND_SERVES_THIS = false;
-
-// TEMPORARY: seed data lives here until the backend serves it.
-// Once BACKEND_URL is available, delete this and use the fetch below.
-// const PLACEHOLDER_LOYALTY_CONFIG = {
-//   rewardDetails: [
-//     {
-//       tierKey: "bronze",
-//       tierName: "Bronze",
-//       threshold: 1000,
-//       currencyValueForDolar: 1000,
-//     },
-//     {
-//       tierKey: "silver",
-//       tierName: "Silver",
-//       threshold: 2500,
-//       currencyValueForDolar: 500,
-//     },
-//     {
-//       tierKey: "gold",
-//       tierName: "Gold",
-//       threshold: 5000,
-//       currencyValueForDolar: 250,
-//     },
-//     {
-//       tierKey: "diamond",
-//       tierName: "Diamond",
-//       threshold: 10000,
-//       currencyValueForDolar: 100,
-//     },
-//   ],
-
-//   campaign: [
-//     {
-//       promoID: "PROMO-SUMMER-2026",
-//       promoName: "Summer Rewards Bonus",
-//       banner: "Earn double points on all summer purchases",
-//       isActive: true,
-//     },
-//     {
-//       promoID: "PROMO-WELCOME-2026",
-//       promoName: "Welcome Bonus",
-//       banner: "Get 500 bonus points when you join",
-//       isActive: false,
-//     },
-//   ],
-// };
-
 const PATCHABLE_FIELDS = ["rewardDetails", "campaign"];
 
 export async function PATCH(request) {
   const body = await request.json();
+  console.log("PATCH request body:", body);
+
   const patch = Object.fromEntries(
     PATCHABLE_FIELDS.filter((field) => body[field] !== undefined).map(
       (field) => [field, body[field]],
@@ -78,9 +30,12 @@ export async function PATCH(request) {
   }
 
   try {
-    const res = await fetch(`${BACKEND_URL}/loyalty-configuration`, {
+    const res = await fetch(`${BACKEND_URL}/loyalty-configuration/`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-session-id": request.headers.get("x-session-id") ?? "",
+      },
       body: JSON.stringify(patch),
     });
 

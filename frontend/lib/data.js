@@ -26,34 +26,6 @@ export function personaAvatar(gender, index = 0) {
   return pool[index % pool.length];
 }
 
-export const PROMO_HOLIDAYS = [
-  {
-    key: "back_to_school",
-    label: "Back to School",
-    defaultName: "Back to School Boost",
-  },
-  {
-    key: "labour_day",
-    label: "Labour Day",
-    defaultName: "Labour Day Loyalty Event",
-  },
-  {
-    key: "black_friday",
-    label: "Black Friday",
-    defaultName: "Black Friday Double Coins",
-  },
-  {
-    key: "boxing_day",
-    label: "Boxing Day",
-    defaultName: "Boxing Day Bonus Event",
-  },
-  {
-    key: "holiday",
-    label: "Holiday Season",
-    defaultName: "Holiday Shopping Boost",
-  },
-];
-
 export const TIER_BENEFITS = {
   bronze: [
     "Earn loyalty coins on every order",

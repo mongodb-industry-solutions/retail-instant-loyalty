@@ -9,6 +9,7 @@ import {
   selectProductsState,
   selectLoyaltyConfig,
   setSelectedUser,
+  patchSelectedUser,
   setProductsData,
   setProductsError,
   setLoyaltyConfigData,
@@ -68,6 +69,36 @@ export default function EcommerceLayout({ children }) {
       cancelled = true;
     };
   }, [selectedUser, dispatch, router]);
+
+  useEffect(() => {
+    const customerId = selectedUser?.customerId;
+    if (!customerId) return;
+
+    const source = new EventSource(`/api/customers/${customerId}/streamEvent`);
+
+    source.addEventListener("customer-updated", (event) => {
+      try {
+        const { loyaltyDetails, profile } = JSON.parse(event.data);
+        dispatch(patchSelectedUser({ loyaltyDetails, profile }));
+      } catch (error) {
+        console.error("Failed to parse customer-updated event:", error);
+      }
+    });
+
+    source.onerror = () => {
+      // EventSource hands us a bare Event with no detail (hence the useless
+      // "{}"), and fires it on every drop — including the reconnects it
+      // handles itself. Only a CLOSED socket is actually a failure.
+      if (source.readyState === EventSource.CLOSED) {
+        console.error("Customer change stream closed and will not retry");
+      }
+    };
+
+    return () => {
+      source.close();
+    };
+  }, [selectedUser?.customerId, dispatch]);
+
   useEffect(() => {
     let cancelled = false;
     Promise.all([fetchProducts(), fetchLoyaltyConfig()])

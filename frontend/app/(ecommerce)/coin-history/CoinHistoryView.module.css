@@ -24,6 +24,10 @@
   background: var(--amber-tint);
   color: var(--amber);
 }
+.historyTypeTier {
+  background: var(--border-emerald);
+  color: var(--forest);
+}
 .historyLabel {
   font-size: 14.6px;
   font-weight: 600;
@@ -33,6 +37,11 @@
   font-size: 11.9px;
   color: var(--text-faint);
   margin-top: 2px;
+}
+.historyDate {
+  font-size: 11.9px;
+  color: var(--text-muted);
+  margin-top: 3px;
 }
 .historyRight {
   text-align: right;
@@ -46,6 +55,9 @@
 }
 .historyDeltaRedeemed {
   color: var(--amber);
+}
+.historyDeltaTier {
+  color: var(--text-faint);
 }
 .historyBalance {
   font-size: 11.9px;

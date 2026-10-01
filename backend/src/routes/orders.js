@@ -1,5 +1,5 @@
 import { createOrderEngine, sendError } from "../lib/orderEngine.js";
-  import { createLoyaltyEngine } from "../lib/loyaltyEngine.js";
+import { createLoyaltyEngine } from "../lib/loyaltyEngine.js";
 
 export default function ordersRoutes(app) {
   const {
@@ -8,11 +8,8 @@ export default function ordersRoutes(app) {
     scheduleOrderProgression,
     processPayment,
   } = createOrderEngine(app);
-  const{
-    buildLoyaltyHistoryEntries,
-    buildCustomerLoyaltyDetailsUpdate
-  } = createLoyaltyEngine(app);
-
+  const { buildLoyaltyHistoryEntries, buildCustomerLoyaltyDetailsUpdate } =
+    createLoyaltyEngine(app);
 
   // live pricing preview, no writes.
   // ACID transaction
@@ -243,7 +240,9 @@ export default function ordersRoutes(app) {
               .insertMany(historyEntries, { session: mongoSession });
           }
 
-          const customerUpdatePipeline = buildCustomerLoyaltyDetailsUpdate({ math });
+          const customerUpdatePipeline = buildCustomerLoyaltyDetailsUpdate({
+            math,
+          });
 
           await db
             .collection("customers")
@@ -401,5 +400,110 @@ export default function ordersRoutes(app) {
       app.log.error(err);
       return sendError(reply, 500, "ORDER_LOOKUP_FAILED", err.message);
     }
+  });
+
+  //Changes SStream implementation
+  app.get("/orders/:orderId/orderstatus", async (request, reply) => {
+    const customerId = request.headers["x-customer-id"];
+    const { orderId } = request.params;
+
+    if (!customerId)
+      return sendError(
+        reply,
+        400,
+        "CUSTOMER_ID_REQUIRED",
+        "x-customer-id header is required",
+      );
+
+    const db = app.mongo.db;
+
+    const order = await db
+      .collection("orders")
+      .findOne({ orderId, customerId });
+    if (!order)
+      return sendError(
+        reply,
+        404,
+        "ORDER_NOT_FOUND",
+        "Order not found for this customer",
+      );
+
+    reply.hijack();
+
+    const res = reply.raw;
+
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    });
+
+    let closed = false;
+    res.write(`data: ${JSON.stringify({ status: order.currentStatus })}\n\n`);
+
+    if (order.currentStatus === "delivered") {
+      res.end();
+      return reply;
+    }
+
+    const changeStream = db.collection("orders").watch(
+      [
+        {
+          $match: {
+            "fullDocument.orderId": orderId,
+            "fullDocument.customerId": customerId,
+            $or: [
+              {
+                operationType: "update",
+                "updateDescription.updatedFields.currentStatus": {
+                  $exists: true,
+                },
+              },
+              { operationType: "replace" },
+            ],
+          },
+        },
+      ],
+      { fullDocument: "updateLookup" },
+    );
+
+    const closeStream = async () => {
+      if (closed) return;
+
+      closed = true;
+      await changeStream.close().catch(() => {});
+
+      if (!res.writableEnded) {
+        res.end();
+      }
+    };
+
+    changeStream.on("change", async (change) => {
+      if (closed) return;
+
+      const status = change.fullDocument?.currentStatus;
+
+      if (!status) return;
+
+      res.write(`data: ${JSON.stringify({ status })}\n\n`);
+
+      if (status === "delivered") {
+        await closeStream();
+      }
+    });
+
+    changeStream.on("error", async (error) => {
+      app.log.error(error, "Order change stream failed");
+      await closeStream();
+    });
+
+    // Clean up on any end of the connection — the request event alone misses
+    // sockets that die without a clean close. closeStream is idempotent.
+    request.raw.on("close", closeStream);
+    request.raw.on("aborted", closeStream);
+    res.on("close", closeStream);
+    res.on("error", closeStream);
+
+    return reply;
   });
 }

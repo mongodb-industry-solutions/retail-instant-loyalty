@@ -8,8 +8,6 @@ async function request(path, options = {}) {
     ...options,
     headers: {
       ...options.headers,
-      // Route handlers forward this to the backend, which uses it to claim
-      // and release personas.
       ...(sessionId ? { "x-session-id": sessionId } : {}),
     },
   });
@@ -105,7 +103,10 @@ export function fetchLoyaltyConfig() {
 export function updateLoyaltyConfig(patch) {
   return request("/loyalty-configuration", {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "x-session-id": getSessionId() ?? "",
+    },
     body: JSON.stringify(patch),
   });
 }

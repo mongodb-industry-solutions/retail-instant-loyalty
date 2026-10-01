@@ -40,20 +40,19 @@ export default function CheckoutView() {
       )
     : loyaltyConfig.rewardDetails[0];
 
+  console.log("Overview:", overview);
   const merchandiseValue = Math.max(
     0,
     Number(overview?.order?.amountSummary?.subtotal ?? 0),
   );
 
-  const balance = Math.max(
-    0,
-    Math.floor(Number(persona.loyaltyDetails?.coinBalance ?? 0)),
-  );
+  const balance = Math.max(0, Math.floor(Number(coinBalance)));
   const coinsPerDollar = Number(currentTierConfig.currencyValueForDollar ?? 0);
 
+  const subtotalCents = Math.round(merchandiseValue * 100);
   const maxCoinsForMerchandise =
-    merchandiseValue > 0 && coinsPerDollar > 0
-      ? Math.floor(merchandiseValue * coinsPerDollar)
+    subtotalCents > 0 && coinsPerDollar > 0
+      ? Math.ceil((subtotalCents * coinsPerDollar) / 100)
       : 0;
 
   const maxCoinsUsable = Math.min(balance, maxCoinsForMerchandise);
@@ -243,14 +242,15 @@ export default function CheckoutView() {
                   />
                   <div className={styles.loyaltyScale}>
                     <span>0</span>
-                    <span>{maxCoinsUsable.toLocaleString()} coins</span>
+                    {/* Right end tracks the handle rather than pinning the
+                        ceiling, so dragging always shows the live figure. */}
+                    <span className={`${styles.sliderValue} mono`}>
+                      {coinsToApply.toLocaleString()} coins
+                    </span>
                   </div>
-                  {/* <div className={styles.loyaltyNote}>
-                    Applying <b>{coinsToApply.toLocaleString()}</b> coins
-                    offsets <b>{formatPrice(coinsCoveredValue)}</b> of
-                    merchandise and leaves <b>{formatPrice(subtotal)}</b>{" "}
-                    eligible for new loyalty coins.
-                  </div> */}
+                  <div className={styles.loyaltyNote}>
+                    Tier progress still counts the full cart subtotal.
+                  </div>
                 </div>
               ) : (
                 <div className={styles.loyaltyNote}>

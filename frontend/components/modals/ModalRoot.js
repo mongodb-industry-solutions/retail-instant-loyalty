@@ -47,6 +47,13 @@ export default function ModalRoot() {
         {modal.type === "userDoc" && (
           <DocumentModal onClose={close} variant="userDoc" />
         )}
+        {modal.type === "redeemDoc" && (
+          <DocumentModal
+            onClose={close}
+            variant="redeemDoc"
+            product={modal.props?.product}
+          />
+        )}
       </div>
     </div>
   );

@@ -39,46 +39,83 @@ export default function ConfirmView() {
   const orderId = finalOrder?.orderId ?? finalOrder?.id;
   const customerId = persona?.customerId;
 
+  // Superseded by the change-stream-backed SSE effect below.
+  // useEffect(() => {
+  //   if (!orderId || !customerId) return;
+  //
+  //   let stopped = false;
+  //   let timer;
+  //
+  //   const statusPoll = async () => {
+  //     console.log("Poll request started");
+  //
+  //     try {
+  //       const orderData = await fetchOrder({ orderId, customerId });
+  //
+  //       console.log("Poll response:", orderData);
+  //
+  //       if (stopped) return;
+  //
+  //       const latestStatus = orderData?.currentStatus ?? "authorizing";
+  //
+  //       setOrderStatus(latestStatus);
+  //
+  //       if (latestStatus === "delivered") {
+  //         console.log("Polling stopped: delivered");
+  //         return;
+  //       }
+  //
+  //       timer = setTimeout(statusPoll, 1000);
+  //     } catch (error) {
+  //       console.error("Polling failed:", error);
+  //
+  //       if (!stopped) {
+  //         timer = setTimeout(statusPoll, 1000);
+  //       }
+  //     }
+  //   };
+  //
+  //   statusPoll();
+  //
+  //   return () => {
+  //     stopped = true;
+  //     clearTimeout(timer);
+  //   };
+  // }, [orderId, customerId]);
+
   useEffect(() => {
     if (!orderId || !customerId) return;
 
-    let stopped = false;
-    let timer;
+    const source = new EventSource(
+      `/api/orders/${orderId}/orderstatus?customerId=${encodeURIComponent(customerId)}`,
+    );
 
-    const statusPoll = async () => {
-      console.log("Poll request started");
-
+    source.onmessage = (event) => {
       try {
-        const orderData = await fetchOrder({ orderId, customerId });
+        const { status } = JSON.parse(event.data);
 
-        console.log("Poll response:", orderData);
+        console.log("Order status event:", status);
 
-        if (stopped) return;
+        if (status) setOrderStatus(status);
 
-        const latestStatus = orderData?.currentStatus ?? "authorizing";
-
-        setOrderStatus(latestStatus);
-
-        if (latestStatus === "delivered") {
-          console.log("Polling stopped: delivered");
-          return;
+        if (status === "delivered") {
+          console.log("Order status stream done: delivered");
+          source.close();
         }
-
-        timer = setTimeout(statusPoll, 1000);
       } catch (error) {
-        console.error("Polling failed:", error);
-
-        if (!stopped) {
-          timer = setTimeout(statusPoll, 1000);
-        }
+        console.error("Failed to parse order status event:", error);
       }
     };
 
-    statusPoll();
+    source.onerror = () => {
+      // Benign reconnects fire here too; only a CLOSED socket is a failure.
+      if (source.readyState === EventSource.CLOSED) {
+        console.error("Order status stream closed and will not retry");
+      }
+    };
 
     return () => {
-      stopped = true;
-      clearTimeout(timer);
+      source.close();
     };
   }, [orderId, customerId]);
 
@@ -100,19 +137,30 @@ export default function ConfirmView() {
 
   const showOnlyStepper = ["authorizing", "placed"].includes(orderStatus);
 
-  // if (showOnlyStepper) {
-  //   console.log("Showing only stepper for order status:", orderStatus);
-  //   return (
-  //     <main className={styles.wrap}>
-  //       <OrderStatusBar stages={ORDER_STATUS_STAGES} current={orderStatus} />
-  //     </main>
-  //   );
-  // }
-
-  console.log(
-    "Rendering full confirmation page for order status:",
-    orderStatus,
-  );
+  if (showOnlyStepper) {
+    return (
+      <main className={styles.wrap}>
+        <OrderStatusBar stages={ORDER_STATUS_STAGES} current={orderStatus} />
+        <div className={styles.pendingStatus}>
+          <span className={styles.spinner} aria-hidden="true" />
+          <span>
+            {orderStatus === "authorizing"
+              ? "Authorizing payment…"
+              : "Confirming your order…"}
+          </span>
+        </div>
+        {/* Placeholders keep the layout stable so the real cards don't pop in
+            and shift everything down once the status stream catches up. */}
+        <div className={styles.layout} aria-hidden="true">
+          <div className={styles.main}>
+            <div className={`${styles.skeleton} ${styles.skeletonCard}`} />
+            <div className={`${styles.skeleton} ${styles.skeletonCard}`} />
+          </div>
+          <div className={`${styles.skeleton} ${styles.skeletonSide}`} />
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className={styles.wrap}>

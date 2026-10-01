@@ -33,6 +33,20 @@ export function formatPromoDate(dateStr) {
   });
 }
 
+// Order/ledger timestamps want the time of day too, unlike promo windows.
+export function formatOrderDate(dateStr) {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 export function tierProgressValue(personaObj) {
   return roundCurrency(personaObj?.loyaltyDetails.cumulativeSpendDollars || 0);
 }
@@ -74,16 +88,14 @@ export function docToJSON(doc) {
   let json = JSON.stringify(doc, null, 2);
   return json.replace(/"(ObjectId|ISODate)\(\\"(.*?)\\"\)"/g, '$1("$2")');
 }
+// The real document as it sits in the products collection — GET /products
+// returns the raw docs, so everything except the BSON _id is already accurate.
+// Anything the API starts returning shows up here without a code change.
 export function productDocFor(pr) {
+  const { _id, ...rest } = pr ?? {};
   return {
-    _id: `ObjectId("64f1a2${pr.id}0000000001")`,
-    name: pr.name,
-    category: pr.cat,
-    price: pr.price,
-    ...(pr.was ? { compareAtPrice: pr.was } : {}),
-    rating: pr.rating,
-    reviews: pr.reviews,
-    ...(pr.badge ? { badge: pr.badge } : {}),
+    ...(_id ? { _id: `ObjectId("${_id}")` } : {}),
+    ...rest,
   };
 }
 export function personaFullName(persona) {

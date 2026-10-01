@@ -53,6 +53,12 @@ const GlobalSlice = createSlice({
     updateSelectedUser(state, action) {
       state.selectedUser = action.payload;
     },
+    // Merges a partial update (e.g. from the customer change-stream) into
+    // the current selectedUser, instead of replacing it wholesale.
+    patchSelectedUser(state, action) {
+      if (!state.selectedUser) return;
+      state.selectedUser = { ...state.selectedUser, ...action.payload };
+    },
     setProductsLoading(state, action) {
       state.products.loading = action.payload;
     },
@@ -75,7 +81,9 @@ const GlobalSlice = createSlice({
       state.loyaltyConfig.error = action.payload;
     },
     setLoyaltyConfigData(state, action) {
-      const { rewardDetails, campaign, orderMeta } = action.payload;
+      console.log("Setting loyalty config data: ", action.payload);
+
+      const { rewardDetails, campaign } = action.payload;
       state.loyaltyConfig = {
         rewardDetails,
         campaign,
@@ -158,6 +166,10 @@ const GlobalSlice = createSlice({
       }
     },
 
+    updateOrdersData(state, action) {
+      state.Global.lastOrder;
+    },
+
     saveRewardDetailsSuccess(state, action) {
       state.loyaltyConfig.rewardDetails = action.payload.rewardDetails;
     },
@@ -200,6 +212,7 @@ export const {
   setUsersError,
   setSelectedUser,
   updateSelectedUser,
+  patchSelectedUser,
   setUsersData,
   setProductsLoading,
   setProductsData,
