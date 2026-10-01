@@ -77,7 +77,7 @@ export default function StoreView() {
               <div className={styles.statBox}>
                 <div className={styles.num}>
                   <Text textStyle="heading4">
-                    {selectedUser.ordersCount ?? 0}
+                    {selectedUser.loyaltyDetails?.ordersCount ?? 0}
                   </Text>
                 </div>
                 <div className={styles.lbl}>
