@@ -7,7 +7,6 @@ import styles from "@/components/ConfirmSidebar/ConfirmSidebar.module.css";
 import CalculateLoyaltyEventContent from "./CalculateLoyaltyEventContent";
 import RecordLoyaltyEventContent from "./RecordLoyaltyEventContent";
 
-
 export function behindTheScenesEvents() {
   return [
     {

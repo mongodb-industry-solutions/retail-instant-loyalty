@@ -50,6 +50,7 @@ const RecordLoyaltyEventContent = () => {
       label: "Overview",
       render: () => (
         <p>
+          <span className={modalStyles.comingSoon}>Coming soon</span>
           Loyalty history records the coins earned, coins spent, and tier
           changes associated with the order. These entries are saved in the
           same MongoDB transaction as the customer's loyalty update.

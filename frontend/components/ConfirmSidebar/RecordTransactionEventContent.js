@@ -50,6 +50,7 @@ const RecordTransactionEventContent = () => {
       label: "Overview",
       render: () => (
         <p>
+          <span className={modalStyles.comingSoon}>Coming soon</span>
           The transaction records the payment outcome and tenders associated
           with the order. Loyalty rewards are granted only after a successful
           payment.

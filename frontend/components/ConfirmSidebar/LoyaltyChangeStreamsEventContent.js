@@ -1,6 +1,7 @@
 "use client";
 
 import { docToJSON } from "@/lib/helper";
+import modalStyles from "@/components/modals/Modal.module.css";
 import SyncModal from "../modals/SyncModal/SyncModal";
 
 const CHANGE_STREAM_CODE = `const pipeline = [
@@ -27,6 +28,7 @@ const SYNC_STEP_TABS = [
     label: "Customer document",
     render: (ctx) => (
       <>
+        <span className={modalStyles.comingSoon}>Coming soon</span>
         <p>
           There&apos;s one customer document — not one per channel. Online, POS,
           and mobile all read and write the same <code>loyalty</code> field, so
@@ -124,7 +126,7 @@ const SYNC_STEP_TABS = [
 ];
 
 const LoyaltyChangeStreamsEventContent = () => {
-  return <SyncModal title="📡 How the sync works" tabs={SYNC_STEP_TABS} />;
+  return <SyncModal title="Refresh the customer profile across channels" tabs={SYNC_STEP_TABS} />;
 };
 
 export default LoyaltyChangeStreamsEventContent;

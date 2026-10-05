@@ -48,6 +48,7 @@ const UpdateCustomerLoyaltyEventContent = () => {
       label: "Overview",
       render: () => (
         <p>
+          <span className={modalStyles.comingSoon}>Coming soon</span>
           The customer's loyalty balance and tier are saved in their profile
           in the same MongoDB transaction as the loyalty history entries.
         </p>
@@ -66,7 +67,7 @@ const UpdateCustomerLoyaltyEventContent = () => {
     },
   ];
 
-  return <SyncModal title="Update customer's loyalty" tabs={tabs} />;
+  return <SyncModal title="Update the customer's loyalty" tabs={tabs} />;
 };
 
 export default UpdateCustomerLoyaltyEventContent;

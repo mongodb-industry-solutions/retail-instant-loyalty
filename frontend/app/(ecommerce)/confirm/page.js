@@ -3,7 +3,6 @@ import { useState, useEffect, useMemo } from "react";
 
 import styles from "./ConfirmView.module.css";
 import { Icon } from "@via-ds/icons";
-import { Text } from "@via-ds/components/typography";
 import { useSelector } from "react-redux";
 import {
   selectSelectedUser,
@@ -19,7 +18,7 @@ import ConfirmSidebar from "../../../components/ConfirmSidebar/ConfirmSidebar";
 import { Button } from "@via-ds/components/button";
 import OrderStatusBar from "@/components/OrderStatusBar/OrderStatusBar";
 import { ORDER_STATUS_STAGES } from "@/lib/data";
-import { fetchOrder } from "@/lib/api";
+
 export default function ConfirmView() {
   const router = useRouter();
   const redemptionInProgress = false;

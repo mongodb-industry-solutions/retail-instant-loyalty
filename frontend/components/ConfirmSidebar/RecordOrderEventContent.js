@@ -48,7 +48,10 @@ const RecordOrderEventContent = () => {
       key: "doc1",
       label: "Calculate",
       render: (ctx) => (
-        <div>tab 1</div>
+        <div>
+          <span className={modalStyles.comingSoon}>Coming soon</span>
+          tab 1
+        </div>
       ),
     }, 
     {
@@ -63,7 +66,7 @@ const RecordOrderEventContent = () => {
       },
     }];
 
-  return <SyncModal title="Loyalty" tabs={tabs} />;
+  return <SyncModal title="Record the order in MongoDB" tabs={tabs} />;
 };
 
 export default RecordOrderEventContent;

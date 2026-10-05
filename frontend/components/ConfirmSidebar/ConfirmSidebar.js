@@ -34,7 +34,10 @@ export default function ConfirmSidebar({ withAnimation = true }) {
     const timerIds = [];
     for (let count = 2; count <= eventCount; count += 1) {
       timerIds.push(
-        setTimeout(() => setFeedProgress({ orderId, visibleCount: count }), (count - 1) * 1000),
+        setTimeout(
+          () => setFeedProgress({ orderId, visibleCount: count }),
+          (count - 1) * 1000,
+        ),
       );
     }
 
@@ -45,13 +48,16 @@ export default function ConfirmSidebar({ withAnimation = true }) {
     <aside className={styles.side}>
       <div className={styles.liveFeedCard}>
         <div className={styles.liveFeedHead}>
-          <div>
+          <div className={styles.liveFeedKickerContainer}>
             <div className={styles.liveFeedKicker}>Behind the scenes</div>
-            <h3>Learn more about how MongoDB powers instant rewards for customers. </h3>
+            <span className={styles.livePill}>
+              <span className={styles.liveDot}></span>Instant Rewards
+            </span>
           </div>
-          <span className={styles.livePill}>
-            <span className={styles.liveDot}></span>Instant Rewards
-          </span>
+          <h3>
+            Learn more about how MongoDB powers instant rewards for
+            customers.{" "}
+          </h3>
         </div>
         <div className={styles.liveFeedList}>
           {events.slice(0, visibleCount).map((evt, idx) => (
