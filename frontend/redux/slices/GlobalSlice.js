@@ -81,8 +81,6 @@ const GlobalSlice = createSlice({
       state.loyaltyConfig.error = action.payload;
     },
     setLoyaltyConfigData(state, action) {
-      console.log("Setting loyalty config data: ", action.payload);
-
       const { rewardDetails, campaign } = action.payload;
       state.loyaltyConfig = {
         rewardDetails,
@@ -128,12 +126,11 @@ const GlobalSlice = createSlice({
       // API response envelope: { order, loyalty }. loyalty already carries
       // oldBalance/newBalance and oldTier/newTier directly -- no separate
       // customer object is returned, so there is nothing to diff here.
-      console.log("Placing order with payload:", action.payload);
+
       const { order, loyalty, error } = action.payload;
       state.lastOrder = { order, loyalty, error };
       state.lastEvent = "order";
       if (error) {
-        console.log("Order error:", error);
         state.lastOrder.order = { orderId: error.message.orderId };
         state.cart = {};
         return;

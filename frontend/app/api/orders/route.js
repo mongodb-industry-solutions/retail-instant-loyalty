@@ -43,7 +43,6 @@ export async function POST(request) {
   const body = await request.json();
 
   try {
-    console.log("Calling the orders API with body:", body);
     const res = await fetch(`${BACKEND_URL}/orders`, {
       method: "POST",
       headers: {

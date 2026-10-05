@@ -16,7 +16,6 @@ export default function ordersRoutes(app) {
   app.post("/orders/overview", async (request, reply) => {
     const sessionId = request.headers["x-session-id"];
     const { items, coinsToApply, explain = false } = request.body || {};
-    console.log("🔌 Orders Overview: ", { items, coinsToApply, explain });
 
     if (!sessionId)
       return sendError(

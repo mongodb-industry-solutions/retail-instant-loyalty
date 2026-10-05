@@ -71,12 +71,9 @@ export default function ConfirmView() {
       try {
         const { status } = JSON.parse(event.data);
 
-        console.log("Order status event:", status);
-
         if (status) setOrderStatus(status);
 
         if (status === "delivered") {
-          console.log("Order status stream done: delivered");
           source.close();
         }
       } catch (error) {
@@ -114,8 +111,6 @@ export default function ConfirmView() {
 
   let showOnlyStepperStatus = ["authorizing", "placed"];
 
-  console.log("Initial order status:", orderStatus);
-
   if (orderError) {
     showOnlyStepperStatus = ["authorizing"];
     ORDER_STATUS_STAGES_FAILED = [
@@ -129,10 +124,7 @@ export default function ConfirmView() {
 
   let showOnlyStepper = showOnlyStepperStatus.includes(orderStatus);
 
-  console.log("Show only stepper stages:", showOnlyStepper);
-
   if (showOnlyStepper) {
-    console.log("Showing only stepper for order status:", orderStatus);
     return (
       <main className={styles.wrap}>
         <OrderStatusBar

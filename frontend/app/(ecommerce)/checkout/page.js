@@ -42,7 +42,6 @@ export default function CheckoutView() {
       )
     : loyaltyConfig.rewardDetails[0];
 
-  console.log("Overview:", overview);
   const merchandiseValue = Math.max(
     0,
     Number(overview?.order?.amountSummary?.subtotal ?? 0),

@@ -32,7 +32,6 @@ async function request(path, options = {}) {
 }
 
 export async function getProductsWithSearch(query = "", filter = {}) {
-  console.log("Get products wthen the search bar is used");
   const searchedProduct = await request(`/search`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -171,7 +170,6 @@ export function fetchOrderTransaction({ orderId, customerId }) {
 }
 
 export function createOrder(order) {
-  console.log("Creating order with body:", order);
   return request("/orders", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
