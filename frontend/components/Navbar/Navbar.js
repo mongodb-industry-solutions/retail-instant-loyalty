@@ -86,7 +86,6 @@ export default function Navbar() {
   }
 
   const pathname = usePathname();
-  console.log("Current pathname:", pathname);
 
   return (
     <div>

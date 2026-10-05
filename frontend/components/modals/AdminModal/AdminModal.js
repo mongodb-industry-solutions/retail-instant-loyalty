@@ -17,8 +17,6 @@ import { tierBadgeVariant } from "@/components/tierBadgeVariant";
 import { formatPrice } from "@/lib/helper";
 
 function RewardValueTab({ value, getChanges }) {
-  console.log(`The loyalty data is `, value);
-
   return (
     <>
       <p>
@@ -62,7 +60,6 @@ function RewardValueTab({ value, getChanges }) {
 }
 
 function CampaignTab({ value, getChanges }) {
-  console.log(`The campaign data is `, value);
   const currentCampaign = value.find((promo) => promo.isActive) ?? value[0];
 
   function patchCurrent(changes) {
@@ -100,7 +97,6 @@ function CampaignTab({ value, getChanges }) {
             onChange={(e) => handlePromoChange(e.target.value)}
           >
             {value.map((promo, index) => {
-              console.log(`Rendering promo option: `, promo);
               return (
                 <option key={index} value={promo.promoId}>
                   {promo.promoName}
@@ -141,8 +137,6 @@ function CampaignTab({ value, getChanges }) {
 }
 
 function TierThresholdsTab({ value, getChanges }) {
-  console.log(value);
-
   function handleTierThresholdChange(key, rawVal) {
     const previous = key === 0 ? 0 : value[key - 1].tierThreshold;
     const next =
@@ -266,8 +260,6 @@ export default function AdminModal({ onClose }) {
     if (rewardDetails.length) patch.rewardDetails = rewardDetails;
     if (campaignChange) patch.campaign = campaignChange;
 
-    console.log("Patch to be saved:", patch);
-
     if (!Object.keys(patch).length) {
       onClose();
       return;
@@ -276,7 +268,6 @@ export default function AdminModal({ onClose }) {
     setSaving(true);
     try {
       const response = await updateLoyaltyConfig(patch);
-      console.log("Response from updateLoyaltyConfig:", response);
       dispatch(setLoyaltyConfigData(response));
       onClose();
     } finally {

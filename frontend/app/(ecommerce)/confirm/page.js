@@ -19,6 +19,26 @@ import { Button } from "@via-ds/components/button";
 import OrderStatusBar from "@/components/OrderStatusBar/OrderStatusBar";
 import { ORDER_STATUS_STAGES } from "@/lib/data";
 
+function OrderErrorView({ orderError, ORDER_STATUS_STAGES_FAILED }) {
+  let finalOrder = {};
+  return (
+    <main className={styles.wrap}>
+      <OrderStatusBar
+        stages={ORDER_STATUS_STAGES_FAILED}
+        current="payment_failed"
+      />
+      <div className={styles.pendingStatus}>
+        <span>{orderError}</span>
+      </div>
+      <div className={styles.layout}>
+        <div className={styles.main}>
+          <LoyaltyRewardCard order={finalOrder} />
+        </div>
+      </div>
+    </main>
+  );
+}
+
 export default function ConfirmView() {
   const router = useRouter();
   const redemptionInProgress = false;
@@ -32,11 +52,13 @@ export default function ConfirmView() {
   const finalOrder = activeEvent?.order
     ? { ...activeEvent.order, loyalty: activeEvent.loyalty }
     : null;
+  const orderError = lastOrder?.error;
   const shownOrderId = finalOrder?.orderId;
   const [orderStatus, setOrderStatus] = useState("authorizing");
 
   const orderId = finalOrder?.orderId ?? finalOrder?.id;
   const customerId = persona?.customerId;
+  let ORDER_STATUS_STAGES_FAILED = null;
 
   useEffect(() => {
     if (!orderId || !customerId) return;
@@ -49,12 +71,9 @@ export default function ConfirmView() {
       try {
         const { status } = JSON.parse(event.data);
 
-        console.log("Order status event:", status);
-
         if (status) setOrderStatus(status);
 
         if (status === "delivered") {
-          console.log("Order status stream done: delivered");
           source.close();
         }
       } catch (error) {
@@ -79,7 +98,7 @@ export default function ConfirmView() {
     [finalOrder?.items],
   );
 
-  if (!finalOrder) {
+  if (!finalOrder && !orderError) {
     return (
       <main className={styles.wrap}>
         <div className={styles.sub}>No recent order to show.</div>
@@ -90,18 +109,39 @@ export default function ConfirmView() {
     );
   }
 
-  const showOnlyStepper = ["authorizing", "placed"].includes(orderStatus);
+  let showOnlyStepperStatus = ["authorizing", "placed"];
+
+  if (orderError) {
+    showOnlyStepperStatus = ["authorizing"];
+    ORDER_STATUS_STAGES_FAILED = [
+      "authorizing",
+      "payment_failed",
+      "placed",
+      "shipped",
+      "delivered",
+    ];
+  }
+
+  let showOnlyStepper = showOnlyStepperStatus.includes(orderStatus);
 
   if (showOnlyStepper) {
     return (
       <main className={styles.wrap}>
-        <OrderStatusBar stages={ORDER_STATUS_STAGES} current={orderStatus} />
+        <OrderStatusBar
+          stages={
+            ORDER_STATUS_STAGES_FAILED
+              ? ORDER_STATUS_STAGES_FAILED
+              : ORDER_STATUS_STAGES
+          }
+          current={orderStatus}
+        />
         <div className={styles.pendingStatus}>
           <span className={styles.spinner} aria-hidden="true" />
           <span>
             {orderStatus === "authorizing"
               ? "Authorizing payment…"
               : "Confirming your order…"}
+            {orderStatus === "payment_failed" && "Payment failed."}
           </span>
         </div>
         {/* Placeholders keep the layout stable so the real cards don't pop in
@@ -114,6 +154,15 @@ export default function ConfirmView() {
           <div className={`${styles.skeleton} ${styles.skeletonSide}`} />
         </div>
       </main>
+    );
+  }
+
+  if (orderStatus === "payment_failed") {
+    return (
+      <OrderErrorView
+        orderError={orderError.message.message}
+        ORDER_STATUS_STAGES_FAILED={ORDER_STATUS_STAGES_FAILED}
+      />
     );
   }
 
@@ -141,7 +190,7 @@ export default function ConfirmView() {
           </div>
         </>
       )}
-      
+
       <OrderStatusBar stages={ORDER_STATUS_STAGES} current={orderStatus} />
 
       <div className={styles.layout}>
@@ -186,7 +235,7 @@ export default function ConfirmView() {
             ← Back to store
           </Button>
         </div>
-        <ConfirmSidebar/>
+        <ConfirmSidebar />
       </div>
     </main>
   );

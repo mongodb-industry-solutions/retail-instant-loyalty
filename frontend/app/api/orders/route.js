@@ -4,13 +4,11 @@ import { API_URL } from "@/lib/helper";
 const BACKEND_URL = API_URL;
 
 function missingBackend() {
-  return NextResponse.json(
-    { error: "API_URL is not set" },
-    { status: 503 },
-  );
+  return NextResponse.json({ error: "API_URL is not set" }, { status: 503 });
 }
 
 function unreachable(err) {
+  console.error("Calling the orders API", err);
   return NextResponse.json(
     { error: String(err?.message ?? err) },
     { status: 502 },
@@ -56,6 +54,7 @@ export async function POST(request) {
 
     return NextResponse.json(await res.json(), { status: res.status });
   } catch (err) {
+    console.error("Calling the orders API in the catch block", err);
     return unreachable(err);
   }
 }

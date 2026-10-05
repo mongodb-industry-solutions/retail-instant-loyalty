@@ -24,7 +24,6 @@ export default function LoyaltyRewardCard({ order }) {
   const selectedUser = useSelector(selectSelectedUser);
   const { rewardDetails } = useSelector(selectLoyaltyConfig);
 
-  console.log("loyalty for order:", rewardDetails);
   useEffect(() => {
     setPhase("before");
     setTierupGlow(false);

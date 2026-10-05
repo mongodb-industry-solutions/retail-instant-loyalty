@@ -58,19 +58,20 @@ export default function StoreView() {
             <Text textStyle="heading3">
               Hi, {selectedUser.profile.firstName} 👋
             </Text>
-            <div className={styles.memberPerkLine}>
+            {/* <div className={styles.memberPerkLine}>
               <Text elementType="span">
                 {selectedUser.loyaltyDetails?.activeTier} member - redemption
               </Text>
               <Text elementType="span">
+                {" "}
                 value{" "}
                 {formatCoinValue(
                   selectedUser.loyaltyDetails?.activeTier,
                   rewardDetails,
                 )}{" "}
-                per coin · free shipping over $200.
+                per coin.
               </Text>
-            </div>
+            </div> */}
           </div>
           <div className={styles.heroRight}>
             <div className={styles.heroStats}>

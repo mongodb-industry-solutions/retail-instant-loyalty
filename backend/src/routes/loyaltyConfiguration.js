@@ -237,8 +237,6 @@ export default function loyaltyConfigurationRoutes(app) {
   app.get("/loyalty-configuration", async (request, reply) => {
     const sessionId = request.headers["x-session-id"];
 
-    console.log("Fetching loyalty configuration for session:", sessionId);
-
     const { explain } = request.body || {};
 
     if (!sessionId)

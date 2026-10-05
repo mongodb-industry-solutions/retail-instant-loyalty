@@ -10,10 +10,7 @@ export async function GET(request, { params }) {
   const query = new URLSearchParams({ addTenders });
 
   if (!BACKEND_URL) {
-    return NextResponse.json(
-      { error: "API_URL is not set" },
-      { status: 503 },
-    );
+    return NextResponse.json({ error: "API_URL is not set" }, { status: 503 });
   }
 
   try {
