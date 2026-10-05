@@ -14,8 +14,6 @@ async function request(path, options = {}) {
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);
-    // The backend errors as { error: { code, message } }; the placeholder
-    // routes still use a plain { error: "..." } string.
     const err = body?.error;
     const message =
       (typeof err === "string" ? err : err?.message) ??
@@ -23,12 +21,13 @@ async function request(path, options = {}) {
     const error = new Error(message);
     error.code = typeof err === "object" ? err?.code : undefined;
     error.status = res.status;
+    if (body?.error?.code === "PAYMENT_DECLINED") {
+      return body;
+    }
     throw error;
   }
 
   const body = await res.json();
-  // The backend wraps payloads as { data, meta }; placeholder routes return
-  // the payload directly.
   return body?.data ?? body;
 }
 
@@ -157,6 +156,7 @@ export function fetchOrder({ orderId, customerId }) {
 }
 
 export function createOrder(order) {
+  console.log("Creating order with body:", order);
   return request("/orders", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

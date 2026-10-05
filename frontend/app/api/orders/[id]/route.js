@@ -8,10 +8,7 @@ export async function GET(request, { params }) {
   const { id: orderId } = await params;
 
   if (!BACKEND_URL) {
-    return NextResponse.json(
-      { error: "API_URL is not set" },
-      { status: 503 },
-    );
+    return NextResponse.json({ error: "API_URL is not set" }, { status: 503 });
   }
 
   try {

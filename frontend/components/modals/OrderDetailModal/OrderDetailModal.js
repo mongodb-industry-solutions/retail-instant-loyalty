@@ -127,8 +127,6 @@ export default function OrderDetailModal({ orderId, onClose }) {
     };
   }, [orderId, persona?.customerId]);
 
-  console.log("orderId:", orderId);
-
   if (error) {
     return (
       <>
@@ -163,6 +161,18 @@ export default function OrderDetailModal({ orderId, onClose }) {
   );
   const placedAt = order.statusHistory?.[0]?.lastUpdated ?? order.createdAt;
 
+  let ORDER_STATUS_STAGES_FAILED = null;
+
+  if (order?.currentStatus === "payment_failed") {
+    ORDER_STATUS_STAGES_FAILED = [
+      "authorizing",
+      "payment_failed",
+      "placed",
+      "shipped",
+      "delivered",
+    ];
+  }
+
   return (
     <>
       <div className={modal.head}>
@@ -194,7 +204,11 @@ export default function OrderDetailModal({ orderId, onClose }) {
             </div>
           </div>
           <OrderStatusBar
-            stages={ORDER_STATUS_STAGES}
+            stages={
+              ORDER_STATUS_STAGES_FAILED
+                ? ORDER_STATUS_STAGES_FAILED
+                : ORDER_STATUS_STAGES
+            }
             current={order.currentStatus}
           />
 

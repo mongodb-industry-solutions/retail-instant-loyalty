@@ -12,9 +12,11 @@ import {
   selectProductsData,
   placeOrderSuccess,
   updateSelectedUser,
+  setOrdersError,
 } from "@/redux/slices/GlobalSlice";
 import { Icon } from "@via-ds/icons";
 import { Button } from "@via-ds/components/button";
+import { ToggleButton } from "@via-ds/components/toggle-button";
 import shared from "@/components/shared.module.css";
 import { cartItemList, formatPrice } from "@/lib/helper";
 import { createOrder, fetchOrderOverview, fetchCustomer } from "@/lib/api";
@@ -28,7 +30,7 @@ export default function CheckoutView() {
   const products = useSelector(selectProductsData);
   const cartItems = cartItemList(cart, products);
   const [placingOrder, setPlacingOrder] = useState(false);
-
+  const [validCard, setValidCard] = useState(true);
   const coinBalance = persona.loyaltyDetails?.coinBalance ?? 0;
   const [coinsToApply, setCoinsToApply] = useState(0);
   const [overview, setOverview] = useState(null);
@@ -107,12 +109,19 @@ export default function CheckoutView() {
     try {
       // Only ids, quantities and coins — the server re-prices from live
       // products and the session's customer, ignoring anything else we'd send.
-      const { order, loyalty: orderLoyalty } = await createOrder({
+      const {
+        order,
+        loyalty: orderLoyalty,
+        error,
+      } = await createOrder({
         items: orderItems,
         coinsToApply,
         orderType: "ONLINE",
+        validCard,
       });
-      dispatch(placeOrderSuccess({ order, loyalty: orderLoyalty }));
+
+      dispatch(placeOrderSuccess({ order, loyalty: orderLoyalty, error }));
+
       const getUpdatedUser = await fetchCustomer(persona.customerId);
       dispatch(updateSelectedUser(getUpdatedUser));
       router.push("/confirm");
@@ -177,9 +186,19 @@ export default function CheckoutView() {
             </div>
           </div>
           <div className={styles.formCard}>
-            <H3>
-              <Icon glyph="CreditCard" /> Payment details
-            </H3>
+            <div className={styles.formCardHeader}>
+              <H3>
+                <Icon glyph="CreditCard" /> Payment details
+              </H3>
+
+              <ToggleButton
+                selected={validCard}
+                onChange={() => setValidCard(!validCard)}
+              >
+                Use Invalid card
+              </ToggleButton>
+            </div>
+
             <div className={shared.field} style={{ marginBottom: 12 }}>
               <label>Card number</label>
               <input

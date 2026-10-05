@@ -128,9 +128,16 @@ const GlobalSlice = createSlice({
       // API response envelope: { order, loyalty }. loyalty already carries
       // oldBalance/newBalance and oldTier/newTier directly -- no separate
       // customer object is returned, so there is nothing to diff here.
-      const { order, loyalty } = action.payload;
-      state.lastOrder = { order, loyalty };
+      console.log("Placing order with payload:", action.payload);
+      const { order, loyalty, error } = action.payload;
+      state.lastOrder = { order, loyalty, error };
       state.lastEvent = "order";
+      if (error) {
+        console.log("Order error:", error);
+        state.lastOrder.order = { orderId: error.message.orderId };
+        state.cart = {};
+        return;
+      }
       // Keep the persona in step with the write the backend just committed,
       // so the navbar and tier track update without a refetch.
       if (state.selectedUser && loyalty) {
@@ -176,13 +183,10 @@ const GlobalSlice = createSlice({
     saveCampaignSuccess(state, action) {
       state.loyaltyConfig.campaign = action.payload.campaign;
     },
+
     setOrdersLoading(state) {
       state.orders.loading = true;
       state.orders.error = null;
-    },
-    setOrdersError(state, action) {
-      state.orders.loading = false;
-      state.orders.error = action.payload;
     },
 
     resetGlobalState: () => INITIAL_STATE,

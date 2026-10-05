@@ -73,14 +73,8 @@ export default function ordersRoutes(app) {
   // Commits what /orders/overview would have previewed
   app.post("/orders", async (request, reply) => {
     const sessionId = request.headers["x-session-id"];
-    const {
-      storeId,
-      orderType,
-      items,
-      coinsToApply,
-      validCard = true,
-      explain,
-    } = request.body || {};
+    const { storeId, orderType, items, coinsToApply, validCard, explain } =
+      request.body || {};
 
     if (!sessionId)
       return sendError(
@@ -184,6 +178,7 @@ export default function ordersRoutes(app) {
             $set: {
               currentStatus: "payment_failed",
               failureReason: "card_declined",
+              coinsEarned: 0,
             },
             $push: {
               statusHistory: {
@@ -196,12 +191,10 @@ export default function ordersRoutes(app) {
 
         // No customer update, no loyaltyHistory - nothing loyalty-related
         // happened. No scheduleOrderProgression call - nothing to progress.
-        return sendError(
-          reply,
-          402,
-          "PAYMENT_DECLINED",
-          `Payment was declined for order ${orderId}`,
-        );
+        return sendError(reply, 402, "PAYMENT_DECLINED", {
+          message: `Payment was declined for order ${orderId}`,
+          orderId: orderId,
+        });
       }
 
       // 4. Payment succeeded. Insert the completed transaction (outside the
