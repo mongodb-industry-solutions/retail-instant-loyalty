@@ -37,7 +37,17 @@ function OrderErrorView({
       <div className={styles.layout}>
         <div className={styles.main}>
           <LoyaltyRewardCard order={finalOrder} />
+          <div>
+            <Button
+              variant="primary"
+              style={{ width: "100%" }}
+              onClick={() => router.push("/")}
+            >
+              ← Back to store
+            </Button>
+          </div>
         </div>
+
         <ConfirmSidebar />
       </div>
     </main>
