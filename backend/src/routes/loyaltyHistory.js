@@ -5,6 +5,25 @@ export default function loyaltyHistoryRoutes(app) {
     return reply.code(status).send({ error: { code, message } });
   }
 
+  app.get("/loyalty-history/:orderId", async (request, reply) => {
+    const customerId = request.headers["x-customer-id"];
+    const { orderId } = request.params;
+    if (!customerId)
+      return sendError(reply, 400, "CUSTOMER_ID_REQUIRED", "x-customer-id header is required");
+
+    const db = app.mongo.db;
+    try {
+      const loyaltyHistory = await db.collection(loyaltyHistoryCollectionName)
+        .find({ orderId, customerId })
+        .sort({ createdAt: 1, _id: 1 })
+        .toArray();
+      return reply.send({ data: { loyaltyHistory } });
+    } catch (err) {
+      app.log.error(err);
+      return sendError(reply, 500, "LOYALTY_HISTORY_LOOKUP_FAILED", err.message);
+    }
+  });
+
   // returns max 4 personas not currently claimed by any session
   app.get("/loyaltyHistory", async (request, reply) => {
     const db = app.mongo.db;

@@ -117,6 +117,8 @@ export default function EcommerceLayout({ children }) {
         const msg = String(err?.message ?? err);
         dispatch(setProductsError(msg));
         dispatch(setLoyaltyConfigError(msg));
+        // TODO delete line below
+        fetchProducts().then(res => dispatch(setProductsData(res)))
       });
     return () => {
       cancelled = true;

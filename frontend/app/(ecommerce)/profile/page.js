@@ -120,6 +120,7 @@ export default function ProfileView() {
           </div>
         </div>
         <Button
+          hidden
           type="primary"
           className={styles.actionBtn}
           onClick={() => dispatch(openModal({ modalType: "profileEdit" }))}

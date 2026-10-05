@@ -3,7 +3,6 @@ import { useState, useEffect, useMemo } from "react";
 
 import styles from "./ConfirmView.module.css";
 import { Icon } from "@via-ds/icons";
-import { Text } from "@via-ds/components/typography";
 import { useSelector } from "react-redux";
 import {
   selectSelectedUser,
@@ -177,8 +176,6 @@ export default function ConfirmView() {
 
   return (
     <main className={styles.wrap}>
-      <OrderStatusBar stages={ORDER_STATUS_STAGES} current={orderStatus} />
-
       {redemptionInProgress ? (
         <div className={styles.pendingNote}>
           🕒 Reviewing your redemption — nothing&apos;s been confirmed yet
@@ -201,6 +198,9 @@ export default function ConfirmView() {
           </div>
         </>
       )}
+
+      <OrderStatusBar stages={ORDER_STATUS_STAGES} current={orderStatus} />
+
       <div className={styles.layout}>
         <div className={styles.main}>
           <LoyaltyRewardCard order={finalOrder} />
@@ -243,11 +243,7 @@ export default function ConfirmView() {
             ← Back to store
           </Button>
         </div>
-        <ConfirmSidebar
-          persona={persona}
-          order={finalOrder}
-          lastRedeem={latestRedeem}
-        />
+        <ConfirmSidebar />
       </div>
     </main>
   );

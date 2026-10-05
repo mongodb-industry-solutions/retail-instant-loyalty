@@ -1,0 +1,73 @@
+.content {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+.content h3 {
+  margin: 0 0 12px;
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.content h4 {
+  margin: 0 0 12px;
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.4;
+}
+.content p:last-child {
+  margin-bottom: 0;
+}
+.callout {
+  padding: 14px 16px;
+  border-left: 3px solid var(--platinum);
+  background: var(--surface-blue);
+  color: var(--text);
+}
+.callout strong {
+  display: block;
+  margin-bottom: 6px;
+}
+.examples {
+  display: grid;
+  gap: 20px;
+}
+.exampleHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.exampleHead h4 {
+  margin: 0;
+  font-size: 14px;
+}
+.badge {
+  padding: 3px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+.json {
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 16px;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono-font);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.takeaway {
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}

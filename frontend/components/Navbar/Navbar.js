@@ -92,7 +92,7 @@ export default function Navbar() {
     <div>
       <PromoBanner activeCampaign={activeCampaign} />
       <header className={styles.topnav}>
-        <div className={styles.brand}>
+        <div className={styles.brand} onClick={() => go("store")}>
           <Logo logo="MongoDBLogoMark" size="medium" />
           <Text size="large">Leafy Loyalty</Text>
         </div>

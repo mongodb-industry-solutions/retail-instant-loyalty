@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { selectModal, closeModal } from "@/redux/slices/GlobalSlice";
 import TalkTrackModal from "./TalkTrackModal/TalkTrackModal";
@@ -9,7 +10,11 @@ import OrderDetailModal from "./OrderDetailModal/OrderDetailModal";
 import DocumentModal from "./DocumentModal/DocumentModal";
 import ProfileEditModal from "./ProfileEditModal/ProfileEditModal";
 import styles from "./Modal.module.css";
-import SyncModal from "./SyncModal/SyncModal";
+// import SyncModal from "./SyncModal/SyncModal";
+import {
+  getFreestyleContent,
+  removeFreestyleContent,
+} from "./freestyleContentRegistry";
 const MODAL_SIZE_CLASS = {
   productDetail: "cardProduct",
   orderDetail: "cardOrder",
@@ -18,6 +23,15 @@ const MODAL_SIZE_CLASS = {
 export default function ModalRoot() {
   const modal = useSelector(selectModal);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    const contentId =
+      modal?.type === "freestyle" ? modal.props?.contentId : null;
+    return () => {
+      if (contentId) removeFreestyleContent(contentId);
+    };
+  }, [modal?.type, modal?.props?.contentId]);
+
   if (!modal) return null;
 
   function close() {
@@ -40,7 +54,7 @@ export default function ModalRoot() {
         )}
         {modal.type === "admin" && <AdminModal onClose={close} />}
         {modal.type === "profileEdit" && <ProfileEditModal onClose={close} />}
-        {modal.type === "sync" && <SyncModal onClose={close} />}
+        {/* {modal.type === "sync" && <SyncModal onClose={close} />} */}
         {modal.type === "orderDetail" && (
           <OrderDetailModal orderId={modal.props?.id} onClose={close} />
         )}
@@ -53,6 +67,11 @@ export default function ModalRoot() {
             variant="redeemDoc"
             product={modal.props?.product}
           />
+        )}
+        {modal.type === "freestyle" && (
+          <div>
+            {getFreestyleContent(modal.props?.contentId)}
+          </div>
         )}
       </div>
     </div>
