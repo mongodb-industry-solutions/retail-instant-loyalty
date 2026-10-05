@@ -19,8 +19,12 @@ import { Button } from "@via-ds/components/button";
 import OrderStatusBar from "@/components/OrderStatusBar/OrderStatusBar";
 import { ORDER_STATUS_STAGES } from "@/lib/data";
 
-function OrderErrorView({ orderError, ORDER_STATUS_STAGES_FAILED }) {
-  let finalOrder = {};
+function OrderErrorView({
+  orderError,
+  ORDER_STATUS_STAGES_FAILED,
+  finalOrder,
+}) {
+  // let finalOrder = {};
   return (
     <main className={styles.wrap}>
       <OrderStatusBar
@@ -34,6 +38,7 @@ function OrderErrorView({ orderError, ORDER_STATUS_STAGES_FAILED }) {
         <div className={styles.main}>
           <LoyaltyRewardCard order={finalOrder} />
         </div>
+        <ConfirmSidebar />
       </div>
     </main>
   );
@@ -52,7 +57,6 @@ export default function ConfirmView() {
   const finalOrder = activeEvent?.order
     ? { ...activeEvent.order, loyalty: activeEvent.loyalty }
     : null;
-  const orderError = lastOrder?.error;
   const shownOrderId = finalOrder?.orderId;
   const [orderStatus, setOrderStatus] = useState("authorizing");
 
@@ -98,7 +102,7 @@ export default function ConfirmView() {
     [finalOrder?.items],
   );
 
-  if (!finalOrder && !orderError) {
+  if (!finalOrder) {
     return (
       <main className={styles.wrap}>
         <div className={styles.sub}>No recent order to show.</div>
@@ -111,7 +115,9 @@ export default function ConfirmView() {
 
   let showOnlyStepperStatus = ["authorizing", "placed"];
 
-  if (orderError) {
+  console.log("finalOrder:", finalOrder);
+
+  if (finalOrder?.currentStatus === "payment_failed") {
     showOnlyStepperStatus = ["authorizing"];
     ORDER_STATUS_STAGES_FAILED = [
       "authorizing",
@@ -160,8 +166,9 @@ export default function ConfirmView() {
   if (orderStatus === "payment_failed") {
     return (
       <OrderErrorView
-        orderError={orderError.message.message}
+        orderError="Payment failed."
         ORDER_STATUS_STAGES_FAILED={ORDER_STATUS_STAGES_FAILED}
+        finalOrder={finalOrder}
       />
     );
   }

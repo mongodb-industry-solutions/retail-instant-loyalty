@@ -188,12 +188,24 @@ export default function ordersRoutes(app) {
           },
         );
 
-        // No customer update, no loyaltyHistory - nothing loyalty-related
-        // happened. No scheduleOrderProgression call - nothing to progress.
-        return sendError(reply, 402, "PAYMENT_DECLINED", {
-          message: `Payment was declined for order ${orderId}`,
-          orderId: orderId,
-        });
+        const responsePayload = {
+          data: {
+            order: {
+              ...orderDoc,
+              coinsEarned: 0,
+              currentStatus: "payment_failed",
+              transactionId,
+            },
+          },
+        };
+        console.log("Payment declined response payload:", responsePayload);
+        return reply.send(responsePayload);
+
+        // Will not return an error even if the payment is declined as we are creating record for the failed transaction.
+        // return sendError(reply, 402, "PAYMENT_DECLINED", {
+        //   message: `Payment was declined for order ${orderId}`,
+        //   orderId: orderId,
+        // });
       }
 
       // 4. Payment succeeded. Insert the completed transaction (outside the

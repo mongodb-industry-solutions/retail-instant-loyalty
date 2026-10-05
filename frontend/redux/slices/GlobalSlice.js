@@ -123,20 +123,10 @@ const GlobalSlice = createSlice({
     },
 
     placeOrderSuccess(state, action) {
-      // API response envelope: { order, loyalty }. loyalty already carries
-      // oldBalance/newBalance and oldTier/newTier directly -- no separate
-      // customer object is returned, so there is nothing to diff here.
-
-      const { order, loyalty, error } = action.payload;
-      state.lastOrder = { order, loyalty, error };
+      const { order, loyalty } = action.payload;
+      state.lastOrder = { order, loyalty };
       state.lastEvent = "order";
-      if (error) {
-        state.lastOrder.order = { orderId: error.message.orderId };
-        state.cart = {};
-        return;
-      }
-      // Keep the persona in step with the write the backend just committed,
-      // so the navbar and tier track update without a refetch.
+
       if (state.selectedUser && loyalty) {
         state.selectedUser.loyaltyDetails.coinBalance = loyalty.newBalance;
         state.selectedUser.loyaltyDetails.activeTier = loyalty.newTier;
@@ -152,8 +142,6 @@ const GlobalSlice = createSlice({
     },
 
     confirmRedeemOrderSuccess(state, action) {
-      // API response envelope: { order, loyalty } — identical shape to
-      // placeOrderSuccess, since POST /redeem and POST /orders share it.
       const { order, loyalty } = action.payload;
       state.lastRedeem = { order, loyalty };
       state.lastEvent = "redeem";

@@ -12,7 +12,6 @@ import {
   selectProductsData,
   placeOrderSuccess,
   updateSelectedUser,
-  setOrdersError,
 } from "@/redux/slices/GlobalSlice";
 import { Icon } from "@via-ds/icons";
 import { Button } from "@via-ds/components/button";
