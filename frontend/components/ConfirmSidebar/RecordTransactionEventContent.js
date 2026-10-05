@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { selectLastOrder, selectSelectedUser } from "@/redux/slices/GlobalSlice";
 import { fetchOrderTransaction } from "@/lib/api";
 import { docToJSON } from "@/lib/helper";
-import modalStyles from "@/components/modals/Modal.module.css";
+import modalStyles from "./EventContent.module.css";
 import SyncModal from "../modals/SyncModal/SyncModal";
 
 const RecordTransactionEventContent = () => {
