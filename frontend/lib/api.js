@@ -58,6 +58,14 @@ export async function fetchLoyaltyHistory({ customerId }) {
   });
 }
 
+export async function fetchOrderLoyaltyHistory({ orderId, customerId }) {
+  const { loyaltyHistory } = await request(
+    `/loyaltyHistory/${encodeURIComponent(orderId)}`,
+    { headers: { "x-customer-id": customerId ?? "" } },
+  );
+  return loyaltyHistory;
+}
+
 // Selecting a persona is what starts a session: mint the id here, then claim.
 // The response carries the full customer document.
 export async function startSession(selectedCustomerId) {
@@ -150,8 +158,15 @@ export async function fetchOrders({ page = 1, limit = 20, customerId } = {}) {
 }
 
 // One order, scoped to the current session — proxies GET /orders/:orderId.
-export function fetchOrder({ orderId, customerId }) {
-  return request(`/orders/${orderId}`, {
+export function fetchOrder({ orderId, customerId, addTenders = true }) {
+  const query = new URLSearchParams({ addTenders: String(addTenders) });
+  return request(`/orders/${encodeURIComponent(orderId)}?${query}`, {
+    headers: { "x-customer-id": customerId ?? "" },
+  });
+}
+
+export function fetchOrderTransaction({ orderId, customerId }) {
+  return request(`/transactions/${encodeURIComponent(orderId)}`, {
     headers: { "x-customer-id": customerId ?? "" },
   });
 }

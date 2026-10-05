@@ -360,6 +360,7 @@ export default function ordersRoutes(app) {
   app.get("/orders/:orderId", async (request, reply) => {
     const customerId = request.headers["x-customer-id"];
     const { orderId } = request.params;
+    const { addTenders = "true" } = request.query || {};
 
     if (!customerId)
       return sendError(
@@ -382,6 +383,10 @@ export default function ordersRoutes(app) {
           "ORDER_NOT_FOUND",
           "Order not found for this customer",
         );
+
+      if (addTenders === "false" || addTenders === false) {
+        return reply.send({ data: order });
+      }
 
       const transaction = await db
         .collection("transactions")

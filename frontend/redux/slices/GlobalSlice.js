@@ -129,6 +129,7 @@ const GlobalSlice = createSlice({
       // oldBalance/newBalance and oldTier/newTier directly -- no separate
       // customer object is returned, so there is nothing to diff here.
       const { order, loyalty } = action.payload;
+      console.log("TODELETE: placeOrderSuccess Redux", action.payload);
       state.lastOrder = { order, loyalty };
       state.lastEvent = "order";
       // Keep the persona in step with the write the backend just committed,

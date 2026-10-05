@@ -39,50 +39,6 @@ export default function ConfirmView() {
   const orderId = finalOrder?.orderId ?? finalOrder?.id;
   const customerId = persona?.customerId;
 
-  // Superseded by the change-stream-backed SSE effect below.
-  // useEffect(() => {
-  //   if (!orderId || !customerId) return;
-  //
-  //   let stopped = false;
-  //   let timer;
-  //
-  //   const statusPoll = async () => {
-  //     console.log("Poll request started");
-  //
-  //     try {
-  //       const orderData = await fetchOrder({ orderId, customerId });
-  //
-  //       console.log("Poll response:", orderData);
-  //
-  //       if (stopped) return;
-  //
-  //       const latestStatus = orderData?.currentStatus ?? "authorizing";
-  //
-  //       setOrderStatus(latestStatus);
-  //
-  //       if (latestStatus === "delivered") {
-  //         console.log("Polling stopped: delivered");
-  //         return;
-  //       }
-  //
-  //       timer = setTimeout(statusPoll, 1000);
-  //     } catch (error) {
-  //       console.error("Polling failed:", error);
-  //
-  //       if (!stopped) {
-  //         timer = setTimeout(statusPoll, 1000);
-  //       }
-  //     }
-  //   };
-  //
-  //   statusPoll();
-  //
-  //   return () => {
-  //     stopped = true;
-  //     clearTimeout(timer);
-  //   };
-  // }, [orderId, customerId]);
-
   useEffect(() => {
     if (!orderId || !customerId) return;
 
@@ -164,8 +120,6 @@ export default function ConfirmView() {
 
   return (
     <main className={styles.wrap}>
-      <OrderStatusBar stages={ORDER_STATUS_STAGES} current={orderStatus} />
-
       {redemptionInProgress ? (
         <div className={styles.pendingNote}>
           🕒 Reviewing your redemption — nothing&apos;s been confirmed yet
@@ -188,6 +142,9 @@ export default function ConfirmView() {
           </div>
         </>
       )}
+      
+      <OrderStatusBar stages={ORDER_STATUS_STAGES} current={orderStatus} />
+
       <div className={styles.layout}>
         <div className={styles.main}>
           <LoyaltyRewardCard order={finalOrder} />
@@ -230,11 +187,7 @@ export default function ConfirmView() {
             ← Back to store
           </Button>
         </div>
-        <ConfirmSidebar
-          persona={persona}
-          order={finalOrder}
-          lastRedeem={latestRedeem}
-        />
+        <ConfirmSidebar/>
       </div>
     </main>
   );

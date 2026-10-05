@@ -18,7 +18,7 @@ export default function ProfileEditModal({ onClose }) {
   return (
     <>
       <div className={modal.head}>
-        <Text as="h2">Edit customer details</Text>
+        <Text className="d-none" as="h2">Edit customer details</Text>
         <button className={modal.close} onClick={onClose}>
           ✕
         </button>

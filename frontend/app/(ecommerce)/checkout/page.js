@@ -282,7 +282,8 @@ export default function CheckoutView() {
             <div className={shared.summaryRow}>
               <span>Coins applied</span>
               <span className="mono">
-                −{formatPrice(amounts.coinsDiscountValue)}
+                {overview?.order?.coinsApplied?.toLocaleString()} ( -
+                {formatPrice(overview?.order?.coinsToDollarsApplied)})
               </span>
             </div>
           )}
@@ -340,7 +341,7 @@ export default function CheckoutView() {
             isLoading={placingOrder}
             loadingText="Placing order…"
             isDisabled={!overview}
-            onClick={handlePlaceOrder}
+            onClick={() => handlePlaceOrder()}
           >
             ✓ Place order
           </Button>
