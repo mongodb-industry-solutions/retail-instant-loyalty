@@ -326,7 +326,10 @@ export default function redeemRoutes(app) {
               .insertMany(historyEntries, { session: mongoSession });
           }
 
-          const customerUpdatePipeline = buildCustomerLoyaltyDetailsUpdate({ math });
+          const customerUpdatePipeline = buildCustomerLoyaltyDetailsUpdate({
+            math,
+            historyEntries,
+          });
 
           await db
             .collection("customers")

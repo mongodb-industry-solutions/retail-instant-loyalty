@@ -1,5 +1,7 @@
 'use client'
 import React, { useEffect, useState } from "react";
+import { Callout } from "@via-ds/components/callout";
+import { Text } from "@via-ds/components/typography";
 import { fetchLoyaltyConfig } from "@/lib/api";
 import { docToJSON } from "@/lib/helper";
 import styles from "./EventContent.module.css";
@@ -73,13 +75,13 @@ const CalculateLoyaltyEventContent = () => {
               compelling approach.
             </p>
           </section>
-          <aside className={styles.callout}>
-            <strong>Business rules are business data</strong>
+          <Callout className={styles.callout} variant="note">
+            <Text slot="title">Business rules are business data</Text>
             <p>
               Tiers, redemption values, and campaign multipliers describe the
               loyalty program the retailer is running today.
             </p>
-          </aside>
+          </Callout>
           <section>
             <h4>Loyalty rules change. Your data model should be able to change with them.</h4>
             <p>Retailers rarely leave a loyalty program unchanged for long.</p>

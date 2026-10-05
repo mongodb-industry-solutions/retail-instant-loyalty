@@ -28,13 +28,12 @@ const SYNC_STEP_TABS = [
     label: "Customer document",
     render: (ctx) => (
       <>
-        <span className={modalStyles.comingSoon}>Coming soon</span>
         <p>
           There&apos;s one customer document — not one per channel. Online, POS,
           and mobile all read and write the same <code>loyalty</code> field, so
           there&apos;s nothing separate to keep in sync in the first place.
         </p>
-        <pre>{docToJSON(ctx.doc)}</pre>
+        <pre className={modalStyles.json}><code>{docToJSON(ctx.doc)}</code></pre>
       </>
     ),
   },
@@ -48,14 +47,16 @@ const SYNC_STEP_TABS = [
           writes to <code>loyalty</code> and pushes the update out the moment it
           commits — no polling from POS or mobile required.
         </p>
-        <pre className="">{CHANGE_STREAM_CODE}</pre>
+        <pre className={modalStyles.json}><code>{CHANGE_STREAM_CODE}</code></pre>
         <p style={{ marginTop: 14 }}>Event emitted for this order:</p>
-        <pre className="">
+        <pre className={modalStyles.json}>
+          <code>
           {docToJSON({
             operationType: "update",
             documentKey: { _id: ctx.doc._id },
             updatedFields: { "loyalty.coins": ctx.doc.loyalty.coins },
           })}
+          </code>
         </pre>
       </>
     ),

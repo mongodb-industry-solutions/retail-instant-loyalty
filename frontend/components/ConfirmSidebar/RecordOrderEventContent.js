@@ -1,5 +1,7 @@
 'use client'
 import React, { useEffect, useState } from "react";
+import { Callout } from "@via-ds/components/callout";
+import { Text } from "@via-ds/components/typography";
 import { useSelector } from "react-redux";
 import { selectLastOrder, selectSelectedUser } from "@/redux/slices/GlobalSlice";
 import { fetchOrder } from "@/lib/api";
@@ -46,7 +48,7 @@ const RecordOrderEventContent = () => {
   const tabs = [
     {
       key: "doc",
-      label: "The order is more than a transaction—it is a record of the decision",
+      label: "The enduring record of the decision",
       render: () => (
         <div className={styles.content}>
           <section>
@@ -78,13 +80,13 @@ const RecordOrderEventContent = () => {
               The order can be persisted in MongoDB immediately, beginning with
               an <code className={styles.status}>authorizing</code> state.
             </p>
-            <aside className={styles.callout}>
-              <strong>Durable from the start</strong>
+            <Callout className={styles.callout} variant="note">
+              <Text slot="title">Durable from the start</Text>
               <p>
                 This turns an in-progress transaction into a durable,
                 recoverable business record.
               </p>
-            </aside>
+            </Callout>
           </section>
         </div>
       ),
@@ -120,8 +122,8 @@ const RecordOrderEventContent = () => {
                 <pre className={styles.json}><code>{docToJSON(order)}</code></pre>
               )}
             </section>
-            <aside className={styles.callout}>
-              <strong>Applied to this order, not today's configuration</strong>
+            <Callout className={styles.callout} variant="important">
+              <Text slot="title">Applied to this order, not today's configuration</Text>
               <p>
                 The loyalty information inside the order represents what was
                 applied to that order—not a live reference to today's loyalty
@@ -132,7 +134,7 @@ const RecordOrderEventContent = () => {
                 value. A full historical rules snapshot would additionally
                 need the tier and campaign rules used for the calculation.
               </p>
-            </aside>
+            </Callout>
           </div>
         );
       },

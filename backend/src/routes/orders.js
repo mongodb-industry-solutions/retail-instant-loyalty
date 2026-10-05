@@ -234,6 +234,7 @@ export default function ordersRoutes(app) {
 
           const customerUpdatePipeline = buildCustomerLoyaltyDetailsUpdate({
             math,
+            historyEntries,
           });
 
           await db

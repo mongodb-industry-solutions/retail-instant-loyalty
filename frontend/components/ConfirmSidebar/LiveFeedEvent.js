@@ -30,8 +30,7 @@ export function behindTheScenesEvents() {
       body: (
         <div className={styles.liveFeedBody}>
           The order is saved immediately with an{" "}
-          <code style={{ color: "deeppink" }}>authorizing</code> status, before
-          payment is processed. This creates a real, recoverable state that
+          <code style={{ color: "deeppink" }}>authorizing</code> status. This creates a real, recoverable state that
           support can access and troubleshoot later.
         </div>
       ),
@@ -44,9 +43,8 @@ export function behindTheScenesEvents() {
       title: "Record the payment in MongoDB",
       body: (
         <div className={styles.liveFeedBody}>
-          A successful payment is saved as its own record. Only after the
-          payment is confirmed successfully are the coins awarded to the
-          customer, ensuring rewards are granted only for completed payments.
+          The payment is saved as its own record. Only after the
+          payment is confirmed successfully rewards are granted.
         </div>
       ),
       modalContent: (

@@ -76,7 +76,7 @@ export function createLoyaltyEngine(app) {
     return entries;
   }
 
-  function buildCustomerLoyaltyDetailsUpdate({ math }) {
+  function buildCustomerLoyaltyDetailsUpdate({ math, historyEntries = [] }) {
     const update = {
       $set: {
         "loyaltyDetails.coinBalance": math.newBalance,
@@ -86,6 +86,15 @@ export function createLoyaltyEngine(app) {
       },
       $inc: { "loyaltyDetails.ordersCount": 1 },
     };
+
+    if (historyEntries.length > 0) {
+      update.$push = {
+        "loyaltyDetails.latestLoyaltyHistory": {
+          $each: historyEntries,
+          $slice: -3,
+        },
+      };
+    }
 
     return update;
   }
