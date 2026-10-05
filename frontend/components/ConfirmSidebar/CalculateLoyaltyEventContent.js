@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { fetchLoyaltyConfig } from "@/lib/api";
 import { docToJSON } from "@/lib/helper";
-import styles from "./CalculateLoyaltyEventContent.module.css";
+import styles from "./EventContent.module.css";
 import SyncModal from "../modals/SyncModal/SyncModal";
 
 const TIER_EXAMPLE = {

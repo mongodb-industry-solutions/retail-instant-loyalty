@@ -1,7 +1,7 @@
 "use client";
 
 import { docToJSON } from "@/lib/helper";
-import modalStyles from "@/components/modals/Modal.module.css";
+import modalStyles from "./EventContent.module.css";
 import SyncModal from "../modals/SyncModal/SyncModal";
 
 const CHANGE_STREAM_CODE = `const pipeline = [
