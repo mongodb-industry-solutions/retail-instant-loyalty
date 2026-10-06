@@ -1,8 +1,8 @@
 import { useDispatch } from "react-redux";
 import { H2, Text } from "@via-ds/components/typography";
+import TierBadge from "@/components/TierBadge/TierBadge";
 import { useSelector } from "react-redux";
 import { useState, useRef } from "react";
-import { toast } from "@via-ds/components/toast";
 import { updateLoyaltyConfig } from "@/lib/api";
 import {
   selectLoyaltyConfig,
@@ -12,8 +12,6 @@ import styles from "./AdminModal.module.css";
 import modal from "../Modal.module.css";
 import shared from "../../shared.module.css";
 import { Button } from "@via-ds/components/button";
-import { Badge } from "@via-ds/components/badge";
-import { tierBadgeVariant } from "@/components/tierBadgeVariant";
 import { formatPrice } from "@/lib/helper";
 
 function RewardValueTab({ value, getChanges }) {
@@ -26,9 +24,7 @@ function RewardValueTab({ value, getChanges }) {
       </p>
       {value.map((reward, i) => (
         <div className={styles.row} key={reward.tierKey}>
-          <Badge variant={tierBadgeVariant(reward.tierKey)}>
-            {reward.tierName}
-          </Badge>
+          <TierBadge/>
           <div className={styles.inputWrap}>
             <span>1$ =</span>
             <span>coins</span>
@@ -160,7 +156,7 @@ function TierThresholdsTab({ value, getChanges }) {
         t.tierKey === "bronze" ? null : (
           <div className={styles.sliderRow} key={index}>
             <div className={styles.sliderLabel}>
-              <Badge variant={tierBadgeVariant(t.tierKey)}>{t.tierName}</Badge>
+              <TierBadge/>
               <span className={`${styles.sliderValue} mono`}>
                 {formatPrice(t.tierThreshold)} spend
               </span>

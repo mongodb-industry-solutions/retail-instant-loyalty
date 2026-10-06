@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Badge } from "@via-ds/components/badge";
 import { Button } from "@via-ds/components/button";
 import {
   Menu,
@@ -39,7 +38,7 @@ import {
   ProfileIcon,
   OrdersIcon,
 } from "@/components/Icons/Icons";
-import { tierBadgeVariant } from "@/components/tierBadgeVariant";
+import TierBadge from "../TierBadge/TierBadge";
 
 function PromoBanner({ activeCampaign }) {
   return (
@@ -146,13 +145,7 @@ export default function Navbar() {
                 {persona.profile.firstName}
               </Text>
 
-              <Badge
-                variant={tierBadgeVariant(
-                  persona.loyaltyDetails?.activeTier ?? "new",
-                )}
-              >
-                <Text>{persona.loyaltyDetails?.activeTier ?? "New"}</Text>
-              </Badge>
+              <TierBadge/>
             </Button>
 
             <MenuPopover>

@@ -1,12 +1,22 @@
+"use client";
 import React from "react";
+import {useSelector} from "react-redux";
+import {selectSelectedUser} from "@/redux/slices/GlobalSlice";
+import {Badge} from "@via-ds/components/badge";
+import {Text} from "@via-ds/components/typography";
+import styles from "./TierBadge.module.css";
 
-const TierBadge = () => {
+const TierBadge = ({overwriteTier = null}) => {
+  const activeTier = overwriteTier || useSelector(selectSelectedUser)?.loyaltyDetails?.activeTier || null;
+  if(!activeTier) return null;
+
   return (
     <Badge
-      //variant={tierBadgeVariant(persona.loyaltyDetails?.activeTier ?? "new")}
+      className={`${styles[`tier-badge-${activeTier?.toLowerCase()}`]}`}
     >
       <Text>
-HOAL    </Text>
+        {activeTier}
+      </Text>
     </Badge>
   );
 };

@@ -6,17 +6,16 @@ import profile from "@/components/Profile.module.css";
 import { TIER_BENEFITS } from "@/lib/data";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { Badge } from "@via-ds/components/badge";
 import { Button } from "@via-ds/components/button";
 import {
   selectSelectedUser,
   selectLoyaltyConfig,
   openModal,
 } from "@/redux/slices/GlobalSlice";
-import { tierBadgeVariant } from "@/components/tierBadgeVariant";
 import { formatCoinValue, formatPrice, personaFullName } from "@/lib/helper";
 import TierTrack from "@/components/TierTrack/TierTrack";
 import { Text, H3 } from "@via-ds/components/typography";
+import TierBadge from "@/components/TierBadge/TierBadge";
 
 function TierBenefits({ rewardDetails, currentTierKey }) {
   return (
@@ -29,9 +28,7 @@ function TierBenefits({ rewardDetails, currentTierKey }) {
             key={t.tierKey}
           >
             <div className={styles.compactHead}>
-              <Badge variant={tierBadgeVariant(t.tierKey)}>
-                <Text>{t.tierName}</Text>
-              </Badge>
+              <TierBadge overwriteTier={t.tierKey}/>
               {isCurrent && (
                 <Text elementType="span" className={styles.benefitYou}>
                   Current

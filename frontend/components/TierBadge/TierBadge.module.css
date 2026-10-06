@@ -1,0 +1,108 @@
+.tier-badge-bronze {
+  background-color: #d29a6b;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 244, 224, 0.22) 0,
+      rgba(255, 244, 224, 0.22) 1px,
+      rgba(74, 39, 18, 0.06) 2px,
+      rgba(255, 255, 255, 0.04) 3px
+    ),
+    linear-gradient(
+      180deg,
+      #b47a50 0%,
+      #d49a68 25%,
+      #f0c594 48%,
+      #ba8054 73%,
+      #e3ad7a 100%
+    );
+  border: 1px solid #9a6038;
+  color: #1c1109;
+  font-weight: bolder;
+}
+.tier-badge-silver {
+  background-color: #c5c9cc;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.26) 0,
+      rgba(255, 255, 255, 0.26) 1px,
+      rgba(65, 72, 78, 0.09) 2px,
+      rgba(255, 255, 255, 0.05) 3px
+    ),
+    linear-gradient(
+      180deg,
+      #969da2 0%,
+      #d4d8da 25%,
+      #f7f8f8 48%,
+      #b6bdc1 73%,
+      #e6e9ea 100%
+    );
+  border: 1px solid #a1a7ab;
+  color: #25292b;
+  font-weight: bolder;
+}
+.tier-badge-gold {
+  background-color: #d5aa36;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 250, 219, 0.24) 0,
+      rgba(255, 250, 219, 0.24) 1px,
+      rgba(91, 62, 10, 0.1) 2px,
+      rgba(255, 255, 255, 0.04) 3px
+    ),
+    linear-gradient(
+      180deg,
+      #a87816 0%,
+      #dfb844 24%,
+      #ffed9a 48%,
+      #c49524 73%,
+      #f0ce66 100%
+    );
+  border: 1px solid #ad841f;
+  color: #3b2b08;
+  font-weight: bolder;
+}
+.tier-badge-platinum {
+  background-color: #b8b8b8;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.2) 0,
+      rgba(255, 255, 255, 0.2) 1px,
+      rgba(80, 80, 80, 0.08) 2px,
+      rgba(255, 255, 255, 0.04) 3px
+    ),
+    linear-gradient(
+      180deg,
+      #a7a7a7 0%,
+      #dedede 24%,
+      #f4f4f4 48%,
+      #bcbcbc 72%,
+      #e4e4e4 100%
+    );
+  border: 1px solid #999;
+  color: #242424;
+}
+.tier-badge-diamond {
+  background-color: #b9dfe5;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.3) 0,
+      rgba(255, 255, 255, 0.3) 1px,
+      rgba(47, 108, 122, 0.08) 2px,
+      rgba(255, 255, 255, 0.08) 3px
+    ),
+    linear-gradient(
+      180deg,
+      #80b8c4 0%,
+      #c2e8ec 25%,
+      #f4ffff 48%,
+      #a7d1d9 73%,
+      #dff5f6 100%
+    );
+  border: 1px solid #91c1ca;
+  color: #17383d;
+}
