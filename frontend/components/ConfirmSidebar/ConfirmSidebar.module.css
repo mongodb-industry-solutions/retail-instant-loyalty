@@ -7,10 +7,18 @@
 }
 .liveFeedHead {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   margin-bottom: 8px;
+}
+.liveFeedKickerContainer {
+  flex-direction: row;
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
 }
 .liveFeedKicker {
   font-size: 11.3px;
@@ -42,6 +50,22 @@
   background: var(--green-bright);
   box-shadow: 0 0 0 6px rgba(0, 237, 100, 0.14);
   animation: livePulse 1.6s ease infinite;
+}
+.transactionPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 1 auto;
+  max-width: 100%;
+  padding: 5px 10px;
+  border: 1px solid var(--border-blue, #c3e7fe);
+  border-radius: 999px;
+  background: var(--surface-blue, #e1f7ff);
+  color: var(--platinum, #1254b7);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
 }
 .liveFeedSub {
   margin: 0 0 14px;

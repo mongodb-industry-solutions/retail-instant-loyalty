@@ -49,15 +49,24 @@ export default function redeemRoutes(app) {
           "No loyalty configuration for this session",
         );
 
-      const tierEntry = loyaltyConfig.rewardDetails.find(
-        (t) => t.tierName === customer.loyaltyDetails.activeTier,
+      // activeTier holds a tierKey (that's what the order flow writes), so it
+      // has to be matched against tierKey — matching tierName never hit.
+      const activeTier = customer.loyaltyDetails.activeTier;
+      let tierEntry = loyaltyConfig.rewardDetails.find(
+        (t) => t.tierKey === activeTier,
       );
+      // New customers start at tier null; price their rewards at the lowest
+      // tier, the same way computeOrderMath does.
+      if (!tierEntry && !activeTier)
+        tierEntry = loyaltyConfig.rewardDetails.reduce((lowest, tier) =>
+          tier.tierThreshold < lowest.tierThreshold ? tier : lowest,
+        );
       if (!tierEntry)
         return sendError(
           reply,
           409,
           "TIER_NOT_FOUND",
-          "Customer's active tier not found in loyalty config",
+          `Customer's active tier ${activeTier} not found in loyalty config`,
         );
 
       const rate = tierEntry.currencyValueForDollar; // coins per dollar at this customer's tier
@@ -109,6 +118,9 @@ export default function redeemRoutes(app) {
             price: "$priceDouble",
             coins: { $round: ["$coinsApplied", 0] },
             cash: { $round: ["$cash", 2] },
+            // Returned so the UI can show *why* this product qualified — it's
+            // the flag the $match above filters on.
+            isRedeemElegible: 1,
           },
         },
       ];
@@ -314,7 +326,10 @@ export default function redeemRoutes(app) {
               .insertMany(historyEntries, { session: mongoSession });
           }
 
-          const customerUpdatePipeline = buildCustomerLoyaltyDetailsUpdate({ math });
+          const customerUpdatePipeline = buildCustomerLoyaltyDetailsUpdate({
+            math,
+            historyEntries,
+          });
 
           await db
             .collection("customers")

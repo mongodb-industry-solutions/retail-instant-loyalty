@@ -1,83 +1,98 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Button } from "@via-ds/components/button";
-import { useDispatch } from "react-redux";
-import { liveFeedEventsForOrder } from "../../app/(ecommerce)/confirm/LiveFeedEvent";
+import { Icon } from "@via-ds/icons";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import styles from "./ConfirmSidebar.module.css";
-import { openModal } from "@/redux/slices/GlobalSlice";
+import { openModal, selectLastOrder } from "@/redux/slices/GlobalSlice";
+import { registerFreestyleContent } from "@/components/modals/freestyleContentRegistry";
+import { behindTheScenesEvents } from "./LiveFeedEvent";
 
 // persona and order come from confirm/page.js, which guards them before
 // rendering. lastRedeem is the { order, loyalty } envelope from a completed
 // redemption, or null if none has happened yet this session.
-export default function ConfirmSidebar({ persona, order, lastRedeem }) {
+export default function ConfirmSidebar({ withAnimation = true }) {
   const dispatch = useDispatch();
-  const redeemOrder = lastRedeem?.order ?? null;
+  const lastOrder = useSelector(selectLastOrder);
+  const events = behindTheScenesEvents();
+  const eventCount = events.length;
+  const orderId = lastOrder?.order?.orderId;
+  const [feedProgress, setFeedProgress] = useState(() => ({
+    orderId,
+    visibleCount: 1,
+  }));
+  const visibleCount = withAnimation
+    ? feedProgress.orderId === orderId
+      ? feedProgress.visibleCount
+      : 1
+    : eventCount;
 
-  // Same animation key ConfirmView keys its before/after counters on: the
-  // feed replays from empty whenever the narrated order changes. Keyed on
-  // the redeem order, not the 3.4s justConfirmed flash, or the feed would
-  // wipe and replay the purchase narration once that flash expired.
-  const animKey = redeemOrder ? redeemOrder.orderId : order.orderId;
-
-  const [feedItems, setFeedItems] = useState([]);
   useEffect(() => {
-    setFeedItems([]);
-    // liveFeedEventsForOrder reads loyalty off the order itself, but the API
-    // returns it as a sibling — attach it here rather than in every caller.
-    const target = redeemOrder
-      ? { ...redeemOrder, loyalty: lastRedeem.loyalty }
-      : order;
-    const events = liveFeedEventsForOrder(target, persona);
-    const timers = events.map((evt, idx) =>
-      setTimeout(() => setFeedItems((prev) => [...prev, evt]), 250 + idx * 380),
-    );
-    return () => timers.forEach(clearTimeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [animKey]);
+    if (!withAnimation) return;
+
+    const timerIds = [];
+    for (let count = 2; count <= eventCount; count += 1) {
+      timerIds.push(
+        setTimeout(
+          () => setFeedProgress({ orderId, visibleCount: count }),
+          (count - 1) * 1000,
+        ),
+      );
+    }
+
+    return () => timerIds.forEach(clearTimeout);
+  }, [eventCount, orderId, withAnimation]);
 
   return (
     <aside className={styles.side}>
       <div className={styles.liveFeedCard}>
         <div className={styles.liveFeedHead}>
-          <div>
+          <div className={styles.liveFeedKickerContainer}>
             <div className={styles.liveFeedKicker}>Behind the scenes</div>
-            <h3>What happens in real time</h3>
+            <span className={styles.livePill}>
+              <span className={styles.liveDot}></span>Instant Rewards
+            </span>
           </div>
-          <span className={styles.livePill}>
-            <span className={styles.liveDot}></span>Live
-          </span>
+          <h3>
+            Learn more about how MongoDB powers instant rewards for
+            customers.{" "}
+          </h3>
         </div>
-        <p className={styles.liveFeedSub}>
-          One shopper action can confirm the order, update loyalty state, and
-          refresh connected retail experiences in real time.
-        </p>
         <div className={styles.liveFeedList}>
-          {feedItems.map((evt, idx) => (
+          {events.slice(0, visibleCount).map((evt, idx) => (
             <div className={styles.liveFeedItem} key={idx}>
-              <div className={styles.liveFeedIcon}>{evt.icon}</div>
-              <div>
-                <div className={styles.liveFeedTitle}>{evt.title}</div>
-                <div className={styles.liveFeedBody}>{evt.body}</div>
+              <div className={styles.liveFeedIcon}>
+                <Icon glyph={evt.icon} size={18} />
+              </div>
+              <div className={styles.liveFeedContent}>
+                <div className={styles.liveFeedItemHead}>
+                  <div className={styles.liveFeedTitle}>{evt.title}</div>
+                  {evt.extraElement && evt.extraElement}
+                </div>
+                {evt.body}
+                {evt.modalContent && (
+                  <Button
+                    variant="tertiary"
+                    size="small"
+                    onClick={() => {
+                      const contentId = registerFreestyleContent(
+                        evt.modalContent,
+                      );
+                      dispatch(
+                        openModal({
+                          modalType: "freestyle",
+                          props: { contentId },
+                        }),
+                      );
+                    }}
+                  >
+                    Learn more
+                  </Button>
+                )}
               </div>
             </div>
           ))}
-        </div>
-        <div className={styles.syncCard}>
-          <div className={styles.syncIcon}>📡</div>
-          <div>
-            <h3>Synced across channels</h3>
-            <p>
-              In-store POS ✓ Mobile app ✓ — a change stream on the customer
-              document pushed this balance to both instantly.
-            </p>
-            <Button
-              size="small"
-              onClick={() => dispatch(openModal({ modalType: "sync" }))}
-            >
-              {"{ } See how"}
-            </Button>
-          </div>
         </div>
       </div>
     </aside>

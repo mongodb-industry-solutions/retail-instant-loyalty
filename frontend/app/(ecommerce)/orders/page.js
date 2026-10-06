@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { currentTierFor, formatCoinValue } from "@/lib/helper";
+import { currentTierFor, formatCoinValue, formatOrderDate } from "@/lib/helper";
 import { ChevronRightIcon } from "@/components/Icons/Icons";
 import styles from "./OrdersView.module.css";
 import shared from "@/components/shared.module.css";
@@ -127,7 +127,7 @@ export default function OrdersView() {
                       {order.orderId}
                     </div>
                     <div className={styles.rowType}>
-                      {/* {orderSecondaryLine(o, orderMeta)} */}
+                      {formatOrderDate(order.createdAt)}
                     </div>
                   </div>
                   <div className={styles.rowMetrics}>
@@ -159,6 +159,7 @@ export default function OrdersView() {
           </div>
         </div>
       )}
+
     </main>
   );
 }

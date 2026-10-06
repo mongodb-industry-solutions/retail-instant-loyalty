@@ -9,9 +9,8 @@ import styles from "./OrderDetailModal.module.css";
 import modal from "../Modal.module.css";
 import shared from "../../shared.module.css";
 import { selectSelectedUser } from "@/redux/slices/GlobalSlice";
-import { Step, Stepper } from "@via-ds/components/stepper";
-
-const STATUS_STAGES = ["placed", "processing", "shipped", "delivered"];
+import OrderStatusBar from "../../OrderStatusBar/OrderStatusBar";
+import { ORDER_STATUS_STAGES } from "@/lib/data";
 
 function formatOrderDate(date) {
   if (!date) return "—";
@@ -20,23 +19,6 @@ function formatOrderDate(date) {
     day: "numeric",
     year: "numeric",
   });
-}
-
-function StatusBar({ current }) {
-  const currentStep = STATUS_STAGES.indexOf(current);
-  console.log(currentStep);
-
-  if (currentStep === -1) return null;
-
-  return (
-    <Stepper currentStep={currentStep} aria-label="Order status">
-      {STATUS_STAGES.map((stage, index) => (
-        <Step key={index} textValue={stage}>
-          {stage}
-        </Step>
-      ))}
-    </Stepper>
-  );
 }
 
 function OrderItems({ items }) {
@@ -145,8 +127,6 @@ export default function OrderDetailModal({ orderId, onClose }) {
     };
   }, [orderId, persona?.customerId]);
 
-  console.log("orderId:", orderId);
-
   if (error) {
     return (
       <>
@@ -181,6 +161,18 @@ export default function OrderDetailModal({ orderId, onClose }) {
   );
   const placedAt = order.statusHistory?.[0]?.lastUpdated ?? order.createdAt;
 
+  let ORDER_STATUS_STAGES_FAILED = null;
+
+  if (order?.currentStatus === "payment_failed") {
+    ORDER_STATUS_STAGES_FAILED = [
+      "authorizing",
+      "payment_failed",
+      "placed",
+      "shipped",
+      "delivered",
+    ];
+  }
+
   return (
     <>
       <div className={modal.head}>
@@ -211,7 +203,14 @@ export default function OrderDetailModal({ orderId, onClose }) {
               <span className={styles.badge}>{order.currentStatus}</span>
             </div>
           </div>
-          <StatusBar current={order.currentStatus} />
+          <OrderStatusBar
+            stages={
+              ORDER_STATUS_STAGES_FAILED
+                ? ORDER_STATUS_STAGES_FAILED
+                : ORDER_STATUS_STAGES
+            }
+            current={order.currentStatus}
+          />
 
           <div className={styles.metaStrip}>
             <div className={styles.metaCard}>

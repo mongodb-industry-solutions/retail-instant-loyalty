@@ -53,6 +53,12 @@ const GlobalSlice = createSlice({
     updateSelectedUser(state, action) {
       state.selectedUser = action.payload;
     },
+    // Merges a partial update (e.g. from the customer change-stream) into
+    // the current selectedUser, instead of replacing it wholesale.
+    patchSelectedUser(state, action) {
+      if (!state.selectedUser) return;
+      state.selectedUser = { ...state.selectedUser, ...action.payload };
+    },
     setProductsLoading(state, action) {
       state.products.loading = action.payload;
     },
@@ -75,7 +81,7 @@ const GlobalSlice = createSlice({
       state.loyaltyConfig.error = action.payload;
     },
     setLoyaltyConfigData(state, action) {
-      const { rewardDetails, campaign, orderMeta } = action.payload;
+      const { rewardDetails, campaign } = action.payload;
       state.loyaltyConfig = {
         rewardDetails,
         campaign,
@@ -117,14 +123,10 @@ const GlobalSlice = createSlice({
     },
 
     placeOrderSuccess(state, action) {
-      // API response envelope: { order, loyalty }. loyalty already carries
-      // oldBalance/newBalance and oldTier/newTier directly -- no separate
-      // customer object is returned, so there is nothing to diff here.
       const { order, loyalty } = action.payload;
       state.lastOrder = { order, loyalty };
       state.lastEvent = "order";
-      // Keep the persona in step with the write the backend just committed,
-      // so the navbar and tier track update without a refetch.
+
       if (state.selectedUser && loyalty) {
         state.selectedUser.loyaltyDetails.coinBalance = loyalty.newBalance;
         state.selectedUser.loyaltyDetails.activeTier = loyalty.newTier;
@@ -140,8 +142,6 @@ const GlobalSlice = createSlice({
     },
 
     confirmRedeemOrderSuccess(state, action) {
-      // API response envelope: { order, loyalty } — identical shape to
-      // placeOrderSuccess, since POST /redeem and POST /orders share it.
       const { order, loyalty } = action.payload;
       state.lastRedeem = { order, loyalty };
       state.lastEvent = "redeem";
@@ -158,24 +158,20 @@ const GlobalSlice = createSlice({
       }
     },
 
+    updateOrdersData(state, action) {
+      state.Global.lastOrder;
+    },
+
     saveRewardDetailsSuccess(state, action) {
       state.loyaltyConfig.rewardDetails = action.payload.rewardDetails;
     },
     saveCampaignSuccess(state, action) {
       state.loyaltyConfig.campaign = action.payload.campaign;
     },
-    setOrdersData(state, action) {
-      state.orders.data = action.payload.orders;
-      state.orders.loading = false;
-      state.orders.error = null;
-    },
+
     setOrdersLoading(state) {
       state.orders.loading = true;
       state.orders.error = null;
-    },
-    setOrdersError(state, action) {
-      state.orders.loading = false;
-      state.orders.error = action.payload;
     },
 
     resetGlobalState: () => INITIAL_STATE,
@@ -205,6 +201,7 @@ export const {
   setUsersError,
   setSelectedUser,
   updateSelectedUser,
+  patchSelectedUser,
   setUsersData,
   setProductsLoading,
   setProductsData,

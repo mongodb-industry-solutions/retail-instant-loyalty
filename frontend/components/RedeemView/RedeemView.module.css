@@ -50,6 +50,34 @@
   align-items: center;
   gap: 12px;
 }
+.redeemEmpty {
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  padding: 18px 16px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+.redeemCardActions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.docToggle {
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  font-family: var(--mono-font);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--green-dark);
+  position: relative;
+  top: -10px;
+}
+.docToggle:hover {
+  color: var(--green-darker);
+}
 .redeemThumb {
   width: 44px;
   height: 44px;

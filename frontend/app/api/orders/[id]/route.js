@@ -6,16 +6,15 @@ const BACKEND_URL = API_URL;
 // GET /api/orders/:orderId -> one order, scoped to the current session.
 export async function GET(request, { params }) {
   const { id: orderId } = await params;
+  const addTenders = new URL(request.url).searchParams.get("addTenders") ?? "true";
+  const query = new URLSearchParams({ addTenders });
 
   if (!BACKEND_URL) {
-    return NextResponse.json(
-      { error: "API_URL is not set" },
-      { status: 503 },
-    );
+    return NextResponse.json({ error: "API_URL is not set" }, { status: 503 });
   }
 
   try {
-    const res = await fetch(`${BACKEND_URL}/orders/${orderId}`, {
+    const res = await fetch(`${BACKEND_URL}/orders/${encodeURIComponent(orderId)}?${query}`, {
       headers: {
         "Content-Type": "application/json",
         "x-customer-id": request.headers.get("x-customer-id") ?? "",

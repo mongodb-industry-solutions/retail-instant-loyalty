@@ -15,6 +15,7 @@ import {
 } from "@/redux/slices/GlobalSlice";
 import { Icon } from "@via-ds/icons";
 import { Button } from "@via-ds/components/button";
+import { ToggleButton } from "@via-ds/components/toggle-button";
 import shared from "@/components/shared.module.css";
 import { cartItemList, formatPrice } from "@/lib/helper";
 import { createOrder, fetchOrderOverview, fetchCustomer } from "@/lib/api";
@@ -28,7 +29,7 @@ export default function CheckoutView() {
   const products = useSelector(selectProductsData);
   const cartItems = cartItemList(cart, products);
   const [placingOrder, setPlacingOrder] = useState(false);
-
+  const [validCard, setValidCard] = useState(true);
   const coinBalance = persona.loyaltyDetails?.coinBalance ?? 0;
   const [coinsToApply, setCoinsToApply] = useState(0);
   const [overview, setOverview] = useState(null);
@@ -45,15 +46,13 @@ export default function CheckoutView() {
     Number(overview?.order?.amountSummary?.subtotal ?? 0),
   );
 
-  const balance = Math.max(
-    0,
-    Math.floor(Number(persona.loyaltyDetails?.coinBalance ?? 0)),
-  );
+  const balance = Math.max(0, Math.floor(Number(coinBalance)));
   const coinsPerDollar = Number(currentTierConfig.currencyValueForDollar ?? 0);
 
+  const subtotalCents = Math.round(merchandiseValue * 100);
   const maxCoinsForMerchandise =
-    merchandiseValue > 0 && coinsPerDollar > 0
-      ? Math.floor(merchandiseValue * coinsPerDollar)
+    subtotalCents > 0 && coinsPerDollar > 0
+      ? Math.ceil((subtotalCents * coinsPerDollar) / 100)
       : 0;
 
   const maxCoinsUsable = Math.min(balance, maxCoinsForMerchandise);
@@ -76,6 +75,7 @@ export default function CheckoutView() {
   useEffect(() => {
     if (!orderItems.length) {
       setOverview(null);
+      router.push("/");
       return;
     }
     let cancelled = false;
@@ -108,12 +108,19 @@ export default function CheckoutView() {
     try {
       // Only ids, quantities and coins — the server re-prices from live
       // products and the session's customer, ignoring anything else we'd send.
-      const { order, loyalty: orderLoyalty } = await createOrder({
+      const {
+        order,
+        loyalty: orderLoyalty,
+        error,
+      } = await createOrder({
         items: orderItems,
         coinsToApply,
         orderType: "ONLINE",
+        validCard,
       });
-      dispatch(placeOrderSuccess({ order, loyalty: orderLoyalty }));
+
+      dispatch(placeOrderSuccess({ order, loyalty: orderLoyalty, error }));
+
       const getUpdatedUser = await fetchCustomer(persona.customerId);
       dispatch(updateSelectedUser(getUpdatedUser));
       router.push("/confirm");
@@ -178,9 +185,19 @@ export default function CheckoutView() {
             </div>
           </div>
           <div className={styles.formCard}>
-            <H3>
-              <Icon glyph="CreditCard" /> Payment details
-            </H3>
+            <div className={styles.formCardHeader}>
+              <H3>
+                <Icon glyph="CreditCard" /> Payment details
+              </H3>
+
+              <ToggleButton
+                selected={!validCard}
+                onChange={() => setValidCard((current) => !current)}
+              >
+                Use invalid card
+              </ToggleButton>
+            </div>
+
             <div className={shared.field} style={{ marginBottom: 12 }}>
               <label>Card number</label>
               <input
@@ -243,14 +260,15 @@ export default function CheckoutView() {
                   />
                   <div className={styles.loyaltyScale}>
                     <span>0</span>
-                    <span>{maxCoinsUsable.toLocaleString()} coins</span>
+                    {/* Right end tracks the handle rather than pinning the
+                        ceiling, so dragging always shows the live figure. */}
+                    <span className={`${styles.sliderValue} mono`}>
+                      {coinsToApply.toLocaleString()} coins
+                    </span>
                   </div>
-                  {/* <div className={styles.loyaltyNote}>
-                    Applying <b>{coinsToApply.toLocaleString()}</b> coins
-                    offsets <b>{formatPrice(coinsCoveredValue)}</b> of
-                    merchandise and leaves <b>{formatPrice(subtotal)}</b>{" "}
-                    eligible for new loyalty coins.
-                  </div> */}
+                  <div className={styles.loyaltyNote}>
+                    Tier progress still counts the full cart subtotal.
+                  </div>
                 </div>
               ) : (
                 <div className={styles.loyaltyNote}>
@@ -282,7 +300,8 @@ export default function CheckoutView() {
             <div className={shared.summaryRow}>
               <span>Coins applied</span>
               <span className="mono">
-                −{formatPrice(amounts.coinsDiscountValue)}
+                {overview?.order?.coinsApplied?.toLocaleString()} ( -
+                {formatPrice(overview?.order?.coinsToDollarsApplied)})
               </span>
             </div>
           )}
@@ -340,7 +359,7 @@ export default function CheckoutView() {
             isLoading={placingOrder}
             loadingText="Placing order…"
             isDisabled={!overview}
-            onClick={handlePlaceOrder}
+            onClick={() => handlePlaceOrder()}
           >
             ✓ Place order
           </Button>

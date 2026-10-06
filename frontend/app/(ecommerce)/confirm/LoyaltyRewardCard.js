@@ -14,17 +14,12 @@ import TierTrack from "@/components/TierTrack/TierTrack";
 import { Badge } from "@via-ds/components/badge";
 import { Icon } from "@via-ds/icons";
 
-// `order` is the currently active transaction — whichever of the last order
-// or last redeem happened most recently — with `loyalty` merged onto it by
-// the caller (confirm/page.js), so this card (and its tier track) reflects
-// a redeem instead of staying stuck on the original purchase.
 export default function LoyaltyRewardCard({ order }) {
   const [phase, setPhase] = useState("after");
   const [tierupGlow, setTierupGlow] = useState(false);
   const selectedUser = useSelector(selectSelectedUser);
   const { rewardDetails } = useSelector(selectLoyaltyConfig);
 
-  console.log("loyalty for order:", rewardDetails);
   useEffect(() => {
     setPhase("before");
     setTierupGlow(false);
@@ -35,15 +30,21 @@ export default function LoyaltyRewardCard({ order }) {
       if (changed) setTierupGlow(true);
     }, 250);
     return () => clearTimeout(t);
-    // `order` is a fresh object identity every render (built inline by the
-    // caller) — key off orderId instead, or this refires and setPhase loops
-    // forever.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order?.orderId]);
 
   if (!order) return null;
+  let loyalty;
 
-  const loyalty = order.loyalty ?? {};
+  if (order.loyalty) {
+    loyalty = order.loyalty;
+  } else {
+    loyalty = {
+      oldTier: selectedUser.loyaltyDetails?.activeTier ?? "bronze",
+      newTier: selectedUser.loyaltyDetails?.activeTier ?? "bronze",
+      oldBalance: selectedUser.loyaltyDetails?.coinBalance ?? 0,
+      newBalance: selectedUser.loyaltyDetails?.coinBalance ?? 0,
+    };
+  }
 
   const tierChanged = loyalty.newTier !== loyalty.oldTier;
 
@@ -65,7 +66,6 @@ export default function LoyaltyRewardCard({ order }) {
     dollarsNeededForNextTier: loyalty.dollarsNeededForNextTier,
   };
   const multiplier = loyalty.multiplier ?? 1;
-  // Tiers come through lowercase ("gold"); this card shows them as a label.
   const tierLabel = loyalty.newTier
     ? loyalty.newTier.charAt(0).toUpperCase() + loyalty.newTier.slice(1)
     : "—";
