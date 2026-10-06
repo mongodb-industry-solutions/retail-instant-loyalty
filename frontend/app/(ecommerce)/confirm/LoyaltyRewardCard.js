@@ -39,8 +39,8 @@ export default function LoyaltyRewardCard({ order }) {
     loyalty = order.loyalty;
   } else {
     loyalty = {
-      oldTier: selectedUser.loyaltyDetails?.currentTier ?? "bronze",
-      newTier: selectedUser.loyaltyDetails?.currentTier ?? "bronze",
+      oldTier: selectedUser.loyaltyDetails?.activeTier ?? "bronze",
+      newTier: selectedUser.loyaltyDetails?.activeTier ?? "bronze",
       oldBalance: selectedUser.loyaltyDetails?.coinBalance ?? 0,
       newBalance: selectedUser.loyaltyDetails?.coinBalance ?? 0,
     };
