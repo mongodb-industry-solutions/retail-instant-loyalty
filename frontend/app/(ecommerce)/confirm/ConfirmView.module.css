@@ -209,13 +209,6 @@
   color: var(--forest);
   font-family: var(--mono-font);
 }
-.rnTier {
-  margin-left: auto;
-  font-size: 15px;
-  font-weight: 700;
-  background-color: rgb(83, 230, 83);
-}
-
 .tierupCelebration {
   position: relative;
   display: flex;
