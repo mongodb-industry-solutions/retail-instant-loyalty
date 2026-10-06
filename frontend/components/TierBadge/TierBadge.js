@@ -7,10 +7,8 @@ import { Text } from "@via-ds/components/typography";
 import styles from "./TierBadge.module.css";
 
 const TierBadge = ({ overwriteTier = null }) => {
-  const activeTier =
-    overwriteTier ||
-    useSelector(selectSelectedUser)?.loyaltyDetails?.activeTier ||
-    null;
+  const selectedTier = useSelector(selectSelectedUser)?.loyaltyDetails?.activeTier;
+  const activeTier = overwriteTier || selectedTier || null;
   if (!activeTier) return null;
 
   return (
