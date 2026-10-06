@@ -24,7 +24,7 @@ function RewardValueTab({ value, getChanges }) {
       </p>
       {value.map((reward, i) => (
         <div className={styles.row} key={reward.tierKey}>
-          <TierBadge/>
+          <TierBadge overwriteTier={reward.tierName} />
           <div className={styles.inputWrap}>
             <span>1$ =</span>
             <span>coins</span>
