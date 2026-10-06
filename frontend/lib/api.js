@@ -21,9 +21,6 @@ async function request(path, options = {}) {
     const error = new Error(message);
     error.code = typeof err === "object" ? err?.code : undefined;
     error.status = res.status;
-    if (body?.error?.code === "PAYMENT_DECLINED") {
-      return body;
-    }
     throw error;
   }
 

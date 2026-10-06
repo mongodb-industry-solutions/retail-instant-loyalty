@@ -23,6 +23,7 @@ function OrderErrorView({
   orderError,
   ORDER_STATUS_STAGES_FAILED,
   finalOrder,
+  router,
 }) {
   // let finalOrder = {};
   return (
@@ -75,7 +76,10 @@ export default function ConfirmView() {
   let ORDER_STATUS_STAGES_FAILED = null;
 
   useEffect(() => {
-    if (!orderId || !customerId) return;
+    if (!orderId || !customerId) {
+      router.push("/");
+      return;
+    }
 
     const source = new EventSource(
       `/api/orders/${orderId}/orderstatus?customerId=${encodeURIComponent(customerId)}`,
@@ -87,7 +91,7 @@ export default function ConfirmView() {
 
         if (status) setOrderStatus(status);
 
-        if (status === "delivered") {
+        if (status === "delivered" || status === "payment_failed") {
           source.close();
         }
       } catch (error) {
@@ -179,6 +183,7 @@ export default function ConfirmView() {
         orderError="Payment failed."
         ORDER_STATUS_STAGES_FAILED={ORDER_STATUS_STAGES_FAILED}
         finalOrder={finalOrder}
+        router={router}
       />
     );
   }

@@ -75,6 +75,7 @@ export default function CheckoutView() {
   useEffect(() => {
     if (!orderItems.length) {
       setOverview(null);
+      router.push("/");
       return;
     }
     let cancelled = false;
