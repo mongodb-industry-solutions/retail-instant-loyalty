@@ -152,8 +152,8 @@ export default function CoinHistoryView() {
                       "—"
                     ) : (
                       <>
-                        {loyalty?.coins > 0 ? "+" : ""}
-                        {loyalty?.coins?.toLocaleString()}
+                        {isEarn ? "+" : "−"}
+                        {Math.abs(loyalty?.coins ?? 0).toLocaleString()}
                       </>
                     )}
                   </div>
