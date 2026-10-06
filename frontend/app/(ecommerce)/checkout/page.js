@@ -191,10 +191,10 @@ export default function CheckoutView() {
               </H3>
 
               <ToggleButton
-                selected={validCard}
-                onChange={() => setValidCard(!validCard)}
+                selected={!validCard}
+                onChange={() => setValidCard((current) => !current)}
               >
-                Use Invalid card
+                Use invalid card
               </ToggleButton>
             </div>
 
