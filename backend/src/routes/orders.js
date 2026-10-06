@@ -72,7 +72,7 @@ export default function ordersRoutes(app) {
   // Commits what /orders/overview would have previewed
   app.post("/orders", async (request, reply) => {
     const sessionId = request.headers["x-session-id"];
-    const { storeId, orderType, items, coinsToApply, validCard, explain } =
+    const { storeId, orderType, items, coinsToApply, validCard = true, explain } =
       request.body || {};
 
     if (!sessionId)
