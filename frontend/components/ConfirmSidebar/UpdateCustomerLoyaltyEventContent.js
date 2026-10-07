@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Callout } from "@via-ds/components/callout";
+import { Banner } from "@via-ds/components/banner";
+import { CodeBlock, CodeSnippet } from "@via-ds/components/code-block";
 import { useSelector } from "react-redux";
 import { selectSelectedUser } from "@/redux/slices/GlobalSlice";
 import { fetchCustomer } from "@/lib/api";
@@ -51,12 +52,12 @@ const UpdateCustomerLoyaltyEventContent = () => {
         <div className={modalStyles.content}>
           <section>
             <h3>Customer Profile is the Current State</h3>
-            <Callout className={modalStyles.callout} variant="note">
+            <Banner className={modalStyles.banner} variant="info">
               <p>
                 The customer's balance, cumulative spend, and tier are updated
                 in the same transaction as the history entry.
               </p>
-            </Callout>
+            </Banner>
           </section>
           <section>
             <h4>The profile answers current-state questions</h4>
@@ -83,10 +84,12 @@ const UpdateCustomerLoyaltyEventContent = () => {
               while maintaining the growing event history in its own collection.
             </p>
           </section>
-          <Callout className={modalStyles.callout} variant="important">
-            <p><strong>Current loyalty &rarr; Customer profile</strong></p>
-            <p><strong>Historical loyalty events &rarr; Loyalty ledger</strong></p>
-          </Callout>
+          <Banner className={modalStyles.banner} variant="info">
+            <div>
+              <p><strong>Current loyalty &rarr; Customer profile</strong></p>
+              <p><strong>Historical loyalty events &rarr; Loyalty ledger</strong></p>
+            </div>
+          </Banner>
         </div>
       ),
     },
@@ -123,23 +126,25 @@ const UpdateCustomerLoyaltyEventContent = () => {
               ) : !customer ? (
                 <p>No customer document was returned.</p>
             ) : (
-              <pre className={modalStyles.json}>
-                  <code>{docToJSON(customer)}</code>
-              </pre>
+              <CodeBlock language="json">
+                <CodeSnippet>{docToJSON(customer)}</CodeSnippet>
+              </CodeBlock>
             )}
           </section>
-          <Callout className={modalStyles.callout} variant="important">
-            <p>
-              <code>latestLoyaltyHistory</code> is not the complete history. It
-              is a small embedded view of the <strong>latest three loyalty
-              events</strong>, while the full history remains in the
-              <code>loyaltyHistory</code> collection.
-            </p>
-            <p>
-              This gives applications fast access to commonly needed
-              information without loading the entire loyalty ledger.
-            </p>
-          </Callout>
+          <Banner className={modalStyles.banner} variant="info">
+            <div>
+              <p>
+                <code>latestLoyaltyHistory</code> is not the complete history. It
+                is a small embedded view of the <strong>latest three loyalty
+                events</strong>, while the full history remains in the
+                <code>loyaltyHistory</code> collection.
+              </p>
+              <p>
+                This gives applications fast access to commonly needed
+                information without loading the entire loyalty ledger.
+              </p>
+            </div>
+          </Banner>
         </div>
       ),
     },
@@ -191,10 +196,12 @@ const UpdateCustomerLoyaltyEventContent = () => {
               behind it.
             </p>
           </section>
-          <Callout className={modalStyles.callout} variant="important">
-            <p><strong>One transaction. One consistent loyalty state.</strong></p>
-            <p>The ledger entry and current profile state commit together or neither change is applied.</p>
-          </Callout>
+          <Banner className={modalStyles.banner} variant="info">
+            <div>
+              <p><strong>One transaction. One consistent loyalty state.</strong></p>
+              <p>The ledger entry and current profile state commit together or neither change is applied.</p>
+            </div>
+          </Banner>
         </div>
       ),
     },

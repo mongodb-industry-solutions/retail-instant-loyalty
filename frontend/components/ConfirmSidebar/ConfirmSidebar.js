@@ -5,7 +5,7 @@ import { Icon } from "@via-ds/icons";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styles from "./ConfirmSidebar.module.css";
-import { openModal, selectLastOrder } from "@/redux/slices/GlobalSlice";
+import { openModal, selectActiveEvent } from "@/redux/slices/GlobalSlice";
 import { registerFreestyleContent } from "@/components/modals/freestyleContentRegistry";
 import { behindTheScenesEvents } from "./LiveFeedEvent";
 
@@ -14,10 +14,10 @@ import { behindTheScenesEvents } from "./LiveFeedEvent";
 // redemption, or null if none has happened yet this session.
 export default function ConfirmSidebar({ withAnimation = true }) {
   const dispatch = useDispatch();
-  const lastOrder = useSelector(selectLastOrder);
+  const activeEvent = useSelector(selectActiveEvent);
   const events = behindTheScenesEvents();
   const eventCount = events.length;
-  const orderId = lastOrder?.order?.orderId;
+  const orderId = activeEvent?.order?.orderId;
   const [feedProgress, setFeedProgress] = useState(() => ({
     orderId,
     visibleCount: 1,
@@ -87,6 +87,7 @@ export default function ConfirmSidebar({ withAnimation = true }) {
                       );
                     }}
                   >
+                    <Icon glyph="Wizard" size={14} aria-hidden="true" />
                     Learn more
                   </Button>
                 )}
