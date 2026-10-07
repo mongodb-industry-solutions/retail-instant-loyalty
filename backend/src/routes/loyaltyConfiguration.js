@@ -106,9 +106,9 @@ export default function loyaltyConfigurationRoutes(app) {
   //     { "tierKey": "silver", "newThreshold": 1000 }
   //   ]
   // }
-  app.post("/loyalty-configuration/tiers-thresholds", (request, reply) =>
-    updateTierValues(request, reply, "tierThreshold", "newThreshold"),
-  );
+  // app.post("/loyalty-configuration/tiers-thresholds", (request, reply) =>
+  //   updateTierValues(request, reply, "tierThreshold", "newThreshold"),
+  // );
 
   // body =  {
   //   "tiers": [
@@ -330,6 +330,8 @@ export default function loyaltyConfigurationRoutes(app) {
   app.patch("/loyalty-configuration/", async (request, reply) => {
     const sessionId = request.headers["x-session-id"];
 
+    console.log("PATCH request body:", request.body);
+
     if (!sessionId)
       return sendError(
         reply,
@@ -338,14 +340,14 @@ export default function loyaltyConfigurationRoutes(app) {
         "x-session-id header is required",
       );
 
-    if (request.body && request.body.campaign) {
-      return updateCampaign(sessionId, request.body.campaign, reply, app);
+    if (request.body && request.body.campaignUpdate) {
+      return updateCampaign(sessionId, request.body.campaignUpdate, reply, app);
     }
 
-    if (request.body && request.body.rewardDetails) {
+    if (request.body && request.body.rewardUpdates) {
       return updateRewardDetails(
         sessionId,
-        request.body.rewardDetails,
+        request.body.rewardUpdates,
         reply,
         app,
       );
@@ -458,4 +460,85 @@ async function updateCampaign(sessionId, campaign, reply, app) {
   }
 }
 
-async function updateRewardDetails(sessionId, rewardDetails, reply) {}
+async function updateRewardDetails(sessionId, rewardUpdates, reply, app) {
+  if (!Array.isArray(rewardUpdates) || rewardUpdates.length === 0) {
+    return sendError(
+      reply,
+      400,
+      "NO_REWARD_UPDATES",
+      "rewardUpdates must be a non-empty array",
+    );
+  }
+
+  const db = app.mongo.db;
+
+  // Each entry is { tierKey, ...onlyTheFieldsThatChanged } — build one
+  // updateOne per entry that $sets just those fields on the matching tier.
+  const operations = [];
+
+  for (let index = 0; index < rewardUpdates.length; index++) {
+    const { tierKey, ...fields } = rewardUpdates[index];
+
+    if (!tierKey)
+      return sendError(
+        reply,
+        400,
+        "TIER_KEY_REQUIRED",
+        "Each reward update requires a tierKey",
+      );
+
+    const fieldNames = Object.keys(fields).filter(
+      (name) => !name.startsWith("$") && !name.includes("."),
+    );
+
+    console.log("Field Names", fieldNames);
+
+    if (fieldNames.length === 0) continue;
+
+    const identifier = `rd${index}`;
+    const set = {};
+    for (const name of fieldNames) {
+      set[`rewardDetails.$[${identifier}].${name}`] = fields[name];
+    }
+
+    operations.push({
+      updateOne: {
+        filter: { sessionId },
+        update: { $set: set },
+        arrayFilters: [{ [`${identifier}.tierKey`]: tierKey }],
+      },
+    });
+  }
+
+  if (operations.length === 0) {
+    return sendError(
+      reply,
+      400,
+      "NO_REWARD_FIELDS",
+      "No updatable fields provided",
+    );
+  }
+
+  try {
+    const result = await db
+      .collection("loyaltyConfiguration")
+      .bulkWrite(operations);
+
+    if (result.matchedCount === 0)
+      return sendError(
+        reply,
+        404,
+        "LOYALTY_CONFIG_NOT_FOUND",
+        "No loyalty configuration found for this session",
+      );
+
+    const updatedConfig = await db
+      .collection("loyaltyConfiguration")
+      .findOne({ sessionId });
+
+    return reply.send({ data: updatedConfig });
+  } catch (err) {
+    app.log.error(err);
+    return sendError(reply, 500, "REWARD_UPDATE_FAILED", err.message);
+  }
+}
