@@ -1,6 +1,7 @@
 'use client'
 import React, { useEffect, useState } from "react";
-import { Callout } from "@via-ds/components/callout";
+import { Banner } from "@via-ds/components/banner";
+import { CodeBlock, CodeSnippet } from "@via-ds/components/code-block";
 import { Text } from "@via-ds/components/typography";
 import { fetchLoyaltyConfig } from "@/lib/api";
 import { docToJSON } from "@/lib/helper";
@@ -75,13 +76,15 @@ const CalculateLoyaltyEventContent = () => {
               compelling approach.
             </p>
           </section>
-          <Callout className={styles.callout} variant="note">
-            <Text slot="title">Business rules are business data</Text>
-            <p>
-              Tiers, redemption values, and campaign multipliers describe the
-              loyalty program the retailer is running today.
-            </p>
-          </Callout>
+          <Banner className={styles.banner} variant="info">
+            <div>
+              <Text as="strong">Business rules are business data</Text>
+              <p>
+                Tiers, redemption values, and campaign multipliers describe the
+                loyalty program the retailer is running today.
+              </p>
+            </div>
+          </Banner>
           <section>
             <h4>Loyalty rules change. Your data model should be able to change with them.</h4>
             <p>Retailers rarely leave a loyalty program unchanged for long.</p>
@@ -108,7 +111,9 @@ const CalculateLoyaltyEventContent = () => {
                 <span className={styles.badge}>Illustrative JSON</span>
               </div>
               <p>For example, a retailer could introduce a new tier:</p>
-              <pre className={styles.json}><code>{docToJSON(TIER_EXAMPLE)}</code></pre>
+              <CodeBlock language="json">
+                <CodeSnippet>{docToJSON(TIER_EXAMPLE)}</CodeSnippet>
+              </CodeBlock>
             </section>
             <section>
               <div className={styles.exampleHead}>
@@ -119,7 +124,9 @@ const CalculateLoyaltyEventContent = () => {
                 Or a campaign could evolve from a simple multiplier into a more
                 sophisticated business rule:
               </p>
-              <pre className={styles.json}><code>{docToJSON(CAMPAIGN_EXAMPLE)}</code></pre>
+              <CodeBlock language="json">
+                <CodeSnippet>{docToJSON(CAMPAIGN_EXAMPLE)}</CodeSnippet>
+              </CodeBlock>
             </section>
           </div>
           <div className={styles.takeaway}>
@@ -167,7 +174,9 @@ const CalculateLoyaltyEventContent = () => {
               ) : !configuration ? (
                 <p>No loyalty configuration was returned.</p>
               ) : (
-                <pre className={styles.json}><code>{docToJSON(configuration)}</code></pre>
+                <CodeBlock language="json">
+                  <CodeSnippet>{docToJSON(configuration)}</CodeSnippet>
+                </CodeBlock>
               )}
             </section>
           </div>

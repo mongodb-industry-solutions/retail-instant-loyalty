@@ -3,6 +3,7 @@
 import { docToJSON } from "@/lib/helper";
 import modalStyles from "./EventContent.module.css";
 import SyncModal from "../modals/SyncModal/SyncModal";
+import { CodeBlock, CodeSnippet } from "@via-ds/components/code-block";
 
 const CHANGE_STREAM_CODE = `const pipeline = [
   { $match: { "updateDescription.updatedFields.loyalty": { $exists: true } } }
@@ -33,7 +34,7 @@ const SYNC_STEP_TABS = [
           and mobile all read and write the same <code>loyalty</code> field, so
           there&apos;s nothing separate to keep in sync in the first place.
         </p>
-        <pre className={modalStyles.json}><code>{docToJSON(ctx.doc)}</code></pre>
+        <CodeBlock language="json"><CodeSnippet>{docToJSON(ctx.doc)}</CodeSnippet></CodeBlock>
       </>
     ),
   },
@@ -47,17 +48,17 @@ const SYNC_STEP_TABS = [
           writes to <code>loyalty</code> and pushes the update out the moment it
           commits — no polling from POS or mobile required.
         </p>
-        <pre className={modalStyles.json}><code>{CHANGE_STREAM_CODE}</code></pre>
+        <CodeBlock language="javascript"><CodeSnippet>{CHANGE_STREAM_CODE}</CodeSnippet></CodeBlock>
         <p style={{ marginTop: 14 }}>Event emitted for this order:</p>
-        <pre className={modalStyles.json}>
-          <code>
+        <CodeBlock language="json">
+          <CodeSnippet>
           {docToJSON({
             operationType: "update",
             documentKey: { _id: ctx.doc._id },
             updatedFields: { "loyalty.coins": ctx.doc.loyalty.coins },
           })}
-          </code>
-        </pre>
+          </CodeSnippet>
+        </CodeBlock>
       </>
     ),
   },

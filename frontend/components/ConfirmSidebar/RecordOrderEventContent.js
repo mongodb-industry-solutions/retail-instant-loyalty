@@ -1,6 +1,7 @@
 'use client'
 import React, { useEffect, useState } from "react";
-import { Callout } from "@via-ds/components/callout";
+import { Banner } from "@via-ds/components/banner";
+import { CodeBlock, CodeSnippet } from "@via-ds/components/code-block";
 import { Text } from "@via-ds/components/typography";
 import { useSelector } from "react-redux";
 import { selectLastOrder, selectSelectedUser } from "@/redux/slices/GlobalSlice";
@@ -80,13 +81,15 @@ const RecordOrderEventContent = () => {
               The order can be persisted in MongoDB immediately, beginning with
               an <code className={styles.status}>authorizing</code> state.
             </p>
-            <Callout className={styles.callout} variant="note">
-              <Text slot="title">Durable from the start</Text>
-              <p>
-                This turns an in-progress transaction into a durable,
-                recoverable business record.
-              </p>
-            </Callout>
+            <Banner className={styles.banner} variant="info">
+              <div>
+                <Text as="strong">Durable from the start</Text>
+                <p>
+                  This turns an in-progress transaction into a durable,
+                  recoverable business record.
+                </p>
+              </div>
+            </Banner>
           </section>
         </div>
       ),
@@ -119,22 +122,26 @@ const RecordOrderEventContent = () => {
               ) : !order ? (
                 <p>No order document was returned.</p>
               ) : (
-                <pre className={styles.json}><code>{docToJSON(order)}</code></pre>
+                <CodeBlock language="json">
+                  <CodeSnippet>{docToJSON(order)}</CodeSnippet>
+                </CodeBlock>
               )}
             </section>
-            <Callout className={styles.callout} variant="important">
-              <Text slot="title">Applied to this order, not today's configuration</Text>
-              <p>
-                The loyalty information inside the order represents what was
-                applied to that order—not a live reference to today's loyalty
-                configuration.
-              </p>
-              <p>
-                This document stores the applied coin amounts and currency
-                value. A full historical rules snapshot would additionally
-                need the tier and campaign rules used for the calculation.
-              </p>
-            </Callout>
+            <Banner className={styles.banner} variant="info">
+              <div>
+                <Text as="strong">Applied to this order, not today's configuration</Text>
+                <p>
+                  The loyalty information inside the order represents what was
+                  applied to that order—not a live reference to today's loyalty
+                  configuration.
+                </p>
+                <p>
+                  This document stores the applied coin amounts and currency
+                  value. A full historical rules snapshot would additionally
+                  need the tier and campaign rules used for the calculation.
+                </p>
+              </div>
+            </Banner>
           </div>
         );
       },

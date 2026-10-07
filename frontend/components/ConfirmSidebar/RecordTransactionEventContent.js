@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Callout } from "@via-ds/components/callout";
+import { Banner } from "@via-ds/components/banner";
+import { CodeBlock, CodeSnippet } from "@via-ds/components/code-block";
 import { Text } from "@via-ds/components/typography";
 import { useSelector } from "react-redux";
 import { selectLastOrder, selectSelectedUser } from "@/redux/slices/GlobalSlice";
@@ -85,13 +86,15 @@ const RecordTransactionEventContent = () => {
               or failed—can be persisted as a transaction record in MongoDB.
             </p>
           </section>
-          <Callout className={modalStyles.callout} variant="note">
-            <Text slot="title">A durable history and a decision point</Text>
-            <p>
-              This creates a <strong>durable history of what happened and
-              provides the event that determines what happens next.</strong>
-            </p>
-          </Callout>
+          <Banner className={modalStyles.banner} variant="info">
+            <div>
+              <Text as="strong">A durable history and a decision point</Text>
+              <p>
+                This creates a <strong>durable history of what happened and
+                provides the event that determines what happens next.</strong>
+              </p>
+            </div>
+          </Banner>
           <section>
             <h4>Every payment attempt matters</h4>
             <p>
@@ -107,7 +110,9 @@ const RecordTransactionEventContent = () => {
               <h4>A successful payment</h4>
               <span className={modalStyles.badge}>Illustrative JSON</span>
             </div>
-            <pre className={modalStyles.json}><code>{docToJSON(TRANSACTION_EXAMPLE)}</code></pre>
+            <CodeBlock language="json">
+              <CodeSnippet>{docToJSON(TRANSACTION_EXAMPLE)}</CodeSnippet>
+            </CodeBlock>
           </section>
           <section>
             <h4>Different outcomes, one business concept</h4>
@@ -156,17 +161,21 @@ const RecordTransactionEventContent = () => {
               ) : !transaction ? (
                 <p>No transaction document was returned.</p>
               ) : (
-                <pre className={modalStyles.json}><code>{docToJSON(transaction)}</code></pre>
+                <CodeBlock language="json">
+                  <CodeSnippet>{docToJSON(transaction)}</CodeSnippet>
+                </CodeBlock>
               )}
             </section>
-            <Callout className={modalStyles.callout} variant="note">
-              <Text slot="title">A coherent business object</Text>
-              <p>
-                Rather than reconstructing the payment from multiple related
-                records, the transaction document represents the payment event
-                as a coherent business object.
-              </p>
-            </Callout>
+            <Banner className={modalStyles.banner} variant="info">
+              <div>
+                <Text as="strong">A coherent business object</Text>
+                <p>
+                  Rather than reconstructing the payment from multiple related
+                  records, the transaction document represents the payment event
+                  as a coherent business object.
+                </p>
+              </div>
+            </Banner>
           </div>
         );
       },
@@ -219,13 +228,15 @@ const RecordTransactionEventContent = () => {
               <li>Evaluate any resulting tier change</li>
             </ul>
           </section>
-          <Callout className={modalStyles.callout} variant="warning">
-            <Text slot="title">When payment fails, loyalty is not finalized</Text>
-            <p>
-              Those loyalty changes should not be finalized as if the purchase
-              had completed.
-            </p>
-          </Callout>
+          <Banner className={modalStyles.banner} variant="warning">
+            <div>
+              <Text as="strong">When payment fails, loyalty is not finalized</Text>
+              <p>
+                Those loyalty changes should not be finalized as if the purchase
+                had completed.
+              </p>
+            </div>
+          </Banner>
           <div className={modalStyles.takeaway}>
             <p>
               The transaction document therefore becomes <strong>more than a

@@ -87,6 +87,7 @@ export default function ConfirmSidebar({ withAnimation = true }) {
                       );
                     }}
                   >
+                    <Icon glyph="Wizard" size={14} aria-hidden="true" />
                     Learn more
                   </Button>
                 )}

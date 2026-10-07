@@ -1,6 +1,7 @@
 "use client";
 
 import { Text } from "@via-ds/components/typography";
+import { CodeBlock, CodeSnippet } from "@via-ds/components/code-block";
 import { useSelector } from "react-redux";
 import { docToJSON, productDocFor, userLoyaltyDocFor } from "@/lib/helper";
 import modal from "../Modal.module.css";
@@ -55,7 +56,9 @@ export default function DocumentModal({ onClose, variant, id, product }) {
       </div>
       <div className={modal.body}>
         <p style={{ marginBottom: 12 }}>{intro}</p>
-        <pre className={modal.docJson}>{docToJSON(doc)}</pre>
+        <CodeBlock language="json">
+          <CodeSnippet>{docToJSON(doc)}</CodeSnippet>
+        </CodeBlock>
         {fieldNotes && (
           <ul style={{ marginTop: 14 }}>
             {fieldNotes.map(([field, note]) => (

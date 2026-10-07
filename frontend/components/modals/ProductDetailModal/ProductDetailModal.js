@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@via-ds/components/button";
+import { CodeBlock, CodeSnippet } from "@via-ds/components/code-block";
 import { Text } from "@via-ds/components/typography";
 import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
@@ -40,13 +41,7 @@ export default function ProductDetailModal({ id, onClose }) {
   }));
 
   const productDoc = productDocFor(pr);
-  // const inventoryDocs = stores.map((s, i) => ({
-  //   _id: `ObjectId("710c${pr.id}${i}0000001")`,
-  //   product_id: `ObjectId("64f1a2${pr.id}0000000001")`,
-  //   store: s.name,
-  //   quantity: s.stock,
-  // }));
-
+  
   return (
     <>
       <div className={modal.head}>
@@ -122,7 +117,9 @@ export default function ProductDetailModal({ id, onClose }) {
                 {"{ } Product document"} <span className={styles.chev}>⌄</span>
               </Button>
               {showProductDoc && (
-                <pre className={modal.docJson}>{docToJSON(productDoc)}</pre>
+                <CodeBlock language="json">
+                  <CodeSnippet>{docToJSON(productDoc)}</CodeSnippet>
+                </CodeBlock>
               )}
             </div>
           </div>
