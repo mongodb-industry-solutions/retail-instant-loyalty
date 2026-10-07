@@ -10,8 +10,6 @@ import styles from "./TierTrack.module.css";
 export default function TierTrack({ amountSpent, tierInfo, rewardDetails }) {
   const tier = tierInfo?.activeTier;
   const next = tierInfo?.nextTier;
-  // The backend computes the remaining spend for us; fall back to deriving it
-  // from the threshold if it isn't present.
 
   const spent = Number.isFinite(amountSpent) ? amountSpent : 0;
   const maxValue = next

@@ -1,5 +1,6 @@
 import Providers from "@/components/Providers/Providers";
 
+import "@via-ds/tokens/tokens.css";
 import "@via-ds/components/index.css";
 
 import "./globals.css";

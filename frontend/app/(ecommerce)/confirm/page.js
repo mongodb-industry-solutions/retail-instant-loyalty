@@ -1,9 +1,9 @@
 "use client";
+import { useState, useEffect, useMemo } from "react";
 
 import styles from "./ConfirmView.module.css";
 import { Icon } from "@via-ds/icons";
-import { Text } from "@via-ds/components/typography";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import {
   selectSelectedUser,
   selectLastOrder,
@@ -16,16 +16,50 @@ import { useRouter } from "next/navigation";
 import RedeemView from "../../../components/RedeemView/RedeemView";
 import ConfirmSidebar from "../../../components/ConfirmSidebar/ConfirmSidebar";
 import { Button } from "@via-ds/components/button";
+import OrderStatusBar from "@/components/OrderStatusBar/OrderStatusBar";
+import { ORDER_STATUS_STAGES } from "@/lib/data";
+
+function OrderErrorView({
+  orderError,
+  ORDER_STATUS_STAGES_FAILED,
+  finalOrder,
+  router,
+}) {
+  // let finalOrder = {};
+  return (
+    <main className={styles.wrap}>
+      <OrderStatusBar
+        stages={ORDER_STATUS_STAGES_FAILED}
+        current="payment_failed"
+      />
+      <div className={styles.pendingStatus}>
+        <span>{orderError}</span>
+      </div>
+      <div className={styles.layout}>
+        <div className={styles.main}>
+          <LoyaltyRewardCard order={finalOrder} />
+          <div>
+            <Button
+              variant="primary"
+              style={{ width: "100%" }}
+              onClick={() => router.push("/")}
+            >
+              ← Back to store
+            </Button>
+          </div>
+        </div>
+
+        <ConfirmSidebar />
+      </div>
+    </main>
+  );
+}
+
 export default function ConfirmView() {
   const router = useRouter();
-  const dispatch = useDispatch();
   const redemptionInProgress = false;
   const reviewing = false;
   const persona = useSelector(selectSelectedUser);
-  // POST /orders and POST /redeem share the same response envelope:
-  // { order, loyalty }. lastEvent says which of the two happened most
-  // recently, so a redeem after a purchase drives the page instead of the
-  // stale order it was reviewed from.
   const lastOrder = useSelector(selectLastOrder);
   const latestRedeem = useSelector(selectLastRedeem);
   const lastEvent = useSelector(selectLastEvent);
@@ -35,9 +69,51 @@ export default function ConfirmView() {
     ? { ...activeEvent.order, loyalty: activeEvent.loyalty }
     : null;
   const shownOrderId = finalOrder?.orderId;
+  const [orderStatus, setOrderStatus] = useState("authorizing");
 
-  const excludeItemIds = new Set(
-    (finalOrder?.items ?? []).map((item) => item.productId),
+  const orderId = finalOrder?.orderId ?? finalOrder?.id;
+  const customerId = persona?.customerId;
+  let ORDER_STATUS_STAGES_FAILED = null;
+
+  useEffect(() => {
+    if (!orderId || !customerId) {
+      router.push("/");
+      return;
+    }
+
+    const source = new EventSource(
+      `/api/orders/${orderId}/orderstatus?customerId=${encodeURIComponent(customerId)}`,
+    );
+
+    source.onmessage = (event) => {
+      try {
+        const { status } = JSON.parse(event.data);
+
+        if (status) setOrderStatus(status);
+
+        if (status === "delivered" || status === "payment_failed") {
+          source.close();
+        }
+      } catch (error) {
+        console.error("Failed to parse order status event:", error);
+      }
+    };
+
+    source.onerror = () => {
+      // Benign reconnects fire here too; only a CLOSED socket is a failure.
+      if (source.readyState === EventSource.CLOSED) {
+        console.error("Order status stream closed and will not retry");
+      }
+    };
+
+    return () => {
+      source.close();
+    };
+  }, [orderId, customerId]);
+
+  const excludeItemIds = useMemo(
+    () => new Set((finalOrder?.items ?? []).map((item) => item.productId)),
+    [finalOrder?.items],
   );
 
   if (!finalOrder) {
@@ -48,6 +124,67 @@ export default function ConfirmView() {
           ← Back to store
         </Button>
       </main>
+    );
+  }
+
+  let showOnlyStepperStatus = ["authorizing", "placed"];
+
+  console.log("finalOrder:", finalOrder);
+
+  if (finalOrder?.currentStatus === "payment_failed") {
+    showOnlyStepperStatus = ["authorizing"];
+    ORDER_STATUS_STAGES_FAILED = [
+      "authorizing",
+      "payment_failed",
+      "placed",
+      "shipped",
+      "delivered",
+    ];
+  }
+
+  let showOnlyStepper = showOnlyStepperStatus.includes(orderStatus);
+
+  if (showOnlyStepper) {
+    return (
+      <main className={styles.wrap}>
+        <OrderStatusBar
+          stages={
+            ORDER_STATUS_STAGES_FAILED
+              ? ORDER_STATUS_STAGES_FAILED
+              : ORDER_STATUS_STAGES
+          }
+          current={orderStatus}
+        />
+        <div className={styles.pendingStatus}>
+          <span className={styles.spinner} aria-hidden="true" />
+          <span>
+            {orderStatus === "authorizing"
+              ? "Authorizing payment…"
+              : "Confirming your order…"}
+            {orderStatus === "payment_failed" && "Payment failed."}
+          </span>
+        </div>
+        {/* Placeholders keep the layout stable so the real cards don't pop in
+            and shift everything down once the status stream catches up. */}
+        <div className={styles.layout} aria-hidden="true">
+          <div className={styles.main}>
+            <div className={`${styles.skeleton} ${styles.skeletonCard}`} />
+            <div className={`${styles.skeleton} ${styles.skeletonCard}`} />
+          </div>
+          <div className={`${styles.skeleton} ${styles.skeletonSide}`} />
+        </div>
+      </main>
+    );
+  }
+
+  if (orderStatus === "payment_failed") {
+    return (
+      <OrderErrorView
+        orderError="Payment failed."
+        ORDER_STATUS_STAGES_FAILED={ORDER_STATUS_STAGES_FAILED}
+        finalOrder={finalOrder}
+        router={router}
+      />
     );
   }
 
@@ -63,7 +200,7 @@ export default function ConfirmView() {
             <Icon glyph="Checkmark" />
           </div>
           <div className={styles.title}>
-            {hasRedemption ? "Redeem successful!" : "Order confirmed!"}
+            {hasRedemption ? "Redeem successful!" : "Order Confirmed!"}
           </div>
           <div className={styles.sub}>
             {hasRedemption
@@ -76,10 +213,11 @@ export default function ConfirmView() {
         </>
       )}
 
+      <OrderStatusBar stages={ORDER_STATUS_STAGES} current={orderStatus} />
+
       <div className={styles.layout}>
         <div className={styles.main}>
           <LoyaltyRewardCard order={finalOrder} />
-
           {!reviewing && (
             <Receipt
               order={finalOrder}
@@ -119,11 +257,7 @@ export default function ConfirmView() {
             ← Back to store
           </Button>
         </div>
-        <ConfirmSidebar
-          persona={persona}
-          order={finalOrder}
-          lastRedeem={latestRedeem}
-        />
+        <ConfirmSidebar />
       </div>
     </main>
   );

@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import { useRouter } from "next/navigation";
-import { Badge } from "@via-ds/components/badge";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@via-ds/components/button";
 import {
   Menu,
@@ -39,7 +38,7 @@ import {
   ProfileIcon,
   OrdersIcon,
 } from "@/components/Icons/Icons";
-import { tierBadgeVariant } from "@/components/tierBadgeVariant";
+import TierBadge from "../TierBadge/TierBadge";
 
 function PromoBanner({ activeCampaign }) {
   return (
@@ -85,28 +84,35 @@ export default function Navbar() {
     router.push(routeList[route]);
   }
 
+  const pathname = usePathname();
+
   return (
     <div>
       <PromoBanner activeCampaign={activeCampaign} />
       <header className={styles.topnav}>
-        <div className={styles.brand}>
+        <div className={styles.brand} onClick={() => go("store")}>
           <Logo logo="MongoDBLogoMark" size="medium" />
           <Text size="large">Leafy Loyalty</Text>
         </div>
-        <div className={styles.navSearchGroup}>
-          <div className={styles.navSearch}>
-            <SearchIcon />
-            <input type="text" placeholder="Find your next favorite" />
+        {
+          /* {pathname === "/" ? (
+          <div className={styles.navSearchGroup}>
+            <div className={styles.navSearch}>
+              <SearchIcon />
+              <input type="text" placeholder="Find your next favorite" />
+            </div>
+            <button
+              className={`${shared.wandIconBtn} ${shared.wandIconBtnOutside}`}
+              title="About MongoDB Atlas Search"
+              aria-label="About MongoDB Atlas Search"
+              onClick={() => dispatch(openModal({ modalType: "searchInfo" }))}
+            >
+              <WandIcon size={16} />
+            </button>
           </div>
-          <button
-            className={`${shared.wandIconBtn} ${shared.wandIconBtnOutside}`}
-            title="About MongoDB Atlas Search"
-            aria-label="About MongoDB Atlas Search"
-            onClick={() => dispatch(openModal({ modalType: "searchInfo" }))}
-          >
-            <WandIcon size={16} />
-          </button>
-        </div>
+        ) : null} */
+          // To be used when the search functionality is in place
+        }
         <div className={styles.navRight}>
           <button
             className={styles.utilBtn}
@@ -139,13 +145,7 @@ export default function Navbar() {
                 {persona.profile.firstName}
               </Text>
 
-              <Badge
-                variant={tierBadgeVariant(
-                  persona.loyaltyDetails?.activeTier ?? "new",
-                )}
-              >
-                <Text>{persona.loyaltyDetails?.activeTier ?? "New"}</Text>
-              </Badge>
+              <TierBadge/>
             </Button>
 
             <MenuPopover>

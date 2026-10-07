@@ -4,12 +4,12 @@ import { useRouter } from "next/navigation";
 
 import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
-import { currentTierFor, formatCoinValue } from "@/lib/helper";
 import TierTrack from "@/components/TierTrack/TierTrack";
 import styles from "./CoinHistoryView.module.css";
 import profile from "@/components/Profile.module.css";
 import shared from "@/components/shared.module.css";
 import { fetchLoyaltyHistory } from "@/lib/api";
+import { formatOrderDate } from "@/lib/helper";
 import {
   selectSelectedUser,
   selectLoyaltyConfig,
@@ -105,32 +105,65 @@ export default function CoinHistoryView() {
             No coin activity yet. Place an order to start earning.
           </div>
         ) : (
-          loyaltyDetails?.loyaltyHistory?.map((loyalty, idx) => (
-            <div className={styles.historyRow} key={idx}>
-              <div>
-                <div
-                  className={`${styles.historyType} ${loyalty.type === "earned" ? styles.historyTypeEarned : styles.historyTypeRedeemed}`}
-                >
-                  {loyalty.type === "earn" ? "↑ Earned" : "↓ Redeemed"}
+          loyaltyDetails?.loyaltyHistory?.map((loyalty, idx) => {
+            const isTierChange = loyalty.type === "tier-change";
+            const isEarn = loyalty.type === "earn";
+            return (
+              <div className={styles.historyRow} key={loyalty.historyId ?? idx}>
+                <div>
+                  <div
+                    className={`${styles.historyType} ${
+                      isTierChange
+                        ? styles.historyTypeTier
+                        : isEarn
+                          ? styles.historyTypeEarned
+                          : styles.historyTypeRedeemed
+                    }`}
+                  >
+                    {isTierChange
+                      ? "🏆 Tier upgraded"
+                      : isEarn
+                        ? "↑ Earned"
+                        : "↓ Redeemed"}
+                  </div>
+                  <div className={styles.historyLabel}>
+                    {isTierChange
+                      ? `${loyalty.previousTier ?? "no tier"} → ${loyalty.tierKey}`
+                      : loyalty.label}
+                  </div>
+                  <div className={`${styles.historyOrder} mono`}>
+                    {loyalty.orderId}
+                  </div>
+                  <div className={styles.historyDate}>
+                    {formatOrderDate(loyalty.createdAt)}
+                  </div>
                 </div>
-                <div className={styles.historyLabel}>{loyalty.label}</div>
-                <div className={`${styles.historyOrder} mono`}>
-                  {loyalty.orderId}
+                <div className={styles.historyRight}>
+                  <div
+                    className={`${styles.historyDelta} ${
+                      isTierChange
+                        ? styles.historyDeltaTier
+                        : isEarn
+                          ? styles.historyDeltaEarned
+                          : styles.historyDeltaRedeemed
+                    } mono`}
+                  >
+                    {isTierChange ? (
+                      "—"
+                    ) : (
+                      <>
+                        {isEarn ? "+" : "−"}
+                        {Math.abs(loyalty?.coins ?? 0).toLocaleString()}
+                      </>
+                    )}
+                  </div>
+                  <div className={`${styles.historyBalance} mono`}>
+                    Balance: {(loyalty?.coinBalance ?? 0).toLocaleString()}
+                  </div>
                 </div>
               </div>
-              <div className={styles.historyRight}>
-                <div
-                  className={`${styles.historyDelta} ${loyalty.type === "earn" ? styles.historyDeltaEarned : styles.historyDeltaRedeemed} mono`}
-                >
-                  {loyalty?.coins > 0 ? "+" : ""}
-                  {loyalty?.coins?.toLocaleString()}
-                </div>
-                <div className={`${styles.historyBalance} mono`}>
-                  Balance: {(loyalty?.coinBalance).toLocaleString()}
-                </div>
-              </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </main>

@@ -1,5 +1,5 @@
 import { createOrderEngine, sendError } from "../lib/orderEngine.js";
-  import { createLoyaltyEngine } from "../lib/loyaltyEngine.js";
+import { createLoyaltyEngine } from "../lib/loyaltyEngine.js";
 
 export default function ordersRoutes(app) {
   const {
@@ -8,18 +8,14 @@ export default function ordersRoutes(app) {
     scheduleOrderProgression,
     processPayment,
   } = createOrderEngine(app);
-  const{
-    buildLoyaltyHistoryEntries,
-    buildCustomerLoyaltyDetailsUpdate
-  } = createLoyaltyEngine(app);
-
+  const { buildLoyaltyHistoryEntries, buildCustomerLoyaltyDetailsUpdate } =
+    createLoyaltyEngine(app);
 
   // live pricing preview, no writes.
   // ACID transaction
   app.post("/orders/overview", async (request, reply) => {
     const sessionId = request.headers["x-session-id"];
     const { items, coinsToApply, explain = false } = request.body || {};
-    console.log("🔌 Orders Overview: ", { items, coinsToApply, explain });
 
     if (!sessionId)
       return sendError(
@@ -76,14 +72,8 @@ export default function ordersRoutes(app) {
   // Commits what /orders/overview would have previewed
   app.post("/orders", async (request, reply) => {
     const sessionId = request.headers["x-session-id"];
-    const {
-      storeId,
-      orderType,
-      items,
-      coinsToApply,
-      validCard = true,
-      explain,
-    } = request.body || {};
+    const { storeId, orderType, items, coinsToApply, validCard = true, explain } =
+      request.body || {};
 
     if (!sessionId)
       return sendError(
@@ -187,6 +177,7 @@ export default function ordersRoutes(app) {
             $set: {
               currentStatus: "payment_failed",
               failureReason: "card_declined",
+              coinsEarned: 0,
             },
             $push: {
               statusHistory: {
@@ -197,14 +188,24 @@ export default function ordersRoutes(app) {
           },
         );
 
-        // No customer update, no loyaltyHistory - nothing loyalty-related
-        // happened. No scheduleOrderProgression call - nothing to progress.
-        return sendError(
-          reply,
-          402,
-          "PAYMENT_DECLINED",
-          `Payment was declined for order ${orderId}`,
-        );
+        const responsePayload = {
+          data: {
+            order: {
+              ...orderDoc,
+              coinsEarned: 0,
+              currentStatus: "payment_failed",
+              transactionId,
+            },
+          },
+        };
+        console.log("Payment declined response payload:", responsePayload);
+        return reply.send(responsePayload);
+
+        // Will not return an error even if the payment is declined as we are creating record for the failed transaction.
+        // return sendError(reply, 402, "PAYMENT_DECLINED", {
+        //   message: `Payment was declined for order ${orderId}`,
+        //   orderId: orderId,
+        // });
       }
 
       // 4. Payment succeeded. Insert the completed transaction (outside the
@@ -243,7 +244,10 @@ export default function ordersRoutes(app) {
               .insertMany(historyEntries, { session: mongoSession });
           }
 
-          const customerUpdatePipeline = buildCustomerLoyaltyDetailsUpdate({ math });
+          const customerUpdatePipeline = buildCustomerLoyaltyDetailsUpdate({
+            math,
+            historyEntries,
+          });
 
           await db
             .collection("customers")
@@ -361,6 +365,7 @@ export default function ordersRoutes(app) {
   app.get("/orders/:orderId", async (request, reply) => {
     const customerId = request.headers["x-customer-id"];
     const { orderId } = request.params;
+    const { addTenders = "true" } = request.query || {};
 
     if (!customerId)
       return sendError(
@@ -384,6 +389,10 @@ export default function ordersRoutes(app) {
           "Order not found for this customer",
         );
 
+      if (addTenders === "false" || addTenders === false) {
+        return reply.send({ data: order });
+      }
+
       const transaction = await db
         .collection("transactions")
         .findOne({ transactionId: order.transactionId });
@@ -401,5 +410,110 @@ export default function ordersRoutes(app) {
       app.log.error(err);
       return sendError(reply, 500, "ORDER_LOOKUP_FAILED", err.message);
     }
+  });
+
+  //Changes SStream implementation
+  app.get("/orders/:orderId/orderstatus", async (request, reply) => {
+    const customerId = request.headers["x-customer-id"];
+    const { orderId } = request.params;
+
+    if (!customerId)
+      return sendError(
+        reply,
+        400,
+        "CUSTOMER_ID_REQUIRED",
+        "x-customer-id header is required",
+      );
+
+    const db = app.mongo.db;
+
+    const order = await db
+      .collection("orders")
+      .findOne({ orderId, customerId });
+    if (!order)
+      return sendError(
+        reply,
+        404,
+        "ORDER_NOT_FOUND",
+        "Order not found for this customer",
+      );
+
+    reply.hijack();
+
+    const res = reply.raw;
+
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    });
+
+    let closed = false;
+    res.write(`data: ${JSON.stringify({ status: order.currentStatus })}\n\n`);
+
+    if (order.currentStatus === "delivered") {
+      res.end();
+      return reply;
+    }
+
+    const changeStream = db.collection("orders").watch(
+      [
+        {
+          $match: {
+            "fullDocument.orderId": orderId,
+            "fullDocument.customerId": customerId,
+            $or: [
+              {
+                operationType: "update",
+                "updateDescription.updatedFields.currentStatus": {
+                  $exists: true,
+                },
+              },
+              { operationType: "replace" },
+            ],
+          },
+        },
+      ],
+      { fullDocument: "updateLookup" },
+    );
+
+    const closeStream = async () => {
+      if (closed) return;
+
+      closed = true;
+      await changeStream.close().catch(() => {});
+
+      if (!res.writableEnded) {
+        res.end();
+      }
+    };
+
+    changeStream.on("change", async (change) => {
+      if (closed) return;
+
+      const status = change.fullDocument?.currentStatus;
+
+      if (!status) return;
+
+      res.write(`data: ${JSON.stringify({ status })}\n\n`);
+
+      if (status === "delivered") {
+        await closeStream();
+      }
+    });
+
+    changeStream.on("error", async (error) => {
+      app.log.error(error, "Order change stream failed");
+      await closeStream();
+    });
+
+    // Clean up on any end of the connection — the request event alone misses
+    // sockets that die without a clean close. closeStream is idempotent.
+    request.raw.on("close", closeStream);
+    request.raw.on("aborted", closeStream);
+    res.on("close", closeStream);
+    res.on("error", closeStream);
+
+    return reply;
   });
 }

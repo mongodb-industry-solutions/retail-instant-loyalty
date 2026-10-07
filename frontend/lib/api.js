@@ -8,16 +8,12 @@ async function request(path, options = {}) {
     ...options,
     headers: {
       ...options.headers,
-      // Route handlers forward this to the backend, which uses it to claim
-      // and release personas.
       ...(sessionId ? { "x-session-id": sessionId } : {}),
     },
   });
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);
-    // The backend errors as { error: { code, message } }; the placeholder
-    // routes still use a plain { error: "..." } string.
     const err = body?.error;
     const message =
       (typeof err === "string" ? err : err?.message) ??
@@ -29,13 +25,10 @@ async function request(path, options = {}) {
   }
 
   const body = await res.json();
-  // The backend wraps payloads as { data, meta }; placeholder routes return
-  // the payload directly.
   return body?.data ?? body;
 }
 
 export async function getProductsWithSearch(query = "", filter = {}) {
-  console.log("Get products wthen the search bar is used");
   const searchedProduct = await request(`/search`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -58,6 +51,14 @@ export async function fetchLoyaltyHistory({ customerId }) {
   return request("/loyaltyHistory", {
     headers: { "x-customer-id": customerId ?? "" },
   });
+}
+
+export async function fetchOrderLoyaltyHistory({ orderId, customerId }) {
+  const { loyaltyHistory } = await request(
+    `/loyaltyHistory/${encodeURIComponent(orderId)}`,
+    { headers: { "x-customer-id": customerId ?? "" } },
+  );
+  return loyaltyHistory;
 }
 
 // Selecting a persona is what starts a session: mint the id here, then claim.
@@ -105,7 +106,10 @@ export function fetchLoyaltyConfig() {
 export function updateLoyaltyConfig(patch) {
   return request("/loyalty-configuration", {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "x-session-id": getSessionId() ?? "",
+    },
     body: JSON.stringify(patch),
   });
 }
@@ -149,8 +153,15 @@ export async function fetchOrders({ page = 1, limit = 20, customerId } = {}) {
 }
 
 // One order, scoped to the current session — proxies GET /orders/:orderId.
-export function fetchOrder({ orderId, customerId }) {
-  return request(`/orders/${orderId}`, {
+export function fetchOrder({ orderId, customerId, addTenders = true }) {
+  const query = new URLSearchParams({ addTenders: String(addTenders) });
+  return request(`/orders/${encodeURIComponent(orderId)}?${query}`, {
+    headers: { "x-customer-id": customerId ?? "" },
+  });
+}
+
+export function fetchOrderTransaction({ orderId, customerId }) {
+  return request(`/transactions/${encodeURIComponent(orderId)}`, {
     headers: { "x-customer-id": customerId ?? "" },
   });
 }

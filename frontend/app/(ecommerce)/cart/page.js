@@ -138,7 +138,7 @@ export default function CartView() {
                   <div className={styles.ciCat}>{item.category}</div>
                   <div className={styles.ciName}>{item.name}</div>
                   <div className={styles.ciPrice}>
-                    {formatPrice(item.price)}
+                    {formatPrice(parseFloat(item.price.$numberDecimal))}
                   </div>
                 </div>
                 <div className={shared.qtyStepper}>

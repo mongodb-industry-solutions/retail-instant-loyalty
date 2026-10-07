@@ -76,7 +76,7 @@ export function createLoyaltyEngine(app) {
     return entries;
   }
 
-  function buildCustomerLoyaltyDetailsUpdate({ math }) {
+  function buildCustomerLoyaltyDetailsUpdate({ math, historyEntries = [] }) {
     const update = {
       $set: {
         "loyaltyDetails.coinBalance": math.newBalance,
@@ -86,6 +86,15 @@ export function createLoyaltyEngine(app) {
       },
       $inc: { "loyaltyDetails.ordersCount": 1 },
     };
+
+    if (historyEntries.length > 0) {
+      update.$push = {
+        "loyaltyDetails.latestLoyaltyHistory": {
+          $each: historyEntries,
+          $slice: -3,
+        },
+      };
+    }
 
     return update;
   }
@@ -177,10 +186,10 @@ export function createLoyaltyEngine(app) {
       loyaltyDetails.cumulativeSpendDollars || 0,
     );
 
-    if (
-      resolved.tierKey === loyaltyDetails.activeTier &&
-      resolved.nextTierKey === loyaltyDetails.nextTier
-    ) {
+    const activeTierChanged = resolved.tierKey !== loyaltyDetails.activeTier;
+    const nextTierChanged = resolved.nextTierKey !== loyaltyDetails.nextTier;
+
+    if (!activeTierChanged && !nextTierChanged) {
       return;
     }
 
@@ -188,23 +197,11 @@ export function createLoyaltyEngine(app) {
       $set: {
         "loyaltyDetails.activeTier": resolved.tierKey,
         "loyaltyDetails.nextTier": resolved.nextTierKey,
+        "loyaltyDetails.tierActivatedAt": activeTierChanged
+          ? now
+          : loyaltyDetails.tierActivatedAt || null,
       },
     };
-
-    if (resolved.tierKey !== loyaltyDetails.activeTier) {
-      update.$push = {
-        "loyaltyDetails.latestLoyaltyHistory": {
-          $each: [
-            {
-              tierKey: resolved.tierKey,
-              activatedAt: now,
-              previousTier: loyaltyDetails.activeTier,
-            },
-          ],
-          $slice: -5,
-        },
-      };
-    }
 
     await db.collection("customers").updateOne({ sessionId }, update);
   }

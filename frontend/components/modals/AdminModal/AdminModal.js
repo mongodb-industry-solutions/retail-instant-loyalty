@@ -1,56 +1,20 @@
 import { useDispatch } from "react-redux";
 import { H2, Text } from "@via-ds/components/typography";
+import TierBadge from "@/components/TierBadge/TierBadge";
 import { useSelector } from "react-redux";
-import { useState } from "react";
-import { toast } from "@via-ds/components/toast";
+import { useState, useRef } from "react";
 import { updateLoyaltyConfig } from "@/lib/api";
 import {
   selectLoyaltyConfig,
-  saveRewardDetailsSuccess,
-  saveCampaignSuccess,
+  setLoyaltyConfigData,
 } from "@/redux/slices/GlobalSlice";
 import styles from "./AdminModal.module.css";
 import modal from "../Modal.module.css";
 import shared from "../../shared.module.css";
 import { Button } from "@via-ds/components/button";
-import { Badge } from "@via-ds/components/badge";
-import { tierBadgeVariant } from "@/components/tierBadgeVariant";
-import { PROMO_HOLIDAYS } from "@/lib/data";
-import { promoDateWindow, formatPrice, roundCurrency } from "@/lib/helper";
-import { coinDollarValue } from "@/shared/pricing";
+import { formatPrice } from "@/lib/helper";
 
-function RewardValueTab({ loyaltyData, dispatch, onSaved }) {
-  const [values, setValues] = useState(() => {
-    const init = {};
-    loyaltyData.rewardDetails.forEach((loyalty) => {
-      init[loyalty.tierKey] = String(
-        roundCurrency(coinDollarValue(loyalty) * 100),
-      );
-    });
-    return init;
-  });
-  const [saving, setSaving] = useState(false);
-
-  async function save() {
-    setSaving(true);
-    const nextRewardDetails = loyaltyData.rewardDetails.map((t) => {
-      const dollarsPerHundred = parseFloat(values[t.tierKey]) || 1;
-      return { ...t, currencyValue: dollarsPerHundred / 100 };
-    });
-    try {
-      const config = await updateLoyaltyConfig({
-        rewardDetails: nextRewardDetails,
-      });
-      dispatch(saveRewardDetailsSuccess(config));
-      toast.success("Reward values updated — live across the store");
-      onSaved();
-    } catch (err) {
-      toast.error(`Couldn't save reward values: ${err.message}`);
-    } finally {
-      setSaving(false);
-    }
-  }
-
+function RewardValueTab({ value, getChanges }) {
   return (
     <>
       <p>
@@ -58,81 +22,58 @@ function RewardValueTab({ loyaltyData, dispatch, onSaved }) {
         intentionally more conservative so the demo feels closer to a real
         retail loyalty program while still showing clear tier differentiation.
       </p>
-      {loyaltyData.rewardDetails.map((reward) => (
+      {value.map((reward, i) => (
         <div className={styles.row} key={reward.tierKey}>
-          <Badge variant={tierBadgeVariant(reward.tierKey)}>
-            {reward.tierName}
-          </Badge>
+          <TierBadge overwriteTier={reward.tierName} />
           <div className={styles.inputWrap}>
-            <span>100 coins =</span>
-            <span>$</span>
+            <span>1$ =</span>
+            <span>coins</span>
             <input
               type="number"
-              step="0.25"
-              min="0.25"
-              max="5"
-              value={values[reward.tierKey]}
+              step="10"
+              min="5"
+              max="100"
+              value={reward.currencyValueForDollar}
               onChange={(e) =>
-                setValues((v) => ({ ...v, [reward.tierKey]: e.target.value }))
+                getChanges(
+                  value.map((tier, j) =>
+                    j === i
+                      ? {
+                          ...tier,
+                          currencyValueForDollar: Number(e.target.value) || 1,
+                        }
+                      : tier,
+                  ),
+                )
               }
               className={styles.centsInput}
             />
           </div>
         </div>
       ))}
-      <Button
-        variant="primary"
-        style={{ width: "100%", marginTop: 16 }}
-        isLoading={saving}
-        loadingText="Saving…"
-        onClick={save}
-      >
-        Save changes
-      </Button>
     </>
   );
 }
 
-function CampaignTab({ loyaltyData, dispatch, onSaved }) {
-  // Only one campaign entry is supported from this UI today — the array
-  // shape leaves room for scheduling multiple campaigns later, but for
-  // now we edit whichever one is active (or the first entry, if none is).
-  const activeIdx = Math.max(
-    0,
-    loyaltyData.campaign.findIndex((c) => c.isActive),
-  );
-  const [campaign, setCampaign] = useState(() => ({
-    ...loyaltyData.campaign[activeIdx],
-  }));
-  const [saving, setSaving] = useState(false);
+function CampaignTab({ value, getChanges }) {
+  const currentCampaign = value.find((promo) => promo.isActive) ?? value[0];
 
-  function handleHolidayChange(key) {
-    const preset = PROMO_HOLIDAYS.find((h) => h.key === key);
-    setCampaign((c) => ({
-      ...c,
-      holiday: preset?.key || c.holiday,
-      promoName: preset?.defaultName || c.promoName,
-      banner: preset?.defaultName || c.banner,
-    }));
+  function patchCurrent(changes) {
+    getChanges(
+      value.map((promo) =>
+        promo.promoId === currentCampaign?.promoId
+          ? { ...promo, ...changes }
+          : promo,
+      ),
+    );
   }
 
-  async function save() {
-    setSaving(true);
-    try {
-      const nextCampaign = loyaltyData.campaign.map((c, i) =>
-        i === activeIdx ? campaign : c,
-      );
-      const config = await updateLoyaltyConfig({ campaign: nextCampaign });
-      dispatch(saveCampaignSuccess(config));
-      toast.success(
-        "Campaign updated — banner, earn logic, and cart all refreshed",
-      );
-      onSaved();
-    } catch (err) {
-      toast.error(`Couldn't save campaign: ${err.message}`);
-    } finally {
-      setSaving(false);
-    }
+  // Picking a promo activates it; only one campaign may be active at a time,
+  // matching what the backend enforces.
+  function handlePromoChange(promoId) {
+    getChanges(
+      value.map((promo) => ({ ...promo, isActive: promo.promoId === promoId })),
+    );
   }
 
   return (
@@ -144,48 +85,33 @@ function CampaignTab({ loyaltyData, dispatch, onSaved }) {
       </p>
       <div className={styles.grid}>
         <div className={shared.field}>
-          <label>Holiday preset</label>
+          <label>Promotion</label>
+          {}
           <select
             className={styles.select}
-            value={campaign.holiday}
-            onChange={(e) => handleHolidayChange(e.target.value)}
+            value={currentCampaign?.promoId ?? ""}
+            onChange={(e) => handlePromoChange(e.target.value)}
           >
-            {PROMO_HOLIDAYS.map((h) => (
-              <option key={h.key} value={h.key}>
-                {h.label}
-              </option>
-            ))}
+            {value.map((promo, index) => {
+              return (
+                <option key={index} value={promo.promoId}>
+                  {promo.promoName}
+                </option>
+              );
+            })}
           </select>
         </div>
         <div className={shared.field}>
-          <label>Start date</label>
-          <input
-            type="date"
-            className={styles.select}
-            value={campaign.startDate}
-            onChange={(e) =>
-              setCampaign((c) => ({ ...c, startDate: e.target.value }))
-            }
-          />
-        </div>
-        <div className={shared.field}>
-          <label>End date</label>
-          <input
-            type="date"
-            className={styles.select}
-            value={campaign.endDate}
-            onChange={(e) =>
-              setCampaign((c) => ({ ...c, endDate: e.target.value }))
-            }
-          />
+          <label>Promo Duration</label>
+          <input type="text" disabled={true} value="30 Days" />
         </div>
         <div className={shared.field}>
           <label>Multiplier</label>
           <select
             className={styles.select}
-            value={String(campaign.multiplier)}
+            value={String(currentCampaign?.multiplier ?? 1)}
             onChange={(e) =>
-              setCampaign((c) => ({ ...c, multiplier: Number(e.target.value) }))
+              patchCurrent({ multiplier: Number(e.target.value) })
             }
           >
             <option value="1">1×</option>
@@ -193,90 +119,30 @@ function CampaignTab({ loyaltyData, dispatch, onSaved }) {
             <option value="3">3×</option>
           </select>
         </div>
-        <div className={shared.field}>
-          <label>Campaign status</label>
-          <select
-            className={styles.select}
-            value={String(campaign.isActive)}
-            onChange={(e) =>
-              setCampaign((c) => ({
-                ...c,
-                isActive: e.target.value === "true",
-              }))
-            }
-          >
-            <option value="true">Active</option>
-            <option value="false">Inactive</option>
-          </select>
-        </div>
       </div>
       <div className={styles.note}>
-        Current event: <b>{campaign.promoName}</b> · {promoDateWindow(campaign)}{" "}
-        · {campaign.multiplier}×
+        Current event: <b>{currentCampaign?.banner ?? ""}</b> · Earn{" "}
+        {currentCampaign?.multiplier ?? 1}× coins on every purchase.
       </div>
       <div className={`${styles.note} ${styles.noteSubtle}`}>
         The campaign banner updates immediately and the coins-earned calculation
         changes with no redeploy or ETL.
       </div>
-      <Button
-        variant="primary"
-        style={{ width: "100%", marginTop: 16 }}
-        isLoading={saving}
-        loadingText="Saving…"
-        onClick={save}
-        isDisabled={true}
-      >
-        Save campaign
-      </Button>
     </>
   );
 }
 
-function TierThresholdsTab({ loyaltyData, dispatch, onSaved }) {
-  const editable = loyaltyData.rewardDetails.filter(
-    (t) => t.tierKey !== "bronze",
-  );
-  const [mins, setMins] = useState(() => {
-    const init = {};
-    loyaltyData.rewardDetails.forEach((t) => {
-      init[t.tierKey] = t.tierThreshold;
-    });
-    return init;
-  });
-  const [saving, setSaving] = useState(false);
-
-  function handleChange(key, rawVal) {
-    const idx = loyaltyData.rewardDetails.findIndex((t) => t.tierKey === key);
-    const prevMin =
-      idx === 0 ? 0 : mins[loyaltyData.rewardDetails[idx - 1].tierKey];
-    const nextMin =
-      idx < loyaltyData.rewardDetails.length - 1
-        ? mins[loyaltyData.rewardDetails[idx + 1].tierKey]
-        : Infinity;
-    let val = Number(rawVal);
-    if (val <= prevMin) val = prevMin + 100;
-    if (val >= nextMin) val = nextMin - 100;
-    setMins((m) => ({ ...m, [key]: val }));
-  }
-
-  async function save() {
-    setSaving(true);
-    const nextRewardDetails = loyaltyData.rewardDetails.map((t) => ({
-      ...t,
-      tierThreshold: mins[t.tierKey],
-    }));
-    try {
-      const config = await updateLoyaltyConfig({
-        rewardDetails: nextRewardDetails,
-      });
-      dispatch(saveRewardDetailsSuccess(config));
-      toast.success("Tier thresholds updated — live across the store");
-      onSaved();
-    } catch (err) {
-      toast.error(`Couldn't save tier thresholds: ${err.message}`);
-    } finally {
-      setSaving(false);
-    }
+function TierThresholdsTab({ value, getChanges }) {
+  function handleTierThresholdChange(key, rawVal) {
+    const previous = key === 0 ? 0 : value[key - 1].tierThreshold;
+    const next =
+      key < value.length - 1 ? value[key + 1].tierThreshold : Infinity;
+    let threshold = Number(rawVal);
+    if (threshold <= previous) threshold = previous + 100;
+    if (threshold >= next) threshold = next - 100;
+    return value.map((t, i) =>
+      i === key ? { ...t, tierThreshold: threshold } : t,
+    );
   }
 
   return (
@@ -286,34 +152,29 @@ function TierThresholdsTab({ loyaltyData, dispatch, onSaved }) {
         always starts at $0 — dragging a slider is clamped so tiers stay in
         order.
       </p>
-      {editable.map((t) => (
-        <div className={styles.sliderRow} key={t.tierKey}>
-          <div className={styles.sliderLabel}>
-            <Badge variant={tierBadgeVariant(t.tierKey)}>{t.tierName}</Badge>
-            <span className={`${styles.sliderValue} mono`}>
-              {formatPrice(mins[t.tierKey])} spend
-            </span>
+      {value.map((t, index) =>
+        t.tierKey === "bronze" ? null : (
+          <div className={styles.sliderRow} key={index}>
+            <div className={styles.sliderLabel}>
+              <TierBadge/>
+              <span className={`${styles.sliderValue} mono`}>
+                {formatPrice(t.tierThreshold)} spend
+              </span>
+            </div>
+            <input
+              type="range"
+              min="200"
+              max="20000"
+              step="100"
+              value={t.tierThreshold}
+              onChange={(e) =>
+                getChanges(handleTierThresholdChange(index, e.target.value))
+              }
+              className={styles.tierSlider}
+            />
           </div>
-          <input
-            type="range"
-            min="200"
-            max="20000"
-            step="100"
-            value={mins[t.tierKey]}
-            onChange={(e) => handleChange(t.tierKey, e.target.value)}
-            className={styles.tierSlider}
-          />
-        </div>
-      ))}
-      <Button
-        variant="primary"
-        style={{ width: "100%", marginTop: 16 }}
-        isLoading={saving}
-        loadingText="Saving…"
-        onClick={save}
-      >
-        Save changes
-      </Button>
+        ),
+      )}
     </>
   );
 }
@@ -321,58 +182,148 @@ function TierThresholdsTab({ loyaltyData, dispatch, onSaved }) {
 export default function AdminModal({ onClose }) {
   const dispatch = useDispatch();
   const loyaltyData = useSelector(selectLoyaltyConfig);
+  const original = useRef({
+    rewardDetails: loyaltyData.rewardDetails,
+    campaign: loyaltyData.campaign,
+  });
+
   const [tab, setTab] = useState("promo");
+  const [saving, setSaving] = useState(false);
+  const [tierThresholds, setTierThresholds] = useState(() => [
+    ...loyaltyData.rewardDetails,
+  ]);
+
+  const [campaign, setCampaign] = useState(() => [...loyaltyData.campaign]);
+
+  // Returns only the items that changed, and within each only the fields
+  // that changed — never the untouched original values.
+  function changedEntries(edited, baseline, idKey) {
+    const baselineById = new Map(baseline.map((item) => [item[idKey], item]));
+
+    return edited.flatMap((item) => {
+      const before = baselineById.get(item[idKey]);
+      const changedFields = Object.fromEntries(
+        Object.entries(item).filter(
+          ([key, value]) =>
+            key !== idKey &&
+            JSON.stringify(value) !== JSON.stringify(before?.[key]),
+        ),
+      );
+
+      return Object.keys(changedFields).length
+        ? [{ [idKey]: item[idKey], ...changedFields }]
+        : [];
+    });
+  }
+
+  // The backend's campaign update is single-object: "here is the campaign
+  // that should now be active, with these values." Deactivating every other
+  // promo is a side effect the backend performs on its own (see
+  // loyaltyConfiguration.js's "campaign.$[].isActive": false), so the frontend
+  // never needs to report the ones that turned off — only the one intended
+  // to be active, and only if something about it actually changed.
+  function changedCampaign(edited, baseline) {
+    const active = edited.find((promo) => promo.isActive);
+    if (!active) return null;
+
+    const wasActive = baseline.find((promo) => promo.isActive);
+    const promoSwitched = wasActive?.promoId !== active.promoId;
+    const fieldsChanged =
+      promoSwitched ||
+      ["multiplier", "banner"].some(
+        (field) => active[field] !== wasActive?.[field],
+      );
+
+    return fieldsChanged
+      ? {
+          promoId: active.promoId,
+          isActive: true,
+          multiplier: active.multiplier,
+          banner: active.banner,
+        }
+      : null;
+  }
+
+  async function save() {
+    const rewardDetails = changedEntries(
+      tierThresholds,
+      original.current.rewardDetails,
+      "tierKey",
+    );
+    const campaignChange = changedCampaign(campaign, original.current.campaign);
+
+    const patch = {};
+    if (rewardDetails.length) patch.rewardDetails = rewardDetails;
+    if (campaignChange) patch.campaign = campaignChange;
+
+    if (!Object.keys(patch).length) {
+      onClose();
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const response = await updateLoyaltyConfig(patch);
+      dispatch(setLoyaltyConfigData(response));
+      onClose();
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <>
       <div className={modal.head}>
         <H2>Loyalty Setting</H2>
-        <button className={modal.close} onClick={onClose}>
+        <Button className={modal.close} onClick={onClose}>
           ✕
-        </button>
+        </Button>
       </div>
       <div className={modal.tabs}>
-        <button
+        <Button
           className={`${modal.tab} ${tab === "value" ? modal.tabActive : ""}`}
           onClick={() => setTab("value")}
         >
           Reward value
-        </button>
-        <button
+        </Button>
+        <Button
           className={`${modal.tab} ${tab === "tiers" ? modal.tabActive : ""}`}
           onClick={() => setTab("tiers")}
         >
           Tier thresholds
-        </button>
-        <button
+        </Button>
+        <Button
           className={`${modal.tab} ${tab === "promo" ? modal.tabActive : ""}`}
           onClick={() => setTab("promo")}
         >
           Promo campaign
-        </button>
+        </Button>
       </div>
       <div className={modal.body}>
         {tab === "value" && (
           <RewardValueTab
-            loyaltyData={loyaltyData}
-            dispatch={dispatch}
-            onSaved={onClose}
+            value={tierThresholds}
+            getChanges={setTierThresholds}
           />
         )}
         {tab === "tiers" && (
           <TierThresholdsTab
-            loyaltyData={loyaltyData}
-            dispatch={dispatch}
-            onSaved={onClose}
+            value={tierThresholds}
+            getChanges={setTierThresholds}
           />
         )}
         {tab === "promo" && (
-          <CampaignTab
-            loyaltyData={loyaltyData}
-            dispatch={dispatch}
-            onSaved={onClose}
-          />
+          <CampaignTab value={campaign} getChanges={setCampaign} />
         )}
+        <Button
+          variant="primary"
+          style={{ width: "100%", marginTop: 16 }}
+          isLoading={saving}
+          loadingText="Saving…"
+          onClick={save}
+        >
+          Save changes
+        </Button>
       </div>
     </>
   );
