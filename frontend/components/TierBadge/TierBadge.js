@@ -9,14 +9,14 @@ import styles from "./TierBadge.module.css";
 const TierBadge = ({ overwriteTier = null }) => {
   let selectedTier = useSelector(selectSelectedUser)?.loyaltyDetails?.activeTier;
   selectedTier = selectedTier
-    ? selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1)
+    ? selectedTier
     : null;
   const activeTier = overwriteTier || selectedTier || null;
   if (!activeTier) return null;
 
   return (
     <Badge className={`${styles[`tier-badge-${activeTier?.toLowerCase()}`]}`}>
-      <Text>{activeTier}</Text>
+      <Text>{activeTier.charAt(0).toUpperCase() + activeTier.slice(1)}</Text>
     </Badge>
   );
 };

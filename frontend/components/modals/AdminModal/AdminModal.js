@@ -13,6 +13,7 @@ import modal from "../Modal.module.css";
 import shared from "../../shared.module.css";
 import { Button } from "@via-ds/components/button";
 import { formatPrice } from "@/lib/helper";
+import { Banner, BannerVariant } from "@via-ds/components";
 
 function RewardValueTab({ value, getChanges }) {
   return (
@@ -119,13 +120,15 @@ function CampaignTab({ value, getChanges }) {
         </div>
       </div>
       <div className={styles.note}>
-        Current event: <b>{currentCampaign?.banner ?? ""}</b> · Earn{" "}
+        New campaign overview: <b>{currentCampaign?.banner ?? ""}</b> · Earn{" "}
         {currentCampaign?.multiplier ?? 1}× coins on every purchase.
       </div>
-      <div className={`${styles.note} ${styles.noteSubtle}`}>
+      <Banner className={`${styles.note} ${styles.noteSubtle}`}>
         The campaign banner updates immediately and the coins-earned calculation
         changes with no redeploy or ETL.
-      </div>
+      </Banner>
+              
+
     </>
   );
 }
@@ -154,7 +157,7 @@ function TierThresholdsTab({ value, getChanges }) {
         t.tierKey === "bronze" ? null : (
           <div className={styles.sliderRow} key={index}>
             <div className={styles.sliderLabel}>
-              <TierBadge />
+              <TierBadge overwriteTier={t.tierKey} />
               <span className={`${styles.sliderValue} mono`}>
                 {formatPrice(t.tierThreshold)} spend
               </span>
