@@ -229,6 +229,10 @@ export const selectProductsData = (state) => state.Global.products.data;
 export const selectLastOrder = (state) => state.Global.lastOrder;
 export const selectLastRedeem = (state) => state.Global.lastRedeem;
 export const selectLastEvent = (state) => state.Global.lastEvent;
+export const selectActiveEvent = (state) =>
+  state.Global.lastEvent === "redeem"
+    ? state.Global.lastRedeem
+    : state.Global.lastOrder;
 export const selectLoyaltyConfig = (state) => state.Global.loyaltyConfig;
 export const selectModal = (state) => state.Global.modal;
 export const selectCart = (state) => state.Global.cart;

@@ -4,16 +4,16 @@ import { Banner } from "@via-ds/components/banner";
 import { CodeBlock, CodeSnippet } from "@via-ds/components/code-block";
 import { Text } from "@via-ds/components/typography";
 import { useSelector } from "react-redux";
-import { selectLastOrder, selectSelectedUser } from "@/redux/slices/GlobalSlice";
+import { selectActiveEvent, selectSelectedUser } from "@/redux/slices/GlobalSlice";
 import { fetchOrder } from "@/lib/api";
 import { docToJSON } from "@/lib/helper";
 import styles from "./EventContent.module.css";
 import SyncModal from "../modals/SyncModal/SyncModal";
 
 const RecordOrderEventContent = () => {
-  const lastOrder = useSelector(selectLastOrder);
+  const activeEvent = useSelector(selectActiveEvent);
   const persona = useSelector(selectSelectedUser);
-  const orderId = lastOrder?.order?.orderId ;
+  const orderId = activeEvent?.order?.orderId ;
   const customerId = persona?.customerId ;
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
