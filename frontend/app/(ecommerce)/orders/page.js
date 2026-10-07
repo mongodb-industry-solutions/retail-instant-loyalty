@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { currentTierFor, formatCoinValue, formatOrderDate } from "@/lib/helper";
+import { formatCoinValue, formatOrderDate } from "@/lib/helper";
 import { ChevronRightIcon } from "@/components/Icons/Icons";
 import styles from "./OrdersView.module.css";
 import shared from "@/components/shared.module.css";
@@ -11,7 +11,7 @@ import {
   selectLoyaltyConfig,
   openModal,
 } from "@/redux/slices/GlobalSlice";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { fetchOrders } from "@/lib/api";
 
 export default function OrdersView() {
@@ -159,7 +159,6 @@ export default function OrdersView() {
           </div>
         </div>
       )}
-
     </main>
   );
 }

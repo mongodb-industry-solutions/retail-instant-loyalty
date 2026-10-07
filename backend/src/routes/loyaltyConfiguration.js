@@ -2,103 +2,103 @@ import { sendError } from "../lib/orderEngine.js";
 import { createLoyaltyEngine } from "../lib/loyaltyEngine.js";
 
 export default function loyaltyConfigurationRoutes(app) {
-  const { recalculateSessionCustomerTier } = createLoyaltyEngine(app);
+  // const { recalculateSessionCustomerTier } = createLoyaltyEngine(app);
 
-  async function updateTierValues(request, reply, fieldName, valueName) {
-    const sessionId = request.headers["x-session-id"];
-    const { tiers } = request.body || {};
+  // async function updateTierValues(request, reply, fieldName, valueName) {
+  //   const sessionId = request.headers["x-session-id"];
+  //   const { tiers } = request.body || {};
 
-    if (!sessionId)
-      return sendError(
-        reply,
-        400,
-        "SESSION_REQUIRED",
-        "x-session-id header is required",
-      );
+  //   if (!sessionId)
+  //     return sendError(
+  //       reply,
+  //       400,
+  //       "SESSION_REQUIRED",
+  //       "x-session-id header is required",
+  //     );
 
-    if (
-      !Array.isArray(tiers) ||
-      tiers.length === 0 ||
-      tiers.some(
-        (tier) =>
-          !tier ||
-          typeof tier.tierKey !== "string" ||
-          tier.tierKey.length === 0 ||
-          typeof tier[valueName] !== "number" ||
-          !Number.isFinite(tier[valueName]) ||
-          tier[valueName] <= 0,
-      )
-    ) {
-      return sendError(
-        reply,
-        400,
-        "INVALID_TIER_UPDATES",
-        `tiers must contain tierKey and a finite positive ${valueName}`,
-      );
-    }
+  //   if (
+  //     !Array.isArray(tiers) ||
+  //     tiers.length === 0 ||
+  //     tiers.some(
+  //       (tier) =>
+  //         !tier ||
+  //         typeof tier.tierKey !== "string" ||
+  //         tier.tierKey.length === 0 ||
+  //         typeof tier[valueName] !== "number" ||
+  //         !Number.isFinite(tier[valueName]) ||
+  //         tier[valueName] <= 0,
+  //     )
+  //   ) {
+  //     return sendError(
+  //       reply,
+  //       400,
+  //       "INVALID_TIER_UPDATES",
+  //       `tiers must contain tierKey and a finite positive ${valueName}`,
+  //     );
+  //   }
 
-    const db = app.mongo.db;
+  //   const db = app.mongo.db;
 
-    try {
-      const config = await db
-        .collection("loyaltyConfiguration")
-        .findOne({ sessionId });
-      if (!config)
-        return sendError(
-          reply,
-          404,
-          "LOYALTY_CONFIG_NOT_FOUND",
-          "No loyalty configuration for this session",
-        );
+  //   try {
+  //     const config = await db
+  //       .collection("loyaltyConfiguration")
+  //       .findOne({ sessionId });
+  //     if (!config)
+  //       return sendError(
+  //         reply,
+  //         404,
+  //         "LOYALTY_CONFIG_NOT_FOUND",
+  //         "No loyalty configuration for this session",
+  //       );
 
-      const configuredTierKeys = new Set(
-        (config.rewardDetails || []).map((tier) => tier.tierKey),
-      );
-      const requestedTierKeys = tiers.map((tier) => tier.tierKey);
-      const unknownTierKey = requestedTierKeys.find(
-        (tierKey) => !configuredTierKeys.has(tierKey),
-      );
+  //     const configuredTierKeys = new Set(
+  //       (config.rewardDetails || []).map((tier) => tier.tierKey),
+  //     );
+  //     const requestedTierKeys = tiers.map((tier) => tier.tierKey);
+  //     const unknownTierKey = requestedTierKeys.find(
+  //       (tierKey) => !configuredTierKeys.has(tierKey),
+  //     );
 
-      if (unknownTierKey) {
-        return sendError(
-          reply,
-          400,
-          "TIER_NOT_FOUND",
-          `"${unknownTierKey}" does not match any configured tierKey`,
-        );
-      }
+  //     if (unknownTierKey) {
+  //       return sendError(
+  //         reply,
+  //         400,
+  //         "TIER_NOT_FOUND",
+  //         `"${unknownTierKey}" does not match any configured tierKey`,
+  //       );
+  //     }
 
-      const updatesByTierKey = new Map(
-        tiers.map((tier) => [tier.tierKey, tier[valueName]]),
-      );
-      const updatedRewardDetails = config.rewardDetails.map((tier) =>
-        updatesByTierKey.has(tier.tierKey)
-          ? { ...tier, [fieldName]: updatesByTierKey.get(tier.tierKey) }
-          : tier,
-      );
+  //     const updatesByTierKey = new Map(
+  //       tiers.map((tier) => [tier.tierKey, tier[valueName]]),
+  //     );
+  //     const updatedRewardDetails = config.rewardDetails.map((tier) =>
+  //       updatesByTierKey.has(tier.tierKey)
+  //         ? { ...tier, [fieldName]: updatesByTierKey.get(tier.tierKey) }
+  //         : tier,
+  //     );
 
-      await db
-        .collection("loyaltyConfiguration")
-        .updateOne(
-          { sessionId },
-          { $set: { rewardDetails: updatedRewardDetails } },
-        );
+  //     await db
+  //       .collection("loyaltyConfiguration")
+  //       .updateOne(
+  //         { sessionId },
+  //         { $set: { rewardDetails: updatedRewardDetails } },
+  //       );
 
-      await recalculateSessionCustomerTier(db, {
-        sessionId,
-        rewardDetails: updatedRewardDetails,
-      });
+  //     await recalculateSessionCustomerTier(db, {
+  //       sessionId,
+  //       rewardDetails: updatedRewardDetails,
+  //     });
 
-      const updatedConfig = await db
-        .collection("loyaltyConfiguration")
-        .findOne({ sessionId });
+  //     const updatedConfig = await db
+  //       .collection("loyaltyConfiguration")
+  //       .findOne({ sessionId });
 
-      return reply.send({ data: updatedConfig });
-    } catch (err) {
-      app.log.error(err);
-      return sendError(reply, 500, "TIER_UPDATE_FAILED", err.message);
-    }
-  }
+  //     return reply.send({ data: updatedConfig });
+  //   } catch (err) {
+  //     app.log.error(err);
+  //     return sendError(reply, 500, "TIER_UPDATE_FAILED", err.message);
+  //   }
+  // }
 
   // body =  {
   //   "tiers": [
