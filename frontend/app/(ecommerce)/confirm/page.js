@@ -200,7 +200,7 @@ export default function ConfirmView() {
             <Icon glyph="Checkmark" />
           </div>
           <div className={styles.title}>
-            {hasRedemption ? "Redeem successful!" : "Order confirmed!"}
+            {hasRedemption ? "Redeem successful!" : "Order Confirmed!"}
           </div>
           <div className={styles.sub}>
             {hasRedemption

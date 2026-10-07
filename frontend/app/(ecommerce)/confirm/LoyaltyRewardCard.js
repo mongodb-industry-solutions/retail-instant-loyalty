@@ -74,7 +74,9 @@ export default function LoyaltyRewardCard({ order }) {
       <span className={styles.rnTotal}>
         {displayCoinTotal.toLocaleString()}
       </span>
-      <TierBadge overview={tierLabel} />
+      <div className={styles.rnTierContainer}>
+        <TierBadge overview={tierLabel} />
+      </div>
     </div>
   );
 
