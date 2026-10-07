@@ -471,6 +471,7 @@ async function updateRewardDetails(sessionId, rewardUpdates, reply, app) {
   }
 
   const db = app.mongo.db;
+  const { recalculateSessionCustomerTier } = createLoyaltyEngine(app);
 
   // Each entry is { tierKey, ...onlyTheFieldsThatChanged } — build one
   // updateOne per entry that $sets just those fields on the matching tier.
@@ -535,6 +536,11 @@ async function updateRewardDetails(sessionId, rewardUpdates, reply, app) {
     const updatedConfig = await db
       .collection("loyaltyConfiguration")
       .findOne({ sessionId });
+
+    await recalculateSessionCustomerTier(db, {
+      sessionId,
+      rewardDetails: updatedConfig.rewardDetails,
+    });
 
     return reply.send({ data: updatedConfig });
   } catch (err) {
