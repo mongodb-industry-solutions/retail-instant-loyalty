@@ -3,7 +3,6 @@
 import styles from "./ConfirmView.module.css";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { H3 } from "@via-ds/components/typography";
 import shared from "@/components/shared.module.css";
 import { formatPrice } from "@/lib/helper";
 import {
@@ -11,8 +10,8 @@ import {
   selectLoyaltyConfig,
 } from "@/redux/slices/GlobalSlice";
 import TierTrack from "@/components/TierTrack/TierTrack";
-import { Badge } from "@via-ds/components/badge";
 import { Icon } from "@via-ds/icons";
+import TierBadge from "@/components/TierBadge/TierBadge";
 
 export default function LoyaltyRewardCard({ order }) {
   const [phase, setPhase] = useState("after");
@@ -66,9 +65,7 @@ export default function LoyaltyRewardCard({ order }) {
     dollarsNeededForNextTier: loyalty.dollarsNeededForNextTier,
   };
   const multiplier = loyalty.multiplier ?? 1;
-  const tierLabel = loyalty.newTier
-    ? loyalty.newTier.charAt(0).toUpperCase() + loyalty.newTier.slice(1)
-    : "—";
+  const tierLabel = loyalty.newTier ? loyalty.newTier : "—";
 
   const balanceRow = (description) => (
     <div className={styles.rewardNumbers}>
@@ -77,9 +74,9 @@ export default function LoyaltyRewardCard({ order }) {
       <span className={styles.rnTotal}>
         {displayCoinTotal.toLocaleString()}
       </span>
-      <Badge variant="info" className={styles.rnTier}>
-        {tierLabel}
-      </Badge>
+      <div className={styles.rnTierContainer}>
+        <TierBadge overwriteTier={tierLabel} />
+      </div>
     </div>
   );
 

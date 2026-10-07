@@ -1,19 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Callout } from "@via-ds/components/callout";
+import { Banner } from "@via-ds/components/banner";
+import { CodeBlock, CodeSnippet } from "@via-ds/components/code-block";
 import { Text } from "@via-ds/components/typography";
 import { useSelector } from "react-redux";
-import { selectLastOrder, selectSelectedUser } from "@/redux/slices/GlobalSlice";
+import { selectActiveEvent, selectSelectedUser } from "@/redux/slices/GlobalSlice";
 import { fetchOrderLoyaltyHistory } from "@/lib/api";
 import { docToJSON } from "@/lib/helper";
 import modalStyles from "./EventContent.module.css";
 import SyncModal from "../modals/SyncModal/SyncModal";
 
 const RecordLoyaltyEventContent = () => {
-  const lastOrder = useSelector(selectLastOrder);
+  const activeEvent = useSelector(selectActiveEvent);
   const persona = useSelector(selectSelectedUser);
-  const orderId = lastOrder?.order?.orderId;
+  const orderId = activeEvent?.order?.orderId;
   const customerId = persona?.customerId;
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -80,10 +81,12 @@ const RecordLoyaltyEventContent = () => {
               experiences, operational teams, and future analytics.
             </p>
           </section>
-          <Callout className={modalStyles.callout} variant="important">
-            <p><strong>Current loyalty &rarr; Customer profile</strong></p>
-            <p><strong>Historical loyalty events &rarr; Loyalty ledger</strong></p>
-          </Callout>
+          <Banner className={modalStyles.banner} variant="info">
+            <div>
+              <p><strong>Current loyalty &rarr; Customer profile</strong></p>
+              <p><strong>Historical loyalty events &rarr; Loyalty ledger</strong></p>
+            </div>
+          </Banner>
         </div>
       ),
     },
@@ -112,7 +115,9 @@ const RecordLoyaltyEventContent = () => {
               ) : !entries.length ? (
                 <p>No loyalty history entries were found for this order.</p>
               ) : (
-                <pre className={modalStyles.json}><code>{docToJSON(entries)}</code></pre>
+                <CodeBlock language="json">
+                  <CodeSnippet>{docToJSON(entries)}</CodeSnippet>
+                </CodeBlock>
               )}
             </section>
             <section>
@@ -132,16 +137,18 @@ const RecordLoyaltyEventContent = () => {
                 <li><code>campaign-bonus</code></li>
               </ul>
             </section>
-            <Callout className={modalStyles.callout} variant="note">
-              <Text slot="title">Different events, one collection</Text>
-              <p>
-                This is where MongoDB's <strong>polymorphic document
-                model</strong> becomes particularly useful. This flexibility
-                allows loyalty events to have different attributes while still
-                living in the same collection, and easily evolve the schema
-                as your business needs change.
-              </p>
-            </Callout>
+            <Banner className={modalStyles.banner} variant="info">
+              <div>
+                <Text as="strong">Different events, one collection</Text>
+                <p>
+                  This is where MongoDB's <strong>polymorphic document
+                  model</strong> becomes particularly useful. This flexibility
+                  allows loyalty events to have different attributes while still
+                  living in the same collection, and easily evolve the schema
+                  as your business needs change.
+                </p>
+              </div>
+            </Banner>
           </div>
         );
       },
@@ -178,9 +185,9 @@ const RecordLoyaltyEventContent = () => {
               understand a customer's reward behavior.
             </p>
           </section>
-          <Callout className={modalStyles.callout} variant="tip">
+          <Banner className={modalStyles.banner} variant="info">
             <strong>Today's loyalty history can become tomorrow's customer intelligence.</strong>
-          </Callout>
+          </Banner>
         </div>
       ),
     },
