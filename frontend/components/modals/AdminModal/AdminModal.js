@@ -78,7 +78,7 @@ function CampaignTab({ value, getChanges }) {
   return (
     <>
       <p>
-        Control the current campaign from one place. This is the deliberate demo
+        Control the current campaign. This is the deliberate demo
         moment: switch the multiplier live and show the banner and coin earnings
         change instantly, while Atlas Triggers enforce the rule operationally.
       </p>
@@ -271,7 +271,7 @@ export default function AdminModal({ onClose }) {
   return (
     <>
       <div className={modal.head}>
-        <H2>Loyalty Setting</H2>
+        <H2>Loyalty Setting (This is a backoffice view)</H2>
         <Button className={modal.close} onClick={onClose}>
           ✕
         </Button>

@@ -12,12 +12,10 @@ import {
   MenuSection,
   MenuSeparator,
 } from "@via-ds/components/menu";
-import { Logo } from "@via-ds/components/logo";
 
 import { endSession } from "@/lib/api";
 import { clearActivePersonaCookie } from "@/lib/cookies";
 import { resetGlobalState } from "@/redux/slices/GlobalSlice";
-import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import {
   selectSelectedUser,
@@ -26,11 +24,11 @@ import {
 } from "@/redux/slices/GlobalSlice";
 import { openModal } from "@/redux/slices/GlobalSlice";
 import styles from "./Navbar.module.css";
-import shared from "@/components/shared.module.css";
 import { Text, H3 } from "@via-ds/components/typography";
 import {
   SearchIcon,
   WandIcon,
+  WizardIcon,
   GearIcon,
   HistoryIcon,
   LogoutIcon,
@@ -91,8 +89,8 @@ export default function Navbar() {
       <PromoBanner activeCampaign={activeCampaign} />
       <header className={styles.topnav}>
         <div className={styles.brand} onClick={() => go("store")}>
-          <Logo logo="MongoDBLogoMark" size="medium" />
-          <Text size="large">Leafy Loyalty</Text>
+          <img src="/favicon_light.png" alt="Leafy Loyalty Logo" width={40} />
+          <H3 size="large">Leafy Loyalty Store</H3>
         </div>
         {
           /* {pathname === "/" ? (
@@ -118,7 +116,7 @@ export default function Navbar() {
             className={styles.utilBtn}
             onClick={() => dispatch(openModal({ modalType: "talkTrack" }))}
           >
-            <WandIcon />
+            <WizardIcon aria-hidden="true" />
             <Text> Talk track! </Text>
           </button>
           <button
@@ -145,7 +143,7 @@ export default function Navbar() {
                 {persona.profile.firstName}
               </Text>
 
-              <TierBadge/>
+              <TierBadge />
             </Button>
 
             <MenuPopover>
@@ -153,19 +151,11 @@ export default function Navbar() {
                 <MenuSection aria-label="Customer information">
                   <MenuItem
                     id="coin-history"
-                    textValue="Coin history"
+                    textValue="Loyalty history"
                     onAction={() => go("coinHistory")}
                   >
                     <HistoryIcon slot="icon" />
-                    <Text>Coin history</Text>
-                  </MenuItem>
-                  <MenuItem
-                    id="profile"
-                    textValue="Profile"
-                    onAction={() => go("profile")}
-                  >
-                    <ProfileIcon slot="icon" />
-                    <Text>Profile</Text>
+                    <Text>Loyalty history</Text>
                   </MenuItem>
                   <MenuItem
                     id="order-history"
@@ -174,6 +164,14 @@ export default function Navbar() {
                   >
                     <HistoryIcon slot="icon" />
                     <Text>Order history</Text>
+                  </MenuItem>
+                  <MenuItem
+                    id="profile"
+                    textValue="Profile"
+                    onAction={() => go("profile")}
+                  >
+                    <ProfileIcon slot="icon" />
+                    <Text>Profile</Text>
                   </MenuItem>
                 </MenuSection>
 
