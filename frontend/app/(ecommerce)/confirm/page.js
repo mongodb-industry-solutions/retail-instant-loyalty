@@ -66,7 +66,9 @@ function OrderErrorView({
       <div className={styles.icon}>
         <Icon glyph="X" />
       </div>
-
+      <div className={styles.orderNumWrap}>
+        <span className={styles.orderNum}>Order {finalOrder?.orderId}</span>
+      </div>
       <OrderStatusBar
         stages={ORDER_STATUS_STAGES_FAILED}
         current="payment_failed"
@@ -221,7 +223,7 @@ export default function ConfirmView() {
   if (orderStatus === "payment_failed") {
     return (
       <OrderErrorView
-        orderError="Payment failed."
+        orderError={finalOrder.failureReason}
         ORDER_STATUS_STAGES_FAILED={ORDER_STATUS_STAGES_FAILED}
         finalOrder={finalOrder}
         router={router}
