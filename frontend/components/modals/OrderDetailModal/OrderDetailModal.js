@@ -2,15 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { Text } from "@via-ds/components/typography";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { formatPrice } from "@/lib/helper";
 import { fetchOrder } from "@/lib/api";
 import styles from "./OrderDetailModal.module.css";
 import modal from "../Modal.module.css";
 import shared from "../../shared.module.css";
-import { selectSelectedUser } from "@/redux/slices/GlobalSlice";
+import {
+  selectSelectedUser,
+  selectInspectedEvent,
+  setInspectedEvent,
+} from "@/redux/slices/GlobalSlice";
 import OrderStatusBar from "../../OrderStatusBar/OrderStatusBar";
 import { ORDER_STATUS_STAGES } from "@/lib/data";
+import ConfirmSidebar from "@/components/ConfirmSidebar/ConfirmSidebar";
 
 function formatOrderDate(date) {
   if (!date) return "—";
@@ -39,7 +44,7 @@ function OrderItems({ items }) {
       {items.map((i) => (
         <div className={styles.oiRow} key={i.productId}>
           <div className={styles.oiLeft}>
-            <div className={styles.oiThumb} style={{ background: "#EEE" }}>
+            <div className={styles.oiThumb}>
               {i.imageUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={i.imageUrl} alt="" width={32} height={32} />
@@ -104,19 +109,23 @@ function OrderSummaryRows({ order }) {
 }
 
 export default function OrderDetailModal({ orderId, onClose }) {
+  const dispatch = useDispatch();
   const persona = useSelector(selectSelectedUser);
-  const [order, setOrder] = useState(null);
+  const inspectedEvent = useSelector(selectInspectedEvent);
+  const order = inspectedEvent?.order?.orderId === orderId
+    ? inspectedEvent.order
+    : null;
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    dispatch(setInspectedEvent(null));
     if (!orderId || !persona?.customerId) return;
     let cancelled = false;
-    setOrder(null);
     setError(null);
     fetchOrder({ orderId, customerId: persona.customerId })
       .then((data) => {
         if (cancelled) return;
-        setOrder(data);
+        dispatch(setInspectedEvent({ order: data, loyalty: null }));
       })
       .catch((err) => {
         if (cancelled) return;
@@ -125,7 +134,7 @@ export default function OrderDetailModal({ orderId, onClose }) {
     return () => {
       cancelled = true;
     };
-  }, [orderId, persona?.customerId]);
+  }, [dispatch, orderId, persona?.customerId]);
 
   if (error) {
     return (
@@ -211,34 +220,35 @@ export default function OrderDetailModal({ orderId, onClose }) {
             }
             current={order.currentStatus}
           />
-
-          <div className={styles.metaStrip}>
-            <div className={styles.metaCard}>
-              <div className={styles.metaLabel}>Rewards</div>
-              <div className={`${styles.metaValue} mono`}>
-                {order.coinsApplied > 0
-                  ? `${order.coinsApplied.toLocaleString()} coins applied`
-                  : `+${(order.coinsEarned ?? 0).toLocaleString()} coins earned`}
+          <div className={styles.orderContent}>
+            <div className={styles.itemsColumn}>
+              <div className={styles.metaCards}>
+                <div className={styles.metaCard}>
+                  <div className={styles.metaLabel}>Rewards</div>
+                  <div className={`${styles.metaValue} mono`}>
+                    {order.coinsApplied > 0
+                      ? `${order.coinsApplied.toLocaleString()} coins applied`
+                      : `+${(order.coinsEarned ?? 0).toLocaleString()} coins earned`}
+                  </div>
+                  <div className={styles.metaNote}>
+                    Applied inside the same order flow that updated this
+                    customer record.
+                  </div>
+                </div>
+                <div className={styles.metaCard}>
+                  <div className={styles.metaLabel}>Transaction</div>
+                  <div className={styles.metaValue}>{order.transactionId}</div>
+                  <div className={styles.metaNote}>
+                    {order.orderType ?? "ONLINE"}
+                  </div>
+                </div>
               </div>
-              <div className={styles.metaNote}>
-                Applied inside the same order flow that updated this customer
-                record.
+              <div className={styles.panel}>
+                <div className={styles.panelTitle}>Items</div>
+                <OrderItems items={order.items} />
               </div>
             </div>
-            <div className={styles.metaCard}>
-              <div className={styles.metaLabel}>Transaction</div>
-              <div className={styles.metaValue}>{order.transactionId}</div>
-              <div className={styles.metaNote}>
-                {order.orderType ?? "ONLINE"}
-              </div>
-            </div>
-          </div>
-          <div className={styles.grid}>
-            <div className={styles.panel}>
-              <div className={styles.panelTitle}>Items</div>
-              <OrderItems items={order.items} />
-            </div>
-            <div className={styles.sideStack}>
+            <div className={styles.detailsColumn}>
               <div className={styles.panel}>
                 <div className={styles.panelTitle}>Details</div>
                 <div className={styles.detailList}>
@@ -287,6 +297,7 @@ export default function OrderDetailModal({ orderId, onClose }) {
               </div>
             </div>
           </div>
+          <ConfirmSidebar withAnimation={false} learnMoreMode="accordion" />
         </div>
       </div>
     </>

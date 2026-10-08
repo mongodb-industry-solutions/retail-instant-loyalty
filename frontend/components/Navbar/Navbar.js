@@ -12,12 +12,10 @@ import {
   MenuSection,
   MenuSeparator,
 } from "@via-ds/components/menu";
-import { Logo } from "@via-ds/components/logo";
 
 import { endSession } from "@/lib/api";
 import { clearActivePersonaCookie } from "@/lib/cookies";
 import { resetGlobalState } from "@/redux/slices/GlobalSlice";
-import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import {
   selectSelectedUser,
@@ -26,7 +24,6 @@ import {
 } from "@/redux/slices/GlobalSlice";
 import { openModal } from "@/redux/slices/GlobalSlice";
 import styles from "./Navbar.module.css";
-import shared from "@/components/shared.module.css";
 import { Text, H3 } from "@via-ds/components/typography";
 import {
   SearchIcon,
@@ -92,8 +89,8 @@ export default function Navbar() {
       <PromoBanner activeCampaign={activeCampaign} />
       <header className={styles.topnav}>
         <div className={styles.brand} onClick={() => go("store")}>
-          <Logo logo="MongoDBLogoMark" size="medium" />
-          <Text size="large">Leafy Loyalty</Text>
+          <img src="/favicon_light.png" alt="Leafy Loyalty Logo" width={40} />
+          <H3 size="large">Leafy Loyalty Store</H3>
         </div>
         {
           /* {pathname === "/" ? (

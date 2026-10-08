@@ -69,9 +69,9 @@ export default function ModalRoot() {
           />
         )}
         {modal.type === "freestyle" && (
-          <div>
+          <>
             {getFreestyleContent(modal.props?.contentId)}
-          </div>
+          </>
         )}
       </div>
     </div>

@@ -20,6 +20,7 @@ export default function sessionsRoutes(app) {
         name: "$profile.firstName",
         lastName: "$profile.lastName",
         gender: "$profile.gender",
+        activeTier: "$loyaltyDetails.activeTier",
         isAlwaysNewUser: { $eq: ["$isAlwaysNewUser", true] }, // normalizes missing/undefined to false
       },
     };

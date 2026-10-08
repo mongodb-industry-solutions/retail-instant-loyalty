@@ -5,7 +5,7 @@ import { Banner } from "@via-ds/components/banner";
 import { CodeBlock, CodeSnippet } from "@via-ds/components/code-block";
 import { Text } from "@via-ds/components/typography";
 import { useSelector } from "react-redux";
-import { selectActiveEvent, selectSelectedUser } from "@/redux/slices/GlobalSlice";
+import { selectDisplayedEvent, selectSelectedUser } from "@/redux/slices/GlobalSlice";
 import { fetchOrderTransaction } from "@/lib/api";
 import { docToJSON } from "@/lib/helper";
 import modalStyles from "./EventContent.module.css";
@@ -30,11 +30,11 @@ const TRANSACTION_EXAMPLE = {
   createdAt: "2026-09-30T18:31:22.700Z",
 };
 
-const RecordTransactionEventContent = () => {
-  const activeEvent = useSelector(selectActiveEvent);
+const RecordTransactionEventContent = ({ embedded = false }) => {
+  const activeEvent = useSelector(selectDisplayedEvent);
   const persona = useSelector(selectSelectedUser);
   const orderId = activeEvent?.order?.orderId;
-  const customerId = persona?.customerId;
+  const customerId = activeEvent?.order?.customerId ?? persona?.customerId;
   const [transaction, setTransaction] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -248,7 +248,7 @@ const RecordTransactionEventContent = () => {
     },
   ];
 
-  return <SyncModal title="Record the payment in MongoDB" tabs={tabs} />;
+  return <SyncModal title="Record the payment in MongoDB" tabs={tabs} embedded={embedded} />;
 };
 
 export default RecordTransactionEventContent;
