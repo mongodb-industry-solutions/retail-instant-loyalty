@@ -31,6 +31,7 @@ import { Text, H3 } from "@via-ds/components/typography";
 import {
   SearchIcon,
   WandIcon,
+  WizardIcon,
   GearIcon,
   HistoryIcon,
   LogoutIcon,
@@ -118,7 +119,7 @@ export default function Navbar() {
             className={styles.utilBtn}
             onClick={() => dispatch(openModal({ modalType: "talkTrack" }))}
           >
-            <WandIcon />
+            <WizardIcon aria-hidden="true" />
             <Text> Talk track! </Text>
           </button>
           <button
@@ -145,7 +146,7 @@ export default function Navbar() {
                 {persona.profile.firstName}
               </Text>
 
-              <TierBadge/>
+              <TierBadge />
             </Button>
 
             <MenuPopover>
@@ -153,19 +154,11 @@ export default function Navbar() {
                 <MenuSection aria-label="Customer information">
                   <MenuItem
                     id="coin-history"
-                    textValue="Coin history"
+                    textValue="Loyalty history"
                     onAction={() => go("coinHistory")}
                   >
                     <HistoryIcon slot="icon" />
-                    <Text>Coin history</Text>
-                  </MenuItem>
-                  <MenuItem
-                    id="profile"
-                    textValue="Profile"
-                    onAction={() => go("profile")}
-                  >
-                    <ProfileIcon slot="icon" />
-                    <Text>Profile</Text>
+                    <Text>Loyalty history</Text>
                   </MenuItem>
                   <MenuItem
                     id="order-history"
@@ -174,6 +167,14 @@ export default function Navbar() {
                   >
                     <HistoryIcon slot="icon" />
                     <Text>Order history</Text>
+                  </MenuItem>
+                  <MenuItem
+                    id="profile"
+                    textValue="Profile"
+                    onAction={() => go("profile")}
+                  >
+                    <ProfileIcon slot="icon" />
+                    <Text>Profile</Text>
                   </MenuItem>
                 </MenuSection>
 

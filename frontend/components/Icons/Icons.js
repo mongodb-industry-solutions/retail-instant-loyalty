@@ -4,6 +4,10 @@ export function WandIcon(props) {
   return <Icon glyph="Sparkle" size={14} {...props} />;
 }
 
+export function WizardIcon(props) {
+  return <Icon glyph="Wizard" size={14} {...props} />;
+}
+
 export function SearchIcon(props) {
   return <Icon glyph="MagnifyingGlass" size={15} {...props} />;
 }
