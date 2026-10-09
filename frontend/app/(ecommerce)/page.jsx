@@ -143,7 +143,7 @@ export default function StoreView() {
       {selectedUser.loyaltyDetails && (
         <section className={styles.block}>
           <div className={`${styles.blockHead} ${styles.blockHeadStack}`}>
-            <div>
+            <div hidden>
               <H3 className={styles.sectionHeadInline}>
                 Recommended for you
                 {/* <button
