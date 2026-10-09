@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { ProgressCircle } from "@via-ds/components/progress-circle";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -14,6 +14,7 @@ import {
   setProductsError,
   setLoyaltyConfigData,
   setLoyaltyConfigError,
+  resetGlobalState,
 } from "@/redux/slices/GlobalSlice";
 import Navbar from "@/components/Navbar/Navbar";
 import ModalRoot from "@/components/modals/ModalRoot";
@@ -27,6 +28,7 @@ import {
   fetchLoyaltyConfig,
   endSession,
 } from "@/lib/api";
+import { clearSessionId } from "@/lib/session";
 
 export default function EcommerceLayout({ children }) {
   const dispatch = useDispatch();
@@ -34,8 +36,9 @@ export default function EcommerceLayout({ children }) {
   const selectedUser = useSelector(selectSelectedUser);
   const products = useSelector(selectProductsState);
   const loyaltyConfig = useSelector(selectLoyaltyConfig);
+  const sessionInvalid = useRef(false);
   useEffect(() => {
-    if (selectedUser) return;
+    if (selectedUser || sessionInvalid.current) return;
     let cancelled = false;
     readActivePersonaCookie()
       .then((id) => {
@@ -46,7 +49,7 @@ export default function EcommerceLayout({ children }) {
         }
         fetchCustomer(id)
           .then((customer) => {
-            if (cancelled) return;
+            if (cancelled || sessionInvalid.current) return;
             dispatch(setSelectedUser(customer));
           })
           .catch(() => {
@@ -101,10 +104,18 @@ export default function EcommerceLayout({ children }) {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([fetchProducts(), fetchLoyaltyConfig()])
-      .then(([products, config]) => {
+    fetchProducts()
+      .then((products) => {
         if (cancelled) return;
         dispatch(setProductsData(products));
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        dispatch(setProductsError(String(err?.message ?? err)));
+      });
+    fetchLoyaltyConfig({ retryMissing: true })
+      .then((config) => {
+        if (cancelled) return;
         dispatch(
           setLoyaltyConfigData({
             rewardDetails: config.rewardDetails,
@@ -112,18 +123,30 @@ export default function EcommerceLayout({ children }) {
           }),
         );
       })
-      .catch((err) => {
+      .catch(async (err) => {
         if (cancelled) return;
-        const msg = String(err?.message ?? err);
-        dispatch(setProductsError(msg));
-        dispatch(setLoyaltyConfigError(msg));
-        // TODO delete line below
-        fetchProducts().then(res => dispatch(setProductsData(res)))
+        if (
+          err.code === "LOYALTY_CONFIG_NOT_FOUND" ||
+          err.code === "SESSION_REQUIRED"
+        ) {
+          sessionInvalid.current = true;
+          clearSessionId();
+          dispatch(resetGlobalState());
+          try {
+            await clearActivePersonaCookie();
+            if (!cancelled) router.replace("/login");
+          } catch (error) {
+            if (!cancelled)
+              dispatch(setLoyaltyConfigError(String(error?.message ?? error)));
+          }
+          return;
+        }
+        dispatch(setLoyaltyConfigError(String(err?.message ?? err)));
       });
     return () => {
       cancelled = true;
     };
-  }, [dispatch]);
+  }, [dispatch, router]);
 
   // Gate on `selectedUser` itself, not a sticky local flag: on logout the user
   // is cleared synchronously while the /login redirect is still in flight, and

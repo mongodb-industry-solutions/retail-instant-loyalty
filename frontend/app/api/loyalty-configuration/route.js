@@ -76,8 +76,9 @@ export async function GET(request) {
     });
 
     if (!res.ok) {
+      const body = await res.json().catch(() => null);
       return NextResponse.json(
-        { error: `Backend responded with ${res.status}` },
+        body ?? { error: `Backend responded with ${res.status}` },
         { status: res.status },
       );
     }
