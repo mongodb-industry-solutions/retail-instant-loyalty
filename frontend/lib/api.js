@@ -1,4 +1,4 @@
-import { getSessionId, createSessionId, clearSessionId } from "./session";
+import { getSessionId, createSessionId, clearSessionId } from "./session.js";
 
 const BASE_URL = "/api";
 
@@ -97,8 +97,21 @@ export function fetchProducts() {
   return request("/products");
 }
 
-export function fetchLoyaltyConfig() {
-  return request("/loyalty-configuration");
+export async function fetchLoyaltyConfig({ retryMissing = false } = {}) {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await request("/loyalty-configuration");
+    } catch (error) {
+      if (
+        !retryMissing ||
+        error.code !== "LOYALTY_CONFIG_NOT_FOUND" ||
+        attempt >= 3
+      ) {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  }
 }
 
 // Accepts any subset of the config — { rewardDetails }, { campaign }, or both.

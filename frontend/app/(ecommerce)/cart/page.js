@@ -12,6 +12,7 @@ import {
   cartIncrement,
   cartDecrement,
   cartRemove,
+  selectLoyaltyConfig,
 } from "@/redux/slices/GlobalSlice";
 import shared from "@/components/shared.module.css";
 import styles from "./CartView.module.css";
@@ -27,7 +28,8 @@ export default function CartView() {
   const cartItems = cartItemList(cart, products);
   const [overview, setOverview] = useState(null);
   const [overviewError, setOverviewError] = useState(null);
-
+  const loyaltyConfig = useSelector(selectLoyaltyConfig);
+  const activeCampaign = loyaltyConfig?.campaign.filter((c) => c.isActive);
   const orderItems = cartItems.map((item) => ({
     productId: item.productId,
     quantity: item.cartQuantity,
@@ -192,7 +194,7 @@ export default function CartView() {
           </div>
           <div className={shared.coinPreview}>
             🪙 You&apos;ll earn <b>{coins.toLocaleString()}</b> loyalty coins (
-            2x active) with this order.
+            {activeCampaign[0]?.multiplier}x active) with this order.
           </div>
           <Button
             variant="primary"

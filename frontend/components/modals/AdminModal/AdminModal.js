@@ -13,6 +13,7 @@ import modal from "../Modal.module.css";
 import shared from "../../shared.module.css";
 import { Button } from "@via-ds/components/button";
 import { formatPrice } from "@/lib/helper";
+import { Banner, BannerVariant } from "@via-ds/components";
 
 function RewardValueTab({ value, getChanges }) {
   return (
@@ -68,8 +69,6 @@ function CampaignTab({ value, getChanges }) {
     );
   }
 
-  // Picking a promo activates it; only one campaign may be active at a time,
-  // matching what the backend enforces.
   function handlePromoChange(promoId) {
     getChanges(
       value.map((promo) => ({ ...promo, isActive: promo.promoId === promoId })),
@@ -79,7 +78,7 @@ function CampaignTab({ value, getChanges }) {
   return (
     <>
       <p>
-        Control the current campaign from one place. This is the deliberate demo
+        Control the current campaign. This is the deliberate demo
         moment: switch the multiplier live and show the banner and coin earnings
         change instantly, while Atlas Triggers enforce the rule operationally.
       </p>
@@ -121,13 +120,15 @@ function CampaignTab({ value, getChanges }) {
         </div>
       </div>
       <div className={styles.note}>
-        Current event: <b>{currentCampaign?.banner ?? ""}</b> · Earn{" "}
+        New campaign overview: <b>{currentCampaign?.banner ?? ""}</b> · Earn{" "}
         {currentCampaign?.multiplier ?? 1}× coins on every purchase.
       </div>
-      <div className={`${styles.note} ${styles.noteSubtle}`}>
+      <Banner className={`${styles.note} ${styles.noteSubtle}`}>
         The campaign banner updates immediately and the coins-earned calculation
         changes with no redeploy or ETL.
-      </div>
+      </Banner>
+              
+
     </>
   );
 }
@@ -156,7 +157,7 @@ function TierThresholdsTab({ value, getChanges }) {
         t.tierKey === "bronze" ? null : (
           <div className={styles.sliderRow} key={index}>
             <div className={styles.sliderLabel}>
-              <TierBadge/>
+              <TierBadge overwriteTier={t.tierKey} />
               <span className={`${styles.sliderValue} mono`}>
                 {formatPrice(t.tierThreshold)} spend
               </span>
@@ -197,31 +198,25 @@ export default function AdminModal({ onClose }) {
 
   // Returns only the items that changed, and within each only the fields
   // that changed — never the untouched original values.
-  function changedEntries(edited, baseline, idKey) {
-    const baselineById = new Map(baseline.map((item) => [item[idKey], item]));
+  function changedEntries(edited, baseline) {
+    const baselineById = new Map(baseline.map((item) => [item.tierKey, item]));
 
     return edited.flatMap((item) => {
-      const before = baselineById.get(item[idKey]);
+      const before = baselineById.get(item.tierKey);
       const changedFields = Object.fromEntries(
         Object.entries(item).filter(
           ([key, value]) =>
-            key !== idKey &&
+            key !== "tierKey" &&
             JSON.stringify(value) !== JSON.stringify(before?.[key]),
         ),
       );
 
       return Object.keys(changedFields).length
-        ? [{ [idKey]: item[idKey], ...changedFields }]
+        ? [{ tierKey: item.tierKey, ...changedFields }]
         : [];
     });
   }
 
-  // The backend's campaign update is single-object: "here is the campaign
-  // that should now be active, with these values." Deactivating every other
-  // promo is a side effect the backend performs on its own (see
-  // loyaltyConfiguration.js's "campaign.$[].isActive": false), so the frontend
-  // never needs to report the ones that turned off — only the one intended
-  // to be active, and only if something about it actually changed.
   function changedCampaign(edited, baseline) {
     const active = edited.find((promo) => promo.isActive);
     if (!active) return null;
@@ -245,16 +240,18 @@ export default function AdminModal({ onClose }) {
   }
 
   async function save() {
-    const rewardDetails = changedEntries(
+    const updatedRewards = changedEntries(
       tierThresholds,
       original.current.rewardDetails,
-      "tierKey",
+      original.current.rewardDetails,
     );
     const campaignChange = changedCampaign(campaign, original.current.campaign);
 
+    console.log({ updatedRewards, campaignChange });
+
     const patch = {};
-    if (rewardDetails.length) patch.rewardDetails = rewardDetails;
-    if (campaignChange) patch.campaign = campaignChange;
+    if (updatedRewards.length > 0) patch.rewardUpdates = updatedRewards;
+    if (campaignChange) patch.campaignUpdate = campaignChange;
 
     if (!Object.keys(patch).length) {
       onClose();
@@ -274,7 +271,7 @@ export default function AdminModal({ onClose }) {
   return (
     <>
       <div className={modal.head}>
-        <H2>Loyalty Setting</H2>
+        <H2>Loyalty Setting (This is a backoffice view)</H2>
         <Button className={modal.close} onClick={onClose}>
           ✕
         </Button>

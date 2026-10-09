@@ -4,15 +4,16 @@ import { useEffect, useState } from "react";
 import { Banner } from "@via-ds/components/banner";
 import { CodeBlock, CodeSnippet } from "@via-ds/components/code-block";
 import { useSelector } from "react-redux";
-import { selectSelectedUser } from "@/redux/slices/GlobalSlice";
+import { selectDisplayedEvent, selectSelectedUser } from "@/redux/slices/GlobalSlice";
 import { fetchCustomer } from "@/lib/api";
 import { docToJSON } from "@/lib/helper";
 import modalStyles from "./EventContent.module.css";
 import SyncModal from "../modals/SyncModal/SyncModal";
 
-const UpdateCustomerLoyaltyEventContent = () => {
+const UpdateCustomerLoyaltyEventContent = ({ embedded = false }) => {
+  const activeEvent = useSelector(selectDisplayedEvent);
   const persona = useSelector(selectSelectedUser);
-  const customerId = persona?.customerId;
+  const customerId = activeEvent?.order?.customerId ?? persona?.customerId;
   const [customer, setCustomer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -207,7 +208,7 @@ const UpdateCustomerLoyaltyEventContent = () => {
     },
   ];
 
-  return <SyncModal title="Update the customer's loyalty" tabs={tabs} />;
+  return <SyncModal title="Update the customer's loyalty" tabs={tabs} embedded={embedded} />;
 };
 
 export default UpdateCustomerLoyaltyEventContent;

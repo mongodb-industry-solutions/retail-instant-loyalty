@@ -5,17 +5,17 @@ import { Banner } from "@via-ds/components/banner";
 import { CodeBlock, CodeSnippet } from "@via-ds/components/code-block";
 import { Text } from "@via-ds/components/typography";
 import { useSelector } from "react-redux";
-import { selectActiveEvent, selectSelectedUser } from "@/redux/slices/GlobalSlice";
+import { selectDisplayedEvent, selectSelectedUser } from "@/redux/slices/GlobalSlice";
 import { fetchOrderLoyaltyHistory } from "@/lib/api";
 import { docToJSON } from "@/lib/helper";
 import modalStyles from "./EventContent.module.css";
 import SyncModal from "../modals/SyncModal/SyncModal";
 
-const RecordLoyaltyEventContent = () => {
-  const activeEvent = useSelector(selectActiveEvent);
+const RecordLoyaltyEventContent = ({ embedded = false }) => {
+  const activeEvent = useSelector(selectDisplayedEvent);
   const persona = useSelector(selectSelectedUser);
   const orderId = activeEvent?.order?.orderId;
-  const customerId = persona?.customerId;
+  const customerId = activeEvent?.order?.customerId ?? persona?.customerId;
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -193,7 +193,7 @@ const RecordLoyaltyEventContent = () => {
     },
   ];
 
-  return <SyncModal title="Save the loyalty history" tabs={tabs} />;
+  return <SyncModal title="Save the loyalty history" tabs={tabs} embedded={embedded} />;
 };
 
 export default RecordLoyaltyEventContent;

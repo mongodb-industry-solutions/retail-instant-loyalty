@@ -28,7 +28,7 @@ function TierBenefits({ rewardDetails, currentTierKey }) {
             key={t.tierKey}
           >
             <div className={styles.compactHead}>
-              <TierBadge overwriteTier={t.tierKey}/>
+              <TierBadge overwriteTier={t.tierKey} />
               {isCurrent && (
                 <Text elementType="span" className={styles.benefitYou}>
                   Current
@@ -39,7 +39,7 @@ function TierBenefits({ rewardDetails, currentTierKey }) {
               <Text>Text {formatPrice(t.threshold)}+ spend</Text>
             </div>
             <div className={`${styles.benefitRate} mono`}>
-              <Text>1 coin = {formatCoinValue(t.tierKey, rewardDetails)}</Text>
+              <Text>1$ = {t.currencyValueForDollar} coins</Text>
             </div>
             <ul className={styles.benefitList}>
               {(TIER_BENEFITS[t.tierKey] ?? []).map((item, i) => (

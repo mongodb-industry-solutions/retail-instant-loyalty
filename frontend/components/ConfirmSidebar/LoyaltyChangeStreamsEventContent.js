@@ -127,8 +127,8 @@ const SYNC_STEP_TABS = [
   },
 ];
 
-const LoyaltyChangeStreamsEventContent = () => {
-  return <SyncModal title="Refresh the customer profile across channels" tabs={SYNC_STEP_TABS} />;
+const LoyaltyChangeStreamsEventContent = ({ embedded = false }) => {
+  return <SyncModal title="Refresh the customer profile across channels" tabs={SYNC_STEP_TABS} embedded={embedded} />;
 };
 
 export default LoyaltyChangeStreamsEventContent;

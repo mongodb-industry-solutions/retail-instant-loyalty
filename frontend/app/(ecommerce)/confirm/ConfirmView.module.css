@@ -210,7 +210,7 @@
   color: var(--forest);
   font-family: var(--mono-font);
 }
-.rnTierContainer{
+.rnTierContainer {
   width: 100%;
   display: flex;
   justify-content: flex-end;

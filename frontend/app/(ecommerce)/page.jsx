@@ -6,7 +6,6 @@ import {
   SegmentedControl,
   SegmentedControlItem,
 } from "@via-ds/components/segmented-control";
-import { formatCoinValue } from "@/lib/helper";
 import { useSelector } from "react-redux";
 import {
   selectSelectedUser,
@@ -58,20 +57,6 @@ export default function StoreView() {
             <Text textStyle="heading3">
               Hi, {selectedUser.profile.firstName} 👋
             </Text>
-            {/* <div className={styles.memberPerkLine}>
-              <Text elementType="span">
-                {selectedUser.loyaltyDetails?.activeTier} member - redemption
-              </Text>
-              <Text elementType="span">
-                {" "}
-                value{" "}
-                {formatCoinValue(
-                  selectedUser.loyaltyDetails?.activeTier,
-                  rewardDetails,
-                )}{" "}
-                per coin.
-              </Text>
-            </div> */}
           </div>
           <div className={styles.heroRight}>
             <div className={styles.heroStats}>
@@ -158,7 +143,7 @@ export default function StoreView() {
       {selectedUser.loyaltyDetails && (
         <section className={styles.block}>
           <div className={`${styles.blockHead} ${styles.blockHeadStack}`}>
-            <div>
+            <div hidden>
               <H3 className={styles.sectionHeadInline}>
                 Recommended for you
                 {/* <button

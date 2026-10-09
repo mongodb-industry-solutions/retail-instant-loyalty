@@ -17,6 +17,7 @@ import { setActivePersonaCookie } from "@/lib/cookies";
 import { personaAvatar } from "@/lib/data";
 import styles from "./Personas.module.css";
 import Image from "next/image";
+import TierBadge from "../TierBadge/TierBadge";
 
 export default function Personas() {
   const dispatch = useDispatch();
@@ -63,9 +64,10 @@ export default function Personas() {
     <main className={styles.screen}>
       <div className={styles.inner}>
         <span className={styles.eyebrow}>This is a MongoDB demo</span>
-        <H1 className={styles.title}>Welcome to Leafy Loyalty Store</H1>
+        <H1 className={styles.title}><img src="/favicon_light.png" alt="Leafy Loyalty Store Logo" width={50}></img> Leafy Loyalty Store</H1>
+
         <Body className={styles.sub}>
-          Please select the user you would like to login as.
+          Welcome, please select the user you would like to login as.
         </Body>
 
         {error && (
@@ -103,10 +105,16 @@ export default function Personas() {
                   <div className={styles.name}>
                     {p.name} {p.lastName}
                   </div>
+                  {!p.isAlwaysNewUser && (
+                    <div className={styles.tierBadge}>
+                      <TierBadge overwriteTier={p.activeTier} />
+                    </div>
+                  )}
+                  
                   <div
                     className={`${styles.foot} ${p.isAlwaysNewUser ? styles.footNew : styles.footReturning}`}
                   >
-                    {p.isAlwaysNewUser ? "New user" : "Existing user"}
+                    {p.isAlwaysNewUser ? "New customer" : "Returning customer"}
                   </div>
                 </Card>
               ))}

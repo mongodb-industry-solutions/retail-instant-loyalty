@@ -51,11 +51,6 @@
   font-weight: 700;
   color: var(--forest);
 }
-.badgeRedeem {
-  background: var(--green-tint);
-  border-color: var(--border-emerald);
-  color: var(--green-dark);
-}
 @media (max-width: 840px) {
   .top {
     grid-template-columns: 1fr;
@@ -65,16 +60,35 @@
   }
 }
 
-.metaStrip {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+.orderContent {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  gap: 15px;
+}
+.itemsColumn {
+  display: flex;
+  flex-direction: column;
+  width: calc(65% - 15px);
+}
+.metaCards {
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+.detailsColumn {
+  display: flex;
+  flex-direction: column;
+  width: calc(35% - 15px);
+  gap: 15px;
 }
 .metaCard {
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--surface-muted);
   padding: 12px 14px;
+  width: 50%;
 }
 .metaLabel {
   font-size: 10.8px;
@@ -97,20 +111,12 @@
   margin-top: 2px;
 }
 @media (max-width: 840px) {
-  .metaStrip {
-    grid-template-columns: 1fr;
+  .orderContent {
+    flex-direction: column;
   }
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.7fr) 280px;
-  gap: 12px;
-  align-items: start;
-}
-@media (max-width: 840px) {
-  .grid {
-    grid-template-columns: 1fr;
+  .itemsColumn,
+  .detailsColumn {
+    width: 100%;
   }
 }
 .panel {
@@ -127,12 +133,6 @@
   color: var(--text-faint);
   margin-bottom: 10px;
 }
-.sideStack {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
 .detailList {
   display: flex;
   flex-direction: column;
@@ -234,6 +234,7 @@
   font-size: 20px;
   flex-shrink: 0;
   border: 1px solid var(--border);
+  background: #eee;
 }
 .oiCopy {
   min-width: 0;

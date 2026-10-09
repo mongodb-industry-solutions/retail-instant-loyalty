@@ -3,16 +3,20 @@ import { NextResponse } from "next/server";
 
 const BACKEND_URL = API_URL;
 
-const PATCHABLE_FIELDS = ["rewardDetails", "campaign"];
+const PATCHABLE_FIELDS = ["rewardUpdates", "campaignUpdate"];
 
 export async function PATCH(request) {
   const body = await request.json();
+
+  console.log("PATCH request body:", body);
 
   const patch = Object.fromEntries(
     PATCHABLE_FIELDS.filter((field) => body[field] !== undefined).map(
       (field) => [field, body[field]],
     ),
   );
+
+  console.log("PATCH request patch:", patch);
 
   if (!Object.keys(patch).length) {
     return NextResponse.json(
@@ -72,8 +76,9 @@ export async function GET(request) {
     });
 
     if (!res.ok) {
+      const body = await res.json().catch(() => null);
       return NextResponse.json(
-        { error: `Backend responded with ${res.status}` },
+        body ?? { error: `Backend responded with ${res.status}` },
         { status: res.status },
       );
     }

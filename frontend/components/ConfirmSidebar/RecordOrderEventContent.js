@@ -4,17 +4,17 @@ import { Banner } from "@via-ds/components/banner";
 import { CodeBlock, CodeSnippet } from "@via-ds/components/code-block";
 import { Text } from "@via-ds/components/typography";
 import { useSelector } from "react-redux";
-import { selectActiveEvent, selectSelectedUser } from "@/redux/slices/GlobalSlice";
+import { selectDisplayedEvent, selectSelectedUser } from "@/redux/slices/GlobalSlice";
 import { fetchOrder } from "@/lib/api";
 import { docToJSON } from "@/lib/helper";
 import styles from "./EventContent.module.css";
 import SyncModal from "../modals/SyncModal/SyncModal";
 
-const RecordOrderEventContent = () => {
-  const activeEvent = useSelector(selectActiveEvent);
+const RecordOrderEventContent = ({ embedded = false }) => {
+  const activeEvent = useSelector(selectDisplayedEvent);
   const persona = useSelector(selectSelectedUser);
   const orderId = activeEvent?.order?.orderId ;
-  const customerId = persona?.customerId ;
+  const customerId = activeEvent?.order?.customerId ?? persona?.customerId;
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -147,7 +147,7 @@ const RecordOrderEventContent = () => {
       },
     }];
 
-  return <SyncModal title="Record the order in MongoDB" tabs={tabs} />;
+  return <SyncModal title="Record the order in MongoDB" tabs={tabs} embedded={embedded} />;
 };
 
 export default RecordOrderEventContent;

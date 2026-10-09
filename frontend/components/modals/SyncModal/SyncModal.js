@@ -11,7 +11,7 @@ import {
   selectLoyaltyConfig,
 } from "@/redux/slices/GlobalSlice";
 
-export default function SyncModal({title, tabs}) {
+export default function SyncModal({ title, tabs, embedded = false }) {
   const dispatch = useDispatch();
   const [active, setActive] = useState("doc");
   const { rewardDetails } = useSelector(selectLoyaltyConfig);
@@ -21,12 +21,17 @@ export default function SyncModal({title, tabs}) {
 
   return (
     <>
-      <div className={modal.head}>
-        <Text as="h2">{title}</Text>
-        <button className={modal.close} onClick={() => dispatch(closeModal())}>
-          ✕
-        </button>
-      </div>
+      {!embedded && (
+        <div className={modal.head}>
+          <Text as="h2">{title}</Text>
+          <button
+            className={modal.close}
+            onClick={() => dispatch(closeModal())}
+          >
+            ✕
+          </button>
+        </div>
+      )}
       <div className={modal.tabs}>
         {tabs.map((t) => (
           <button
