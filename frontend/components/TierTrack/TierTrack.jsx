@@ -11,7 +11,7 @@ export default function TierTrack({ amountSpent, tierInfo, rewardDetails }) {
   const tier = tierInfo?.activeTier;
   const next = tierInfo?.nextTier;
 
-  const spent = Math.round(Number.isFinite(amountSpent) ? amountSpent : 0);
+  const spent = Number.isFinite(amountSpent) ? amountSpent : 0;
   const maxValue = next
     ? findTierDetails(rewardDetails, next)?.tierThreshold
     : spent;

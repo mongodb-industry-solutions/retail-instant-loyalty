@@ -39,7 +39,7 @@ function TierBenefits({ rewardDetails, currentTierKey }) {
               <Text>Text {formatPrice(t.threshold)}+ spend</Text>
             </div>
             <div className={`${styles.benefitRate} mono`}>
-              <Text>1$ = {t.currencyValueForDollar}</Text>
+              <Text>1$ = {t.currencyValueForDollar} coins</Text>
             </div>
             <ul className={styles.benefitList}>
               {(TIER_BENEFITS[t.tierKey] ?? []).map((item, i) => (
