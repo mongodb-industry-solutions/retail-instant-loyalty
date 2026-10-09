@@ -82,6 +82,7 @@ const GlobalSlice = createSlice({
       state.loyaltyConfig.error = action.payload;
     },
     setLoyaltyConfigData(state, action) {
+      console.log("Setting loyalty config data:", action.payload);
       const { rewardDetails, campaign } = action.payload;
       state.loyaltyConfig = {
         rewardDetails,
