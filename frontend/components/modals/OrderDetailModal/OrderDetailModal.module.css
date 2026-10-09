@@ -69,7 +69,7 @@
 .itemsColumn {
   display: flex;
   flex-direction: column;
-  width: 65%;
+  width: calc(65% - 15px);
 }
 .metaCards {
   display: flex;
@@ -80,7 +80,7 @@
 .detailsColumn {
   display: flex;
   flex-direction: column;
-  width: 35%;
+  width: calc(35% - 15px);
   gap: 15px;
 }
 .metaCard {
