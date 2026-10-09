@@ -7,17 +7,17 @@ const STORAGE_KEY = "leafy_session_id";
 // Null until a persona has been claimed. Never mints one as a side effect.
 export function getSessionId() {
   if (typeof window === "undefined") return null;
-  return window.sessionStorage.getItem(STORAGE_KEY);
+  return window.localStorage.getItem(STORAGE_KEY);
 }
 
 export function createSessionId() {
   if (typeof window === "undefined") return null;
   const id = crypto.randomUUID();
-  window.sessionStorage.setItem(STORAGE_KEY, id);
+  window.localStorage.setItem(STORAGE_KEY, id);
   return id;
 }
 
 export function clearSessionId() {
   if (typeof window === "undefined") return;
-  window.sessionStorage.removeItem(STORAGE_KEY);
+  window.localStorage.removeItem(STORAGE_KEY);
 }

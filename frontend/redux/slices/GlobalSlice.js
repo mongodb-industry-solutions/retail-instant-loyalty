@@ -22,6 +22,7 @@ const INITIAL_STATE = {
   },
   lastOrder: null,
   lastRedeem: null,
+  inspectedEvent: null,
   // Which of the two happened most recently — drives the confirm page's
   // header/receipt/tier-track so a redeem after an order doesn't keep
   // showing the stale purchase.
@@ -81,6 +82,7 @@ const GlobalSlice = createSlice({
       state.loyaltyConfig.error = action.payload;
     },
     setLoyaltyConfigData(state, action) {
+      console.log("Setting loyalty config data:", action.payload);
       const { rewardDetails, campaign } = action.payload;
       state.loyaltyConfig = {
         rewardDetails,
@@ -90,6 +92,7 @@ const GlobalSlice = createSlice({
       };
     },
     openModal(state, action) {
+      state.inspectedEvent = null;
       state.modal = {
         type: action.payload.modalType,
         props: action.payload.props || {},
@@ -97,6 +100,19 @@ const GlobalSlice = createSlice({
     },
     closeModal(state) {
       state.modal = null;
+      state.inspectedEvent = null;
+    },
+    setInspectedEvent(state, action) {
+      const event = action.payload;
+      if (
+        event &&
+        (state.modal?.type !== "orderDetail" ||
+          state.modal.props?.id !== event.order?.orderId ||
+          state.selectedUser?.customerId !== event.order?.customerId)
+      ) {
+        return;
+      }
+      state.inspectedEvent = event;
     },
 
     cartIncrement(state, action) {
@@ -213,6 +229,7 @@ export const {
   confirmRedeemOrderSuccess,
   openModal,
   closeModal,
+  setInspectedEvent,
   saveRewardDetailsSuccess,
   saveCampaignSuccess,
   cartIncrement,
@@ -233,6 +250,18 @@ export const selectActiveEvent = (state) =>
   state.Global.lastEvent === "redeem"
     ? state.Global.lastRedeem
     : state.Global.lastOrder;
+export const selectInspectedEvent = (state) => {
+  const { modal, inspectedEvent, selectedUser } = state.Global;
+  return modal?.type === "orderDetail" &&
+    inspectedEvent?.order?.orderId === modal.props?.id &&
+    inspectedEvent?.order?.customerId === selectedUser?.customerId
+    ? inspectedEvent
+    : null;
+};
+export const selectDisplayedEvent = (state) =>
+  state.Global.modal?.type === "orderDetail"
+    ? selectInspectedEvent(state)
+    : selectActiveEvent(state);
 export const selectLoyaltyConfig = (state) => state.Global.loyaltyConfig;
 export const selectModal = (state) => state.Global.modal;
 export const selectCart = (state) => state.Global.cart;

@@ -51,6 +51,7 @@
 }
 
 .card {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -68,6 +69,12 @@
     box-shadow 160ms ease,
     transform 160ms ease;
   padding: 0;
+}
+
+.tierBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
 }
 
 .card:hover {

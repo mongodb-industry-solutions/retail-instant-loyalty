@@ -63,7 +63,7 @@ export default function CoinHistoryView() {
       <div className={profile.profileHead}>
         <div
           className={profile.profileAvatar}
-          style={{ background: persona.avatarBg, color: persona.avatarColor }}
+          style={{ background: "lightgreen" }}
         >
           {persona.profile.firstName.slice(0, 1)}
         </div>

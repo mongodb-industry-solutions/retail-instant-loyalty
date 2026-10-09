@@ -1,8 +1,11 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useId } from "react";
 
 import styles from "./ConfirmView.module.css";
+import shared from "@/components/shared.module.css";
 import { Icon } from "@via-ds/icons";
+import { TextField } from "@via-ds/components/text-field";
+import { Text } from "@via-ds/components/typography";
 import { useSelector } from "react-redux";
 import {
   selectSelectedUser,
@@ -19,15 +22,53 @@ import { Button } from "@via-ds/components/button";
 import OrderStatusBar from "@/components/OrderStatusBar/OrderStatusBar";
 import { ORDER_STATUS_STAGES } from "@/lib/data";
 
+function PaymentInfoView({ persona }) {
+  return (
+    <div className={styles.deliveryCard}>
+      <Text textStyle="heading3">
+        Payment details <Icon glyph="CreditCard" />
+      </Text>
+
+      <div className={shared.field} style={{ marginBottom: 12 }}>
+        <TextField
+          label="Card number"
+          size="small"
+          defaultValue={`•••• •••• •••• ${persona.paymentDetails?.last4}`}
+        />
+      </div>
+
+      <div className={shared.formRow} style={{ marginBottom: 0 }}>
+        <div className={shared.field}>
+          <TextField
+            label="Expiry"
+            size="small"
+            defaultValue={persona.paymentDetails?.expiry}
+          />
+        </div>
+        <div className={shared.field}>
+          <TextField label="CVV" size="small" defaultValue="•••" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function OrderErrorView({
   orderError,
   ORDER_STATUS_STAGES_FAILED,
   finalOrder,
   router,
+  persona,
 }) {
-  // let finalOrder = {};
+  console.log("finalOrder:", finalOrder);
   return (
     <main className={styles.wrap}>
+      <div className={styles.icon}>
+        <Icon glyph="X" />
+      </div>
+      <div className={styles.orderNumWrap}>
+        <span className={styles.orderNum}>Order {finalOrder?.orderId}</span>
+      </div>
       <OrderStatusBar
         stages={ORDER_STATUS_STAGES_FAILED}
         current="payment_failed"
@@ -38,7 +79,9 @@ function OrderErrorView({
       <div className={styles.layout}>
         <div className={styles.main}>
           <LoyaltyRewardCard order={finalOrder} />
+          <Receipt order={finalOrder} label={"Items Not Processed "} />
           <div>
+            <PaymentInfoView persona={persona} />
             <Button
               variant="primary"
               style={{ width: "100%" }}
@@ -180,10 +223,11 @@ export default function ConfirmView() {
   if (orderStatus === "payment_failed") {
     return (
       <OrderErrorView
-        orderError="Payment failed."
+        orderError={finalOrder.failureReason}
         ORDER_STATUS_STAGES_FAILED={ORDER_STATUS_STAGES_FAILED}
         finalOrder={finalOrder}
         router={router}
+        persona={persona}
       />
     );
   }

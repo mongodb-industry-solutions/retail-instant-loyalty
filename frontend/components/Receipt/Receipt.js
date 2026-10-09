@@ -88,7 +88,7 @@ export default function Receipt({ order, label = "Items ordered" }) {
           </span>
         </div>
         <div className={`${styles.row} ${styles.grand}`}>
-          <Text elementType="span">Total charged</Text>
+          <Text elementType="span">Total</Text>
           <span className="mono">
             {formatPrice(lastOrder.amountSummary.total)}
           </span>

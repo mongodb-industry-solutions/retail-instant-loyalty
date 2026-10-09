@@ -109,6 +109,11 @@
   line-height: 1.5;
   color: var(--text-muted);
 }
+.accordionLearnMore {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
 @keyframes livePulse {
   0%,
   100% {

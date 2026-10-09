@@ -8,6 +8,16 @@ import "./globals.css";
 export const metadata = {
   title: "Leafy Loyalty Store — MongoDB Demo",
   description: "Leafy Loyalty Store: a MongoDB-backed loyalty program demo.",
+    icons: [
+    {
+      url: "/favicon_light.png",
+      media: "(prefers-color-scheme: light)",
+    },
+    {
+      url: "/favicon_dark.png",
+      media: "(prefers-color-scheme: dark)",
+    },
+  ],
 };
 
 export default function RootLayout({ children }) {

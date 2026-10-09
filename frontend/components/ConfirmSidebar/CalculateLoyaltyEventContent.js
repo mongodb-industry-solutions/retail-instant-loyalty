@@ -22,7 +22,7 @@ const CAMPAIGN_EXAMPLE = {
   eligibleCategories: ["electronics", "toys"],
 };
 
-const CalculateLoyaltyEventContent = () => {
+const CalculateLoyaltyEventContent = ({ embedded = false }) => {
   const [configuration, setConfiguration] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -164,9 +164,13 @@ const CalculateLoyaltyEventContent = () => {
             </section>
             <section>
               <div className={styles.exampleHead}>
-                <h4>Loyalty configuration</h4>
+                <h4>Current loyalty configuration</h4>
                 <span className={styles.badge}>Session API response</span>
               </div>
+              <Banner className={styles.banner} variant="warning">
+                This configuration might not match the configuration that was
+                active during this purchase.
+              </Banner>
               {loading ? (
                 <p role="status">Loading loyalty configuration...</p>
               ) : error ? (
@@ -187,6 +191,7 @@ const CalculateLoyaltyEventContent = () => {
   return <SyncModal 
             title="Calculate loyalty impact" 
             tabs={tabs} 
+        embedded={embedded}
         />;
 };
 
