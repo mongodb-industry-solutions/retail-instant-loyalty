@@ -23,7 +23,7 @@ const HowToDemoProfile = () => {
                         The <strong>Tier benefits</strong> section lays out what each tier offers and marks the member's current tier.
                     </li>
                     <li>
-                        <strong>See schema</strong> reveals the actual MongoDB document behind the page, where profile data and loyalty data live together.
+                        <strong>See document</strong> reveals the actual MongoDB document behind the page, where profile data and loyalty data live together.
                     </li>
                 </ul>
             </div>
@@ -35,19 +35,6 @@ const HowToDemoProfile = () => {
             }}>
                 <h3 style={{ color: "#1565c0", marginBottom: 8 }}>👣 Steps to Demo This Page</h3>
                 <ol style={{ paddingLeft: "1.2em", fontSize: "1.08rem" }}>
-                    <li>
-                        Open the avatar menu in the header and select <strong>Profile</strong>.
-                        <div style={{
-                            background: "#f5f5f5",
-                            borderRadius: "6px",
-                            padding: "10px",
-                            margin: "10px 0",
-                            textAlign: "center",
-                            color: "#888"
-                        }}>
-                            <img src="/rsc/talkTrack/loyalty-profile-step1.png" alt="Profile Page step 1" style={{ maxWidth: "100%", maxHeight: "600px" }} />
-                        </div>
-                    </li>
                     <li>
                         At the top, point to the member's tier and the progress toward the next tier, then to <strong>Personal details</strong>, <strong>Payment method</strong> and <strong>Delivery address</strong>.
                         <div style={{
@@ -75,17 +62,7 @@ const HowToDemoProfile = () => {
                         </div>
                     </li>
                     <li>
-                        Scroll to <strong>Your data</strong> and click <strong>See schema</strong>.
-                        <div style={{
-                            background: "#f5f5f5",
-                            borderRadius: "6px",
-                            padding: "10px",
-                            margin: "10px 0",
-                            textAlign: "center",
-                            color: "#888"
-                        }}>
-                            <img src="/rsc/talkTrack/loyalty-profile-step4.png" alt="Profile Page step 4" style={{ maxWidth: "100%", maxHeight: "600px" }} />
-                        </div>
+                        Scroll to <strong>Your data</strong> and click <strong>See document</strong>.
                     </li>
                     <li>
                         In the <strong>User Schema</strong> modal, scroll to the <strong>loyaltyDetails</strong> section and show the active tier, next tier, coin balance and cumulative spend, all inside the same document as the profile and addresses.
@@ -97,7 +74,7 @@ const HowToDemoProfile = () => {
                             textAlign: "center",
                             color: "#888"
                         }}>
-                            <img src="/rsc/talkTrack/loyalty-profile-step5.png" alt="Profile Page step 5" style={{ maxWidth: "100%", maxHeight: "600px" }} />
+                            <img src="/rsc/talkTrack/loyalty-profile-step4.png" alt="Profile Page step 5" style={{ maxWidth: "100%", maxHeight: "600px" }} />
                         </div>
                     </li>
                 </ol>

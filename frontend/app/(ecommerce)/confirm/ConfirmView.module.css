@@ -12,6 +12,16 @@
 .main {
   min-width: 0;
 }
+.paymentCardField.invalidCard {
+  color: red;
+}
+.paymentCardField.invalidCard[data-readonly] div:has(> input) {
+  border: 1px solid red;
+  color: red;
+}
+.paymentCardField.invalidCard input {
+  color: red;
+}
 .side {
   position: sticky;
   top: 96px;

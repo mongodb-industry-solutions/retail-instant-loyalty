@@ -236,7 +236,7 @@ export default function ProfileView() {
             title="See document model"
             onClick={() => dispatch(openModal({ modalType: "userDoc" }))}
           >
-            {"{ } See schema"}
+            {"{ } See document"}
           </button>
         </div>
       </section>
