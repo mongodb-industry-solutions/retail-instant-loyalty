@@ -21,8 +21,44 @@ import ConfirmSidebar from "../../../components/ConfirmSidebar/ConfirmSidebar";
 import { Button } from "@via-ds/components/button";
 import OrderStatusBar from "@/components/OrderStatusBar/OrderStatusBar";
 import { ORDER_STATUS_STAGES } from "@/lib/data";
+import { fetchOrderTransaction } from "@/lib/api";
 
-function PaymentInfoView({ persona }) {
+function PaymentInfoView({ order }) {
+  const [transaction, setTransaction] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setTransaction(null);
+    setError(null);
+    fetchOrderTransaction({
+      orderId: order.orderId,
+      customerId: order.customerId,
+    })
+      .then((data) => {
+        if (!cancelled) setTransaction(data);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [order.orderId, order.customerId]);
+
+  if (error) {
+    return <p role="alert">Couldn't load payment details: {error}</p>;
+  }
+  if (!transaction) {
+    return <p role="status">Loading payment details...</p>;
+  }
+  const paymentDetails = transaction.tenders?.find(
+    (tender) => tender.method === "card",
+  )?.paymentDetails;
+  if (!paymentDetails) {
+    return <p>No card payment details were recorded for this order.</p>;
+  }
+
   return (
     <div className={styles.deliveryCard}>
       <Text textStyle="heading3">
@@ -31,9 +67,13 @@ function PaymentInfoView({ persona }) {
 
       <div className={shared.field} style={{ marginBottom: 12 }}>
         <TextField
+          className={`${styles.paymentCardField} ${paymentDetails.last4 === "0000" ? styles.invalidCard : ""}`}
           label="Card number"
           size="small"
-          defaultValue={`•••• •••• •••• ${persona.paymentDetails?.last4}`}
+          value={`•••• •••• •••• ${paymentDetails.last4}`}
+          isReadOnly
+          isInvalid={paymentDetails.last4 === "0000"}
+          errorMessage={paymentDetails.last4 === "0000" ? "Invalid card number" : ""}
         />
       </div>
 
@@ -42,11 +82,12 @@ function PaymentInfoView({ persona }) {
           <TextField
             label="Expiry"
             size="small"
-            defaultValue={persona.paymentDetails?.expiry}
+            value={paymentDetails.expiry ?? ""}
+            isReadOnly
           />
         </div>
         <div className={shared.field}>
-          <TextField label="CVV" size="small" defaultValue="•••" />
+          <TextField label="CVV" size="small" defaultValue="•••" isReadOnly />
         </div>
       </div>
     </div>
@@ -58,7 +99,6 @@ function OrderErrorView({
   ORDER_STATUS_STAGES_FAILED,
   finalOrder,
   router,
-  persona,
 }) {
   console.log("finalOrder:", finalOrder);
   return (
@@ -81,7 +121,7 @@ function OrderErrorView({
           <LoyaltyRewardCard order={finalOrder} />
           <Receipt order={finalOrder} label={"Items Not Processed "} />
           <div>
-            <PaymentInfoView persona={persona} />
+            <PaymentInfoView order={finalOrder} />
             <Button
               variant="primary"
               style={{ width: "100%" }}
@@ -227,7 +267,6 @@ export default function ConfirmView() {
         ORDER_STATUS_STAGES_FAILED={ORDER_STATUS_STAGES_FAILED}
         finalOrder={finalOrder}
         router={router}
-        persona={persona}
       />
     );
   }

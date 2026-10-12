@@ -61,3 +61,9 @@ export const ORDER_STATUS_STAGES = [
   "shipped",
   "delivered",
 ];
+
+export const INVALID_CARD = {
+  cardType: "visa",
+  last4: "0000",
+  expiry: "02/38",
+};
