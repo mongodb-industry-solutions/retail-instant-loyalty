@@ -1,6 +1,12 @@
 import { createOrderEngine, sendError } from "../lib/orderEngine.js";
 import { createLoyaltyEngine } from "../lib/loyaltyEngine.js";
 
+export const INVALID_CARD = {
+  cardType: "visa",
+  last4: "0000",
+  expiry: "02/38",
+};
+
 export default function ordersRoutes(app) {
   const {
     getNextSequence,
@@ -158,7 +164,9 @@ export default function ordersRoutes(app) {
               {
                 method: "card",
                 amount: math.amountSummary.total,
-                paymentDetails: math.customer.paymentDetails,
+                paymentDetails: validCard === false
+                  ? INVALID_CARD
+                  : math.customer.paymentDetails,
               },
             ]
           : []),

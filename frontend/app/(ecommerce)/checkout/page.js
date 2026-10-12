@@ -20,6 +20,8 @@ import shared from "@/components/shared.module.css";
 import { cartItemList, formatPrice } from "@/lib/helper";
 import { createOrder, fetchOrderOverview, fetchCustomer } from "@/lib/api";
 import styles from "./CheckoutView.module.css";
+import { Banner } from "@via-ds/components/banner";
+import { INVALID_CARD } from "@/lib/data";
 
 export default function CheckoutView() {
   const router = useRouter();
@@ -30,6 +32,7 @@ export default function CheckoutView() {
   const cartItems = cartItemList(cart, products);
   const [placingOrder, setPlacingOrder] = useState(false);
   const [validCard, setValidCard] = useState(true);
+  const paymentDetails = validCard ? persona.paymentDetails : INVALID_CARD;
   const coinBalance = persona.loyaltyDetails?.coinBalance ?? 0;
   const [coinsToApply, setCoinsToApply] = useState(0);
   const [overview, setOverview] = useState(null);
@@ -191,8 +194,8 @@ export default function CheckoutView() {
               </H3>
 
               <ToggleButton
-                selected={!validCard}
-                onChange={() => setValidCard((current) => !current)}
+                isSelected={!validCard}
+                onChange={(isSelected) => setValidCard(!isSelected)}
               >
                 Use invalid card
               </ToggleButton>
@@ -201,19 +204,32 @@ export default function CheckoutView() {
             <div className={shared.field} style={{ marginBottom: 12 }}>
               <label>Card number</label>
               <input
-                defaultValue={`•••• •••• •••• ${persona.paymentDetails?.last4}`}
+                key={`card-${validCard}`}
+                defaultValue={`•••• •••• •••• ${paymentDetails?.last4}`}
               />
             </div>
             <div className={shared.formRow} style={{ marginBottom: 0 }}>
               <div className={shared.field}>
                 <label>Expiry</label>
-                <input defaultValue={persona.paymentDetails?.expiry} />
+                <input
+                  key={`expiry-${validCard}`}
+                  defaultValue={paymentDetails?.expiry}
+                />
               </div>
               <div className={shared.field}>
                 <label>CVV</label>
                 <input defaultValue="•••" />
               </div>
             </div>
+            {!validCard && (
+              <>
+                <br></br>
+                <Banner variant="danger">
+                  Invalid card selected. The next card payment will be simulated
+                  as declined.
+                </Banner>
+              </>
+            )}
           </div>
         </div>
         <div className={shared.summaryCard}>
