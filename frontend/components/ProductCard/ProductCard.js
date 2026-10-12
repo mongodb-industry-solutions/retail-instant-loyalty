@@ -40,6 +40,7 @@ export default function ProductCard({ product }) {
           alt={product.name}
           fill
           unoptimized
+          loading="eager"
           className={styles.pThumbImg}
         />
         {/* {<span className={styles.pBadge}>{"Best Seller"}</span>} */}

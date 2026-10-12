@@ -28,7 +28,6 @@ import {
   fetchLoyaltyConfig,
   endSession,
 } from "@/lib/api";
-import { clearSessionId } from "@/lib/session";
 
 export default function EcommerceLayout({ children }) {
   const dispatch = useDispatch();
@@ -130,7 +129,8 @@ export default function EcommerceLayout({ children }) {
           err.code === "SESSION_REQUIRED"
         ) {
           sessionInvalid.current = true;
-          clearSessionId();
+          // Release the backend claim first; endSession() also clears the id.
+          await endSession().catch(() => {});
           dispatch(resetGlobalState());
           try {
             await clearActivePersonaCookie();

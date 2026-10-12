@@ -35,6 +35,8 @@ export default function CartView() {
     quantity: item.cartQuantity,
   }));
 
+  console.log("In the cart page and the loyalty data is ", loyaltyConfig);
+
   const itemsKey = JSON.stringify(orderItems);
 
   useEffect(() => {
@@ -61,7 +63,7 @@ export default function CartView() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [itemsKey]);
+  }, [itemsKey, loyaltyConfig]);
 
   const amounts = overview?.order;
   const subtotal = amounts?.amountSummary.subtotal || 0;

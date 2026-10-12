@@ -48,9 +48,6 @@ export default function loyaltyConfigurationRoutes(app) {
     }
   });
 
-  // PATCH /loyalty-configuration — campaignUpdate and/or rewardUpdates.
-  // Both sections are validated against the current config first, then
-  // applied in a single updateOne so a request either fully applies or not.
   app.patch("/loyalty-configuration/", async (request, reply) => {
     const sessionId = request.headers["x-session-id"];
     const { explain, campaignUpdate, rewardUpdates } = request.body || {};
@@ -189,16 +186,11 @@ function validateCampaignUpdate(config, campaign) {
   return { set };
 }
 
-// Only these tier fields may be patched. tierThreshold is cumulative spend
-// in dollars (the lowest tier starts at 0); currencyValueForDollar is the
-// coins-per-dollar divisor used when redeeming, so it must stay above 0.
 const REWARD_FIELD_VALIDATORS = {
   tierThreshold: (value) => Number.isFinite(value) && value >= 0,
   currencyValueForDollar: (value) => Number.isFinite(value) && value > 0,
 };
 
-// Each entry is { tierKey, ...onlyTheFieldsThatChanged }. Builds the $set and
-// the merged tier list for recalculation without touching the database.
 function validateRewardUpdates(config, rewardUpdates) {
   if (!Array.isArray(rewardUpdates) || rewardUpdates.length === 0)
     return validationError(
@@ -262,8 +254,6 @@ function validateRewardUpdates(config, rewardUpdates) {
     updatesByTierKey.set(tierKey, fields);
   }
 
-  // Thresholds must stay strictly increasing in configured tier order, so
-  // check the merged result rather than each update in isolation.
   const updatedRewardDetails = currentRewardDetails.map((tier) => ({
     ...tier,
     ...updatesByTierKey.get(tier.tierKey),
