@@ -12,6 +12,7 @@ import {
   patchSelectedUser,
   setProductsData,
   setProductsError,
+  setRecommendationsData,
   setLoyaltyConfigData,
   setLoyaltyConfigError,
   resetGlobalState,
@@ -25,6 +26,7 @@ import {
 import {
   fetchCustomer,
   fetchProducts,
+  fetchProductRecommendations,
   fetchLoyaltyConfig,
   endSession,
 } from "@/lib/api";
@@ -100,6 +102,26 @@ export default function EcommerceLayout({ children }) {
       source.close();
     };
   }, [selectedUser?.customerId, dispatch]);
+
+  // Fetched here, not on the store page, so the data is usually ready by the
+  // time the page renders. Refreshes after an order; the old list stays visible
+  // meanwhile, and logout resets it to null via resetGlobalState.
+  const customerId = selectedUser?.customerId;
+  const ordersCount = selectedUser?.loyaltyDetails?.ordersCount;
+  useEffect(() => {
+    if (!customerId) return;
+    let cancelled = false;
+    fetchProductRecommendations(customerId)
+      .then((data) => {
+        if (!cancelled) dispatch(setRecommendationsData(data));
+      })
+      .catch(() => {
+        if (!cancelled) dispatch(setRecommendationsData([]));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [customerId, ordersCount, dispatch]);
 
   useEffect(() => {
     let cancelled = false;

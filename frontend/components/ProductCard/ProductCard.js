@@ -20,7 +20,7 @@ export default function ProductCard({ product }) {
     dispatch(
       openModal({
         modalType: "productDetail",
-        props: { id: product.id },
+        props: { id: product.productId },
       }),
     );
   }

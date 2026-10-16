@@ -97,6 +97,12 @@ export function fetchProducts() {
   return request("/products");
 }
 
+export function fetchProductRecommendations(customerId) {
+  return request("/products/recommendations", {
+    headers: { "x-customer-id": customerId ?? "" },
+  });
+}
+
 export async function fetchLoyaltyConfig({ retryMissing = false } = {}) {
   for (let attempt = 0; ; attempt += 1) {
     try {
