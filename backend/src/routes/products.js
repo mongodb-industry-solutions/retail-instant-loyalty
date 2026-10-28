@@ -23,6 +23,8 @@ export default function productsRoutes(app) {
   //   has orders              -> HISTORY_SLOTS they buy most, rest from their interests
   //   has orders, near a tier -> up to TIER_BOOST_SLOTS products (from their interests)
   //                              that earn the most / close the gap, shown first
+  // Intentional: demo app identifies the caller by x-customer-id; no auth by design.
+
   app.get("/products/recommendations", async (request, reply) => {
     const customerId = request.headers["x-customer-id"];
     if (!customerId)
