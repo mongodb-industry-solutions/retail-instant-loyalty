@@ -82,11 +82,9 @@ export async function startSession(selectedCustomerId) {
 
 // Releases the claimed persona and ends the session.
 export async function endSession() {
-  try {
-    return await request("/sessions/end", { method: "POST" });
-  } finally {
-    clearSessionId();
-  }
+  const pendingRequest = request("/sessions/end", { method: "POST" });
+  clearSessionId();
+  return pendingRequest;
 }
 
 export function fetchCustomer(id) {
