@@ -135,9 +135,7 @@ export default function OrdersView() {
                     <div className={`${styles.rowCoins} mono`}>
                       {order.coinsApplied > 0
                         ? `-${order.coinsApplied.toLocaleString()} coins applied`
-                        : order.coinsApplied === 0
-                          ? "0 coins earned"
-                          : `${(order.coinsEarned ?? 0).toLocaleString()} coins earned`}
+                        : `${(order.coinsEarned ?? 0).toLocaleString()} coins earned`}
                     </div>
                   </div>
                   <div className={styles.rowRight}>

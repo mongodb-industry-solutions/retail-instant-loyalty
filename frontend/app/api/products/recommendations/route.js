@@ -6,7 +6,10 @@ const BACKEND_SERVES_THIS = true;
 
 export async function GET(request) {
   if (!BACKEND_SERVES_THIS || !BACKEND_URL) {
-    return NextResponse.json(PLACEHOLDER_PRODUCTS);
+    return NextResponse.json(
+      { error: "Recommendations backend is not configured" },
+      { status: 503 },
+    );
   }
 
   try {

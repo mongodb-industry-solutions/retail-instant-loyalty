@@ -8,6 +8,9 @@ import {
   selectSelectedUser,
   selectProductsState,
   selectLoyaltyConfig,
+  selectLastOrder,
+  selectLastRedeem,
+  selectRecommendationsData,
   setSelectedUser,
   patchSelectedUser,
   setProductsData,
@@ -37,6 +40,9 @@ export default function EcommerceLayout({ children }) {
   const selectedUser = useSelector(selectSelectedUser);
   const products = useSelector(selectProductsState);
   const loyaltyConfig = useSelector(selectLoyaltyConfig);
+  const lastOrder = useSelector(selectLastOrder);
+  const lastRedeem = useSelector(selectLastRedeem);
+  const recommendations = useSelector(selectRecommendationsData);
   const sessionInvalid = useRef(false);
   useEffect(() => {
     if (selectedUser || sessionInvalid.current) return;
@@ -55,16 +61,11 @@ export default function EcommerceLayout({ children }) {
           })
           .catch(() => {
             if (cancelled) return;
-            // The cookie names a persona we can't load, so drop both the
-            // claim and the cookie before bouncing to /login.
             endSession().catch(() => {});
             clearActivePersonaCookie().catch(() => {});
             router.replace("/login");
           });
       })
-      // Logout clears the user synchronously, re-running this effect just as
-      // the /login navigation starts -- which aborts the in-flight request.
-      // We're already leaving, so there is nothing to recover.
       .catch(() => {
         if (cancelled) return;
         router.replace("/login");
@@ -90,9 +91,6 @@ export default function EcommerceLayout({ children }) {
     });
 
     source.onerror = () => {
-      // EventSource hands us a bare Event with no detail (hence the useless
-      // "{}"), and fires it on every drop — including the reconnects it
-      // handles itself. Only a CLOSED socket is actually a failure.
       if (source.readyState === EventSource.CLOSED) {
         console.error("Customer change stream closed and will not retry");
       }
@@ -103,11 +101,9 @@ export default function EcommerceLayout({ children }) {
     };
   }, [selectedUser?.customerId, dispatch]);
 
-  // Fetched here, not on the store page, so the data is usually ready by the
-  // time the page renders. Refreshes after an order; the old list stays visible
-  // meanwhile, and logout resets it to null via resetGlobalState.
   const customerId = selectedUser?.customerId;
   const ordersCount = selectedUser?.loyaltyDetails?.ordersCount;
+  const rewardDetails = loyaltyConfig.rewardDetails;
   useEffect(() => {
     if (!customerId) return;
     let cancelled = false;
@@ -121,7 +117,7 @@ export default function EcommerceLayout({ children }) {
     return () => {
       cancelled = true;
     };
-  }, [customerId, ordersCount, dispatch]);
+  }, [customerId, ordersCount, lastOrder, lastRedeem, rewardDetails, dispatch]);
 
   useEffect(() => {
     let cancelled = false;
@@ -173,7 +169,15 @@ export default function EcommerceLayout({ children }) {
   // Gate on `selectedUser` itself, not a sticky local flag: on logout the user
   // is cleared synchronously while the /login redirect is still in flight, and
   // children read `selectedUser.profile` unguarded.
-  if (!selectedUser || products.loading || loyaltyConfig.loading)
+  // Recommendations are part of the gate so the store page doesn't paint
+  // skeletons and then swap them for cards. A failed fetch sets [] (not null),
+  // so this can't hang. Later refreshes keep the old list, so they don't re-gate.
+  if (
+    !selectedUser ||
+    products.loading ||
+    loyaltyConfig.loading ||
+    recommendations === null
+  )
     return <ProgressCircle size="3xlarge" aria-label="Loading (3xlarge)" />;
 
   return (
