@@ -106,10 +106,23 @@ export default function EcommerceLayout({ children }) {
   const ordersCount = selectedUser?.loyaltyDetails?.ordersCount;
   const rewardDetails = loyaltyConfig.rewardDetails;
   useEffect(() => {
-    // The session id is cleared as soon as logout starts, while the customer
-    // reset can still re-trigger this effect; the backend rejects that (400).
-    if (!customerId || !getSessionId()) return;
+    if (!customerId) return;
     let cancelled = false;
+    if (!getSessionId()) {
+      sessionInvalid.current = true;
+      clearActivePersonaCookie()
+        .catch((error) => {
+          console.error("Couldn't clear the active persona:", error);
+        })
+        .then(() => {
+          if (cancelled) return;
+          router.replace("/login");
+          dispatch(resetGlobalState());
+        });
+      return () => {
+        cancelled = true;
+      };
+    }
     fetchProductRecommendations(customerId)
       .then((data) => {
         if (!cancelled) dispatch(setRecommendationsData(data));
@@ -120,7 +133,15 @@ export default function EcommerceLayout({ children }) {
     return () => {
       cancelled = true;
     };
-  }, [customerId, ordersCount, lastOrder, lastRedeem, rewardDetails, dispatch]);
+  }, [
+    customerId,
+    ordersCount,
+    lastOrder,
+    lastRedeem,
+    rewardDetails,
+    dispatch,
+    router,
+  ]);
 
   useEffect(() => {
     let cancelled = false;
