@@ -170,8 +170,12 @@ export default function StoreView() {
               ? Array.from({ length: SKELETON_COUNT }).map((_, i) => (
                   <ProductCardSkeleton key={i} />
                 ))
-              : recommendations.map((product) => (
-                  <ProductCard key={product.productId} product={product} />
+              : recommendations.map((product, index) => (
+                  <ProductCard
+                    key={product.productId}
+                    product={product}
+                    loading={index === 0 ? "eager" : "lazy"}
+                  />
                 ))}
           </div>
         </section>

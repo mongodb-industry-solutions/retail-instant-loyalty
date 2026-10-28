@@ -14,10 +14,11 @@ export async function GET(request) {
 
   try {
     const res = await fetch(`${BACKEND_URL}/products/recommendations`, {
+      method: "GET",
       headers: {
-        method: "GET",
         "Content-Type": "application/json",
         "x-customer-id": request.headers.get("x-customer-id") ?? "",
+        "x-session-id": request.headers.get("x-session-id") ?? "",
       },
       cache: "no-store",
     });

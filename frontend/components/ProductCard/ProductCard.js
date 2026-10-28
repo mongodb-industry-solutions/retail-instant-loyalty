@@ -12,7 +12,7 @@ export function ProductCardSkeleton() {
   return <Skeleton className={styles.productCard} />;
 }
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, loading = "lazy" }) {
   //style={{ objectFit: "contain" }}
   const photo = product.imageURL || "/images/placeholder.png"; // Use placeholder if imageURL is not available
   const dispatch = useDispatch();
@@ -40,7 +40,7 @@ export default function ProductCard({ product }) {
           alt={product.name}
           fill
           unoptimized
-          loading="eager" // Eager on purpose: silences Next's LCP "add loading=eager" dev warning.
+          loading={loading}
           className={styles.pThumbImg}
         />
         {/* {<span className={styles.pBadge}>{"Best Seller"}</span>} */}

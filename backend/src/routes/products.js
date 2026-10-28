@@ -23,10 +23,18 @@ export default function productsRoutes(app) {
   //   has orders              -> HISTORY_SLOTS they buy most, rest from their interests
   //   has orders, near a tier -> up to TIER_BOOST_SLOTS products (from their interests)
   //                              that earn the most / close the gap, shown first
-  // Intentional: demo app identifies the caller by x-customer-id; no auth by design.
 
   app.get("/products/recommendations", async (request, reply) => {
     const customerId = request.headers["x-customer-id"];
+    const sessionId = request.headers["x-session-id"];
+    if (!sessionId)
+      return sendError(
+        reply,
+        400,
+        "SESSION_ID_REQUIRED",
+        "x-session-id header is required",
+      );
+
     if (!customerId)
       return sendError(
         reply,
@@ -38,13 +46,15 @@ export default function productsRoutes(app) {
     const db = app.mongo.db;
 
     try {
-      const customer = await db.collection("customers").findOne({ customerId });
+      const customer = await db
+        .collection("customers")
+        .findOne({ customerId, sessionId });
       if (!customer)
         return sendError(
           reply,
           404,
-          "CUSTOMER_NOT_FOUND",
-          "Customer not found",
+          "CUSTOMER_ACCESS_DENIED",
+          "Customer not found or access denied",
         );
 
       // Independent reads, so run them together

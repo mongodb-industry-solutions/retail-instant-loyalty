@@ -26,6 +26,7 @@ import {
   readActivePersonaCookie,
   clearActivePersonaCookie,
 } from "@/lib/cookies";
+import { getSessionId } from "@/lib/session";
 import {
   fetchCustomer,
   fetchProducts,
@@ -105,7 +106,9 @@ export default function EcommerceLayout({ children }) {
   const ordersCount = selectedUser?.loyaltyDetails?.ordersCount;
   const rewardDetails = loyaltyConfig.rewardDetails;
   useEffect(() => {
-    if (!customerId) return;
+    // The session id is cleared as soon as logout starts, while the customer
+    // reset can still re-trigger this effect; the backend rejects that (400).
+    if (!customerId || !getSessionId()) return;
     let cancelled = false;
     fetchProductRecommendations(customerId)
       .then((data) => {
