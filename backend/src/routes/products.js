@@ -127,8 +127,6 @@ export default function productsRoutes(app) {
           ])
           .toArray();
 
-        //console.log(topProducts);
-
         reply.send(topProducts);
         return;
       }

@@ -38,7 +38,6 @@ export default function CheckoutView() {
   const [overview, setOverview] = useState(null);
   const [overviewError, setOverviewError] = useState(null);
   const loyaltyConfig = useSelector(selectLoyaltyConfig);
-  console.log("In the checkout page and the loyalty data is ", loyaltyConfig);
   const currentTierConfig = persona.loyaltyDetails?.activeTier
     ? loyaltyConfig.rewardDetails.find(
         (tier) => tier.tierKey === persona.loyaltyDetails?.activeTier,
