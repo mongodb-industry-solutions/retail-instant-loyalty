@@ -73,7 +73,9 @@ function PaymentInfoView({ order }) {
           value={`•••• •••• •••• ${paymentDetails.last4}`}
           isReadOnly
           isInvalid={paymentDetails.last4 === "0000"}
-          errorMessage={paymentDetails.last4 === "0000" ? "Invalid card number" : ""}
+          errorMessage={
+            paymentDetails.last4 === "0000" ? "Invalid card number" : ""
+          }
         />
       </div>
 
@@ -100,7 +102,6 @@ function OrderErrorView({
   finalOrder,
   router,
 }) {
-  console.log("finalOrder:", finalOrder);
   return (
     <main className={styles.wrap}>
       <div className={styles.icon}>
@@ -211,8 +212,6 @@ export default function ConfirmView() {
   }
 
   let showOnlyStepperStatus = ["authorizing", "placed"];
-
-  console.log("finalOrder:", finalOrder);
 
   if (finalOrder?.currentStatus === "payment_failed") {
     showOnlyStepperStatus = ["authorizing"];

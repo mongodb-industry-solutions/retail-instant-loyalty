@@ -12,7 +12,7 @@ export function ProductCardSkeleton() {
   return <Skeleton className={styles.productCard} />;
 }
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, loading = "lazy" }) {
   //style={{ objectFit: "contain" }}
   const photo = product.imageURL || "/images/placeholder.png"; // Use placeholder if imageURL is not available
   const dispatch = useDispatch();
@@ -20,7 +20,7 @@ export default function ProductCard({ product }) {
     dispatch(
       openModal({
         modalType: "productDetail",
-        props: { id: product.id },
+        props: { id: product.productId },
       }),
     );
   }
@@ -40,6 +40,7 @@ export default function ProductCard({ product }) {
           alt={product.name}
           fill
           unoptimized
+          loading={loading}
           className={styles.pThumbImg}
         />
         {/* {<span className={styles.pBadge}>{"Best Seller"}</span>} */}

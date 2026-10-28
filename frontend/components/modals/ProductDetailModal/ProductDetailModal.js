@@ -26,9 +26,8 @@ export default function ProductDetailModal({ id, onClose }) {
   const products = useSelector(selectProductsData);
   const persona = useSelector(selectSelectedUser);
   const [showProductDoc, setShowProductDoc] = useState(false);
-  const [showInvDoc, setShowInvDoc] = useState(false);
 
-  const pr = products.find((x) => x.id === id);
+  const pr = products.find((x) => x.productId === id);
   const catBg = (CAT_COLOR[pr.category] || { bg: "#EEE" }).bg;
   const city = (persona.addresses?.[0]?.city ?? "").split(",")[0];
   const stores = [
@@ -37,11 +36,11 @@ export default function ProductDetailModal({ id, onClose }) {
     `${city} Distribution Center`,
   ].map((s) => ({
     name: s,
-    stock: seededStock(pr.id + s),
+    stock: seededStock(pr.productId + s),
   }));
 
   const productDoc = productDocFor(pr);
-  
+
   return (
     <>
       <div className={modal.head}>
@@ -59,6 +58,7 @@ export default function ProductDetailModal({ id, onClose }) {
                   src={pr.imageURL}
                   alt={pr.name}
                   fill
+                  sizes="88px"
                   style={{ objectFit: "cover" }}
                   className={styles.pThumbImg}
                 />
@@ -97,9 +97,8 @@ export default function ProductDetailModal({ id, onClose }) {
                 </div>
                 <div className={styles.detailScoreRow}>
                   <span className={styles.detailScoreMeta}>
-                    ★ {pr.rating.toFixed(1)} rating ·{" "}
-                    {pr.reviews.toLocaleString()} reviews · Loyalty redemption
-                    available at checkout
+                    ★ {pr.rating.toFixed(1)} rating · {pr.reviews.length}{" "}
+                    reviews · Loyalty redemption available at checkout
                   </span>
                 </div>
               </div>

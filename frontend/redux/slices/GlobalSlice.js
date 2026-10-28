@@ -20,6 +20,8 @@ const INITIAL_STATE = {
     rewardDetails: [],
     campaign: [],
   },
+  // null = not loaded yet (show skeletons); [] = loaded, nothing to recommend
+  recommendations: null,
   lastOrder: null,
   lastRedeem: null,
   inspectedEvent: null,
@@ -74,6 +76,9 @@ const GlobalSlice = createSlice({
         error: null,
       };
     },
+    setRecommendationsData(state, action) {
+      state.recommendations = action.payload;
+    },
     setLoyaltyConfigLoading(state, action) {
       state.loyaltyConfig.loading = action.payload;
     },
@@ -82,7 +87,6 @@ const GlobalSlice = createSlice({
       state.loyaltyConfig.error = action.payload;
     },
     setLoyaltyConfigData(state, action) {
-      console.log("Setting loyalty config data:", action.payload);
       const { rewardDetails, campaign } = action.payload;
       state.loyaltyConfig = {
         rewardDetails,
@@ -222,6 +226,7 @@ export const {
   setProductsLoading,
   setProductsData,
   setProductsError,
+  setRecommendationsData,
   setLoyaltyConfigLoading,
   setLoyaltyConfigData,
   setLoyaltyConfigError,
@@ -243,6 +248,8 @@ export const selectUsers = (state) => state.Global.users;
 export const selectSelectedUser = (state) => state.Global.selectedUser;
 export const selectProductsState = (state) => state.Global.products;
 export const selectProductsData = (state) => state.Global.products.data;
+export const selectRecommendationsData = (state) =>
+  state.Global.recommendations;
 export const selectLastOrder = (state) => state.Global.lastOrder;
 export const selectLastRedeem = (state) => state.Global.lastRedeem;
 export const selectLastEvent = (state) => state.Global.lastEvent;
