@@ -82,11 +82,9 @@ export async function startSession(selectedCustomerId) {
 
 // Releases the claimed persona and ends the session.
 export async function endSession() {
-  try {
-    return await request("/sessions/end", { method: "POST" });
-  } finally {
-    clearSessionId();
-  }
+  const pendingRequest = request("/sessions/end", { method: "POST" });
+  clearSessionId();
+  return pendingRequest;
 }
 
 export function fetchCustomer(id) {
@@ -95,6 +93,12 @@ export function fetchCustomer(id) {
 
 export function fetchProducts() {
   return request("/products");
+}
+
+export function fetchProductRecommendations(customerId) {
+  return request("/products/recommendations", {
+    headers: { "x-customer-id": customerId ?? "" },
+  });
 }
 
 export async function fetchLoyaltyConfig({ retryMissing = false } = {}) {

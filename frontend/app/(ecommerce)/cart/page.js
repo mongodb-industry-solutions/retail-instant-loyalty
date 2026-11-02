@@ -61,7 +61,7 @@ export default function CartView() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [itemsKey]);
+  }, [itemsKey, loyaltyConfig]);
 
   const amounts = overview?.order;
   const subtotal = amounts?.amountSummary.subtotal || 0;

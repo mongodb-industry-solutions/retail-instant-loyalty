@@ -101,7 +101,7 @@ export default function CheckoutView() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [itemsKey, coinsToApply]);
+  }, [itemsKey, coinsToApply, loyaltyConfig]);
 
   const amounts = overview?.order?.amountSummary;
   const loyalty = overview?.loyalty;

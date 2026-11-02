@@ -12,7 +12,10 @@ const BACKEND_SERVES_THIS = true;
 
 export async function GET() {
   if (!BACKEND_SERVES_THIS || !BACKEND_URL) {
-    return NextResponse.json(PLACEHOLDER_PRODUCTS);
+    return NextResponse.json(
+      { error: "Products backend is not configured" },
+      { status: 503 },
+    );
   }
 
   try {

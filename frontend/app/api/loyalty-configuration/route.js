@@ -8,15 +8,11 @@ const PATCHABLE_FIELDS = ["rewardUpdates", "campaignUpdate"];
 export async function PATCH(request) {
   const body = await request.json();
 
-  console.log("PATCH request body:", body);
-
   const patch = Object.fromEntries(
     PATCHABLE_FIELDS.filter((field) => body[field] !== undefined).map(
       (field) => [field, body[field]],
     ),
   );
-
-  console.log("PATCH request patch:", patch);
 
   if (!Object.keys(patch).length) {
     return NextResponse.json(
