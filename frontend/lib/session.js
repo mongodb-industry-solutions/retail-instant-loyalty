@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 // There is no session until a persona is actually claimed. Listing the
 // selectable personas (GET /sessions) happens without one; the id is created
 // at selection time and passed to /sessions/start, which uses it to mark the
@@ -12,9 +13,9 @@ export function getSessionId() {
 
 export function createSessionId() {
   if (typeof window === "undefined") return null;
-  const id = crypto.randomUUID();
-  window.localStorage.setItem(STORAGE_KEY, id);
-  return id;
+  const newSessionId = uuidv4();
+  window.localStorage.setItem(STORAGE_KEY, newSessionId);
+  return newSessionId;
 }
 
 export function clearSessionId() {
