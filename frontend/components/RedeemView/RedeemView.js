@@ -12,6 +12,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@via-ds/components/button";
 import { fetchRedeemCandidates, confirmRedeemRequest } from "@/lib/api";
+import { getSessionId } from "@/lib/session";
 import { formatPrice, formatCoinValue } from "@/lib/helper";
 import shared from "@/components/shared.module.css";
 import { toast } from "@via-ds/components/toast";
@@ -181,7 +182,7 @@ export default function RedeemSection({ excludeItemIds }) {
 
   useEffect(() => {
     let cancelled = false;
-    if (!justRedeemed) {
+    if (persona?.customerId && getSessionId() && !justRedeemed) {
       fetchRedeemCandidates({
         excludeProducts: excludeKey ? excludeKey.split(",") : [],
       })
@@ -200,8 +201,8 @@ export default function RedeemSection({ excludeItemIds }) {
       cancelled = true;
     };
   }, [
-    persona.customerId,
-    persona.loyaltyDetails?.coinBalance,
+    persona?.customerId,
+    persona?.loyaltyDetails?.coinBalance,
     excludeKey,
     justRedeemed,
   ]);
@@ -211,9 +212,10 @@ export default function RedeemSection({ excludeItemIds }) {
 
   const reward =
     products.find((p) => p.productId === selectedProductId) || null;
-  const activeTier = persona.loyaltyDetails?.activeTier;
+  const activeTier = persona?.loyaltyDetails?.activeTier;
 
   return (
+    persona &&
     !justRedeemed && (
       <div className={styles.redeemSection}>
         <div className={styles.redeemHead}>

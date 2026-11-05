@@ -10,6 +10,7 @@ import { useSelector } from "react-redux";
 import {
   selectSelectedUser,
   selectProductsState,
+  selectRecommendationsData,
   selectLoyaltyConfig,
 } from "@/redux/slices/GlobalSlice";
 import styles from "./StoreView.module.css";
@@ -24,11 +25,9 @@ export default function StoreView() {
   //Will change it to home
   const selectedUser = useSelector(selectSelectedUser);
   const { data: products, loading } = useSelector(selectProductsState);
-  const { rewardDetails, campaign } = useSelector(selectLoyaltyConfig);
+  const { rewardDetails } = useSelector(selectLoyaltyConfig);
+  const recommendations = useSelector(selectRecommendationsData);
 
-  const recommended = products
-    .filter((p) => selectedUser?.profile?.interests?.includes(p.category))
-    .slice(0, 4); // Filter products based on selected user's interests and limit to 4
   const SKELETON_COUNT = 4;
   const categories = [
     "All",
@@ -143,7 +142,7 @@ export default function StoreView() {
       {selectedUser.loyaltyDetails && (
         <section className={styles.block}>
           <div className={`${styles.blockHead} ${styles.blockHeadStack}`}>
-            <div hidden>
+            <div>
               <H3 className={styles.sectionHeadInline}>
                 Recommended for you
                 {/* <button
@@ -156,17 +155,27 @@ export default function StoreView() {
                 </button> */}
               </H3>
               <div className={styles.sectionSubnote}>
-                <Text elementType="span">Inspired by your recent orders</Text>
+                {selectedUser.loyaltyDetails.activeTier !== null ? (
+                  <Text elementType="span">
+                    Inspired by your recent orders and interests
+                  </Text>
+                ) : (
+                  <Text elementType="span">Top sellers</Text>
+                )}
               </div>
             </div>
           </div>
           <div className={styles.productGrid}>
-            {loading
+            {loading || recommendations === null
               ? Array.from({ length: SKELETON_COUNT }).map((_, i) => (
                   <ProductCardSkeleton key={i} />
                 ))
-              : recommended.map((product) => (
-                  <ProductCard key={product.productId} product={product} />
+              : recommendations.map((product, index) => (
+                  <ProductCard
+                    key={product.productId}
+                    product={product}
+                    loading={index === 0 ? "eager" : "lazy"}
+                  />
                 ))}
           </div>
         </section>

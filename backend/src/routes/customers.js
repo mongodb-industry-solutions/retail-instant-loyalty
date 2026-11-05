@@ -43,7 +43,9 @@ export default function customersRoutes(app) {
         {
           $match: {
             operationType: { $in: ["update", "replace"] },
-            "fullDocument.customerId": customerId,
+            // Match on the key, not fullDocument: fullDocument is looked up before match runs, so filtering on it costs a lookup for
+            // every customer update on every open stream.
+            "documentKey._id": customer._id,
           },
         },
       ],
@@ -67,7 +69,7 @@ export default function customersRoutes(app) {
     };
 
     // Initial snapshot
-    //sendCustomer(customer);
+    sendCustomer(customer);
 
     const closeStream = async () => {
       if (closed) return;

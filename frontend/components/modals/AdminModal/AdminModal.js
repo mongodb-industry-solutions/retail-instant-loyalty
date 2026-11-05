@@ -78,9 +78,9 @@ function CampaignTab({ value, getChanges }) {
   return (
     <>
       <p>
-        Control the current campaign. This is the deliberate demo
-        moment: switch the multiplier live and show the banner and coin earnings
-        change instantly, while Atlas Triggers enforce the rule operationally.
+        Control the current campaign. This is the deliberate demo moment: switch
+        the multiplier live and show the banner and coin earnings change
+        instantly, while Atlas Triggers enforce the rule operationally.
       </p>
       <div className={styles.grid}>
         <div className={shared.field}>
@@ -127,8 +127,6 @@ function CampaignTab({ value, getChanges }) {
         The campaign banner updates immediately and the coins-earned calculation
         changes with no redeploy or ETL.
       </Banner>
-              
-
     </>
   );
 }
@@ -246,8 +244,6 @@ export default function AdminModal({ onClose }) {
       original.current.rewardDetails,
     );
     const campaignChange = changedCampaign(campaign, original.current.campaign);
-
-    console.log({ updatedRewards, campaignChange });
 
     const patch = {};
     if (updatedRewards.length > 0) patch.rewardUpdates = updatedRewards;
