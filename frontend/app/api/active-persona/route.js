@@ -9,10 +9,16 @@ const MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 const COOKIE_OPTIONS = {
   httpOnly: true,
   sameSite: "lax",
-  secure: process.env.NODE_ENV === "production",
   path: "/",
   maxAge: MAX_AGE_SECONDS,
 };
+
+// Browsers drop Secure cookies over plain HTTP (e.g. in-cluster http://<service>), so match the real protocol.
+function isHttps(request) {
+  const forwarded = request.headers.get("x-forwarded-proto");
+  if (forwarded) return forwarded.split(",")[0].trim() === "https";
+  return request.nextUrl.protocol === "https:";
+}
 
 export async function GET(request) {
   const id = request.cookies.get(COOKIE_NAME)?.value ?? null;
@@ -22,7 +28,7 @@ export async function GET(request) {
 export async function POST(request) {
   const { id } = await request.json();
   const res = NextResponse.json({ id });
-  res.cookies.set(COOKIE_NAME, id, COOKIE_OPTIONS);
+  res.cookies.set(COOKIE_NAME, id, { ...COOKIE_OPTIONS, secure: isHttps(request) });
   return res;
 }
 
