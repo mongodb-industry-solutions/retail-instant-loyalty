@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"f283af56c0d94e1bb5c0f8b506ad0e5a","collectionName":"seedLoyaltyConfiguration","type":"collection"}
