@@ -46,7 +46,6 @@ db.customers.createIndex({ customerId: 1 }, { unique: true });
 db.customers.createIndex({ "preferences.isActive": 1 });
 
 db.products.createIndex({ productId: 1 });
-s
 db.orders.createIndex({ customerId: 1 });
 db.orders.createIndex({ createdAt: -1 });
 
