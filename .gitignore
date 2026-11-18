@@ -74,6 +74,7 @@ frontend/yarn-error.log*
 
 # Environment files
 frontend/.env*
+!frontend/.env.example
 
 # Vercel
 frontend/.vercel
