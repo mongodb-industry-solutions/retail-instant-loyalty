@@ -61,7 +61,7 @@ exports = async function() {
 
   // ---------------------------------------------------------
   // IMPORTANT. This logic mimics the logic of our POST session/end API (must keep logic identical)
-  // Located inside the repo /backend/src/rputes/sessions.js
+  // Located inside the repo /backend/src/routes/sessions.js
   // The reason we have this trigger is to clean sessions that users dont manually close (click on logout) 
   // To keep demo data clean, prevent data overload and allow to always have available users.
   // ---------------------------------------------------------
