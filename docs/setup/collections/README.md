@@ -26,6 +26,10 @@ The sample data in this folder is a `mongodump` export: each collection ships as
 | `counters`                  | Auto-increment sequence counters used to generate order numbers.                                                           |
 | `sessionCleanupFailures`    | Log of sessions the scheduled cleanup trigger failed to close (for troubleshooting).                                       |                                                         |
 
+> ⚠️ **One seed rule keeps sessions independent: the `sessionId` is off the seeded data.**
+> The app treats a document (e.g., an order) **without** a `sessionId` as **permanent history**, and a document **with** a `sessionId` as **temporary demo data** — the Atlas Triggers delete everything matching the session's `sessionId` when the session ends. So if you add your own seed orders, transactions, or loyalty history, omit the `sessionId` field or they will be wiped at session cleanup.
+> Likewise, `seedLoyaltyConfiguration` is the template for all loyalty rules: keep its rules nested under a `seedFields` object (the trigger spreads `seedFields` into each new session's `loyaltyConfiguration` document, adding the `sessionId` itself).
+
 ### Importing Data
 
 From the repository root, restore everything into your cluster with [`mongorestore`](https://www.mongodb.com/docs/database-tools/mongorestore/):
